@@ -45,6 +45,9 @@ dev = [
     "pytest-asyncio>=0.21",
 ]
 
+[project.scripts]
+aria = "aria.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/spmfrance-cloud/aria-protocol"
 Repository = "https://github.com/spmfrance-cloud/aria-protocol"
