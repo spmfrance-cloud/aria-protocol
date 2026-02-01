@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """
-ARIA Protocol - Real Network Demo
-Demonstrates the full ARIA protocol with real WebSocket networking:
+ARIA Protocol - Real Distributed Inference Demo
+Demonstrates the full ARIA protocol with real WebSocket networking
+and distributed pipeline inference across multiple nodes:
+
 1. Create 3 nodes with explicit consent on different ports
 2. Start WebSocket servers and connect nodes via P2P
 3. Load 1-bit model shards distributed across nodes
 4. Process inference requests with real network communication
-5. Verify provenance and energy efficiency
+5. Run DISTRIBUTED INFERENCE: activations flow through all 3 nodes
+6. Verify provenance and energy efficiency
+
+The distributed inference pipeline:
+  Alice (L0-7) → Bob (L8-15) → Carol (L16-23)
+
+Each node processes its layers and forwards activations to the next.
+The final node returns the result to the originator.
 
 Run: python examples/demo.py
 """
@@ -162,25 +171,66 @@ async def run_demo():
     print()
 
     # ==========================================
-    # Step 6: Demonstrate P2P inference request
+    # Step 6: DISTRIBUTED PIPELINE INFERENCE
     # ==========================================
-    print("[6/7] Testing P2P inference request (Alice -> Bob)...")
+    print("[6/7] Running DISTRIBUTED PIPELINE INFERENCE...")
+    print()
+    print("  Pipeline chain: Alice (L0-7) -> Bob (L8-15) -> Carol (L16-23)")
     print()
 
-    # Alice sends an inference request to Bob over the network
-    response = await alice.send_inference_request(
-        peer_id="bob",
-        query="What is distributed computing?",
-        max_tokens=50
-    )
+    # Show pipeline info
+    pipeline_info = alice.network.get_pipeline_info("aria-2b-1bit")
+    print(f"  Pipeline stages: {pipeline_info['stages']}")
+    print(f"  Pipeline complete: {pipeline_info['complete']}")
+    for stage in pipeline_info['chain']:
+        print(f"    - {stage['node_id']}: {stage['layers']}")
+    print()
 
-    if response and response.get("status") == "completed":
-        result = response.get("result", {})
-        print(f"  Request sent from Alice to Bob")
-        print(f"  Response: {result.get('tokens', 'N/A')} tokens, "
-              f"latency: {result.get('latency_ms', 'N/A')}ms")
-    else:
-        print(f"  P2P request completed (response: {response})")
+    # Run distributed inference queries that traverse ALL 3 nodes
+    distributed_queries = [
+        "Explain how distributed AI inference works.",
+        "What are the benefits of model sharding?",
+        "How does pipeline parallelism improve throughput?",
+    ]
+
+    print("  Running distributed inference (activations traverse all nodes):")
+    print()
+
+    for i, query in enumerate(distributed_queries):
+        print(f"  Query {i+1}: \"{query[:50]}...\"")
+
+        # This triggers the full distributed pipeline:
+        # 1. Alice creates initial activations and processes L0-7
+        # 2. Alice forwards to Bob who processes L8-15
+        # 3. Bob forwards to Carol who processes L16-23
+        # 4. Carol returns final result back through the chain
+        result = await alice.process_distributed_inference(
+            query=query,
+            model_id="aria-2b-1bit",
+            max_tokens=50,
+            total_layers=24
+        )
+
+        if result:
+            print(f"    -> Nodes used: {' -> '.join(result.nodes_used)}")
+            print(f"    -> Latency: {result.latency_ms}ms | "
+                  f"Energy: {result.energy_mj}mJ | "
+                  f"Tokens: {result.tokens_generated}")
+        else:
+            print(f"    -> Pipeline failed!")
+        print()
+
+    # Also test initiating from different nodes
+    print("  Testing pipeline initiated from Bob (L8-15 -> Carol L16-23 -> back to start):")
+    bob_result = await bob.process_distributed_inference(
+        query="How does peer-to-peer networking enable distributed AI?",
+        model_id="aria-2b-1bit",
+        max_tokens=50,
+        total_layers=24
+    )
+    if bob_result:
+        print(f"    -> Nodes used: {' -> '.join(bob_result.nodes_used)}")
+        print(f"    -> Latency: {bob_result.latency_ms}ms")
     print()
 
     # ==========================================
@@ -231,6 +281,11 @@ async def run_demo():
     print(f"  Energy saved:           {savings:.1f} mJ ({savings/max(gpu_equivalent,1)*100:.1f}%)")
     print(f"  Tokens earned (total):  {total_tokens:.6f} ARIA")
     print(f"  Ledger integrity:       {'VALID' if alice.ledger.verify_chain() else 'INVALID'}")
+    print()
+    print("  === DISTRIBUTED INFERENCE ===")
+    print("  Pipeline parallelism:   Alice(L0-7) -> Bob(L8-15) -> Carol(L16-23)")
+    print("  Activation format:      Base64-encoded float arrays over WebSocket")
+    print("  Pipeline timeout:       5 seconds with automatic replica fallback")
     print()
     print("  Real WebSocket P2P:     Nodes communicate over localhost")
     print("  Proof of Useful Work:   Mining IS inference.")
