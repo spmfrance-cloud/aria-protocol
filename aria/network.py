@@ -3,6 +3,11 @@ ARIA Protocol - P2P Network Layer
 Handles node discovery, shard location, and inference routing.
 Real WebSocket-based implementation with asyncio.
 
+Supports distributed pipeline inference:
+- Builds pipeline chains from shard registry
+- Routes activations through node chain
+- Handles timeout and fallback to replicas
+
 MIT License - Anthony MURGO, 2026
 """
 
@@ -12,8 +17,9 @@ import hashlib
 import time
 import random
 import logging
+import re
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Callable, Set
+from typing import Dict, List, Optional, Callable, Set, Tuple
 
 try:
     import websockets
@@ -118,17 +124,25 @@ class ARIANetwork:
     Manages node discovery, routing tables, and inference
     request matching based on consent parameters.
 
+    Supports distributed pipeline inference:
+    - build_pipeline_chain(): constructs ordered list of nodes for full inference
+    - forward_pipeline_state(): sends activations to next node with timeout/fallback
+    - Automatic fallback to replica nodes on timeout
+
     Usage:
         network = ARIANetwork(node_id="my_node", port=8765)
         await network.start()
         await network.bootstrap(["localhost:8766", "localhost:8767"])
 
-        # Route an inference request
-        peers = network.find_peers_for_request(request)
+        # Build pipeline for distributed inference
+        chain = network.build_pipeline_chain("aria-2b-1bit", total_layers=24)
+        # chain = [(alice, L0-7), (bob, L8-15), (carol, L16-23)]
     """
 
     HEARTBEAT_INTERVAL = 30  # seconds
     RECONNECT_DELAY = 5      # seconds
+    PIPELINE_TIMEOUT = 5.0   # seconds - timeout before fallback to replica
+    MAX_RETRIES = 2          # Maximum retries with replicas
 
     def __init__(self, node_id: str, host: str = "0.0.0.0", port: int = 8765,
                  consent: Optional[ARIAConsent] = None):
@@ -165,6 +179,9 @@ class ARIANetwork:
         # Inference request handler callback
         self._inference_callback: Optional[Callable] = None
 
+        # Pipeline stage handler callback
+        self._pipeline_callback: Optional[Callable] = None
+
         # Register default handlers
         self._register_default_handlers()
 
@@ -176,10 +193,15 @@ class ARIANetwork:
         self._handlers["shard_announce"] = self._handle_shard_announce
         self._handlers["inference_request"] = self._handle_inference_request
         self._handlers["get_peers"] = self._handle_get_peers
+        self._handlers["pipeline_forward"] = self._handle_pipeline_forward
 
     def set_inference_callback(self, callback: Callable):
         """Set callback for handling inference requests."""
         self._inference_callback = callback
+
+    def set_pipeline_callback(self, callback: Callable):
+        """Set callback for handling pipeline forward requests."""
+        self._pipeline_callback = callback
 
     # ==========================================
     # WEBSOCKET SERVER
@@ -593,6 +615,263 @@ class ARIANetwork:
         """Return list of known peers."""
         peer_list = [p.to_dict() for p in self.get_alive_peers() if p.node_id != sender_id]
         return {"peers": peer_list}
+
+    async def _handle_pipeline_forward(self, sender_id: str, data: dict) -> dict:
+        """
+        Handle a pipeline forward request.
+
+        This is called when another node sends activations to us
+        for processing through our local layers.
+        """
+        if self._pipeline_callback:
+            try:
+                result = await self._pipeline_callback(data)
+                return result
+            except Exception as e:
+                logger.error(f"[{self.node_id}] Pipeline processing error: {e}")
+                return {"status": "error", "error": str(e)}
+
+        return {"status": "error", "error": "No pipeline handler registered"}
+
+    # ==========================================
+    # PIPELINE ROUTING
+    # ==========================================
+
+    def _parse_shard_layers(self, shard_id: str) -> Tuple[int, int]:
+        """
+        Parse layer range from shard ID.
+
+        Shard IDs follow the pattern: model_id_Lstart-end
+        Example: "aria-2b-1bit_L0-7" -> (0, 7)
+        """
+        match = re.search(r'_L(\d+)-(\d+)$', shard_id)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+        return -1, -1
+
+    def build_pipeline_chain(self, model_id: str, total_layers: int = 24
+                             ) -> List[Tuple[str, str, int, int, List[str]]]:
+        """
+        Build the complete pipeline chain for distributed inference.
+
+        This analyzes the shard registry and constructs an ordered
+        list of nodes that together cover all model layers.
+
+        Args:
+            model_id: The model to build pipeline for
+            total_layers: Total number of layers in the model
+
+        Returns:
+            List of tuples: (node_id, shard_id, layer_start, layer_end, replica_node_ids)
+            Ordered by layer_start, with fallback replicas for each stage.
+
+        Example:
+            [("alice", "aria-2b-1bit_L0-7", 0, 7, ["alice_backup"]),
+             ("bob", "aria-2b-1bit_L8-15", 8, 15, []),
+             ("carol", "aria-2b-1bit_L16-23", 16, 23, ["carol_backup"])]
+        """
+        # Collect all shards for this model with their layer ranges
+        shard_info = []  # (shard_id, layer_start, layer_end, [node_ids])
+
+        for shard_id, node_ids in self.shard_registry.items():
+            if not shard_id.startswith(model_id):
+                continue
+
+            layer_start, layer_end = self._parse_shard_layers(shard_id)
+            if layer_start < 0:
+                continue
+
+            # Filter to only alive nodes
+            alive_nodes = [
+                nid for nid in node_ids
+                if nid in self.peers and self.peers[nid].is_alive
+            ]
+
+            # Include ourselves if we have this shard
+            if shard_id in self.local_shards and self.node_id not in alive_nodes:
+                alive_nodes.insert(0, self.node_id)
+
+            if alive_nodes:
+                shard_info.append((shard_id, layer_start, layer_end, alive_nodes))
+
+        # Sort by layer_start
+        shard_info.sort(key=lambda x: x[1])
+
+        # Build pipeline chain with primary and replica nodes
+        chain = []
+        for shard_id, layer_start, layer_end, node_ids in shard_info:
+            primary = node_ids[0]  # First node is primary
+            replicas = node_ids[1:] if len(node_ids) > 1 else []
+
+            # Sort replicas by quality score
+            if replicas:
+                replicas.sort(
+                    key=lambda nid: self.peers[nid].quality_score()
+                    if nid in self.peers else 0,
+                    reverse=True
+                )
+
+            chain.append((primary, shard_id, layer_start, layer_end, replicas))
+
+        return chain
+
+    def get_next_stage(self, model_id: str, current_layer: int
+                       ) -> Optional[Tuple[str, str, int, int, List[str]]]:
+        """
+        Get the next stage in the pipeline for a given layer.
+
+        Args:
+            model_id: The model ID
+            current_layer: The layer we need to process next
+
+        Returns:
+            Tuple of (node_id, shard_id, layer_start, layer_end, replicas)
+            or None if no stage found
+        """
+        chain = self.build_pipeline_chain(model_id)
+
+        for node_id, shard_id, layer_start, layer_end, replicas in chain:
+            if layer_start <= current_layer <= layer_end:
+                return (node_id, shard_id, layer_start, layer_end, replicas)
+
+        return None
+
+    async def forward_pipeline_state(self, target_node_id: str,
+                                     state_dict: dict,
+                                     replicas: List[str] = None
+                                     ) -> Optional[dict]:
+        """
+        Forward pipeline state to the next node with timeout and fallback.
+
+        If the primary node doesn't respond within PIPELINE_TIMEOUT seconds,
+        automatically falls back to replica nodes.
+
+        Args:
+            target_node_id: Primary node to forward to
+            state_dict: Serialized pipeline state
+            replicas: List of fallback node IDs
+
+        Returns:
+            Response dict with result, or None if all nodes failed
+        """
+        replicas = replicas or []
+        nodes_to_try = [target_node_id] + replicas[:self.MAX_RETRIES]
+
+        for i, node_id in enumerate(nodes_to_try):
+            is_replica = i > 0
+            if is_replica:
+                logger.warning(
+                    f"[{self.node_id}] Primary node {target_node_id} timed out, "
+                    f"falling back to replica {node_id}"
+                )
+
+            try:
+                msg = self.create_message("pipeline_forward", {
+                    "state": state_dict,
+                    "is_replica": is_replica,
+                })
+
+                # Use our custom timeout instead of the default 10s
+                response = await asyncio.wait_for(
+                    self._send_with_retry(node_id, msg),
+                    timeout=self.PIPELINE_TIMEOUT
+                )
+
+                if response:
+                    try:
+                        result = json.loads(response)
+                        if result.get("status") != "error":
+                            return result
+                        logger.warning(
+                            f"[{self.node_id}] Node {node_id} returned error: "
+                            f"{result.get('error')}"
+                        )
+                    except json.JSONDecodeError:
+                        logger.warning(
+                            f"[{self.node_id}] Invalid JSON from {node_id}"
+                        )
+
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"[{self.node_id}] Timeout waiting for {node_id} "
+                    f"(limit: {self.PIPELINE_TIMEOUT}s)"
+                )
+                continue
+            except Exception as e:
+                logger.warning(
+                    f"[{self.node_id}] Error forwarding to {node_id}: {e}"
+                )
+                continue
+
+        # All nodes failed
+        logger.error(
+            f"[{self.node_id}] All pipeline nodes failed for stage "
+            f"(tried: {nodes_to_try})"
+        )
+        return None
+
+    async def _send_with_retry(self, peer_id: str, message: str) -> Optional[str]:
+        """Send message with connection retry if needed."""
+        ws = self._connections.get(peer_id)
+
+        if not ws:
+            # Try to connect if we have peer info
+            if peer_id in self.peers:
+                peer = self.peers[peer_id]
+                if await self.connect_to_peer(peer.host, peer.port):
+                    ws = self._connections.get(peer_id)
+
+        if not ws:
+            return None
+
+        # Get or create lock for this connection
+        if peer_id not in self._connection_locks:
+            self._connection_locks[peer_id] = asyncio.Lock()
+
+        lock = self._connection_locks[peer_id]
+
+        async with lock:
+            await ws.send(message)
+            response = await ws.recv()
+            return response
+
+    def get_pipeline_info(self, model_id: str) -> dict:
+        """
+        Get information about the pipeline for a model.
+
+        Returns a summary useful for debugging and monitoring.
+        """
+        chain = self.build_pipeline_chain(model_id)
+
+        stages = []
+        for node_id, shard_id, layer_start, layer_end, replicas in chain:
+            stages.append({
+                "node_id": node_id,
+                "shard_id": shard_id,
+                "layers": f"L{layer_start}-{layer_end}",
+                "replicas": len(replicas),
+                "replica_ids": replicas,
+            })
+
+        return {
+            "model_id": model_id,
+            "stages": len(stages),
+            "chain": stages,
+            "complete": self._is_chain_complete(chain),
+        }
+
+    def _is_chain_complete(self, chain: List) -> bool:
+        """Check if chain covers all layers without gaps."""
+        if not chain:
+            return False
+
+        expected_layer = 0
+        for _, _, layer_start, layer_end, _ in chain:
+            if layer_start != expected_layer:
+                return False
+            expected_layer = layer_end + 1
+
+        return True
 
     async def handle_message(self, raw_message: str) -> str:
         """
