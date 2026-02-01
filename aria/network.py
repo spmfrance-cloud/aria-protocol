@@ -182,6 +182,11 @@ class ARIANetwork:
         # Pipeline stage handler callback
         self._pipeline_callback: Optional[Callable] = None
 
+        # CLI command callbacks
+        self._stats_callback: Optional[Callable] = None
+        self._ledger_stats_callback: Optional[Callable] = None
+        self._ledger_verify_callback: Optional[Callable] = None
+
         # Register default handlers
         self._register_default_handlers()
 
@@ -194,6 +199,10 @@ class ARIANetwork:
         self._handlers["inference_request"] = self._handle_inference_request
         self._handlers["get_peers"] = self._handle_get_peers
         self._handlers["pipeline_forward"] = self._handle_pipeline_forward
+        # CLI command handlers
+        self._handlers["get_stats"] = self._handle_get_stats
+        self._handlers["get_ledger_stats"] = self._handle_get_ledger_stats
+        self._handlers["verify_ledger"] = self._handle_verify_ledger
 
     def set_inference_callback(self, callback: Callable):
         """Set callback for handling inference requests."""
@@ -202,6 +211,18 @@ class ARIANetwork:
     def set_pipeline_callback(self, callback: Callable):
         """Set callback for handling pipeline forward requests."""
         self._pipeline_callback = callback
+
+    def set_stats_callback(self, callback: Callable):
+        """Set callback for handling stats requests (CLI)."""
+        self._stats_callback = callback
+
+    def set_ledger_stats_callback(self, callback: Callable):
+        """Set callback for handling ledger stats requests (CLI)."""
+        self._ledger_stats_callback = callback
+
+    def set_ledger_verify_callback(self, callback: Callable):
+        """Set callback for handling ledger verify requests (CLI)."""
+        self._ledger_verify_callback = callback
 
     # ==========================================
     # WEBSOCKET SERVER
@@ -632,6 +653,36 @@ class ARIANetwork:
                 return {"status": "error", "error": str(e)}
 
         return {"status": "error", "error": "No pipeline handler registered"}
+
+    async def _handle_get_stats(self, sender_id: str, data: dict) -> dict:
+        """Handle stats request from CLI."""
+        if self._stats_callback:
+            try:
+                stats = self._stats_callback()
+                return {"status": "ok", "data": stats}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No stats handler registered"}
+
+    async def _handle_get_ledger_stats(self, sender_id: str, data: dict) -> dict:
+        """Handle ledger stats request from CLI."""
+        if self._ledger_stats_callback:
+            try:
+                stats = self._ledger_stats_callback()
+                return {"status": "ok", "data": stats}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No ledger stats handler registered"}
+
+    async def _handle_verify_ledger(self, sender_id: str, data: dict) -> dict:
+        """Handle ledger verify request from CLI."""
+        if self._ledger_verify_callback:
+            try:
+                result = self._ledger_verify_callback()
+                return {"status": "ok", "data": result}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No ledger verify handler registered"}
 
     # ==========================================
     # PIPELINE ROUTING
