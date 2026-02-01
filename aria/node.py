@@ -15,7 +15,7 @@ from typing import Optional, Dict, List
 
 from aria.consent import ARIAConsent, TaskType
 from aria.network import ARIANetwork, PeerInfo, InferenceRequest
-from aria.inference import InferenceEngine, InferenceResult
+from aria.inference import InferenceEngine, InferenceResult, PipelineState
 from aria.ledger import ProvenanceLedger, InferenceRecord
 from aria.proof import ProofOfUsefulWork, ProofOfSobriety
 
@@ -94,6 +94,9 @@ class ARIANode:
 
         # Set inference callback for network requests
         self.network.set_inference_callback(self._handle_network_inference)
+
+        # Set pipeline callback for distributed inference
+        self.network.set_pipeline_callback(self._handle_pipeline_forward)
 
     def load_model(self, model_id: str = "aria-2b-1bit",
                    num_layers: int = 24, hidden_dim: int = 2048,
@@ -210,6 +213,180 @@ class ARIANode:
             "energy_mj": result.energy_mj,
             "node_id": self.node_id,
         }
+
+    async def _handle_pipeline_forward(self, data: dict) -> dict:
+        """
+        Handle a pipeline forward request from another node.
+
+        This processes the incoming activations through our local layers
+        and either returns the final result or forwards to the next node.
+        """
+        state_dict = data.get("state", {})
+        is_replica = data.get("is_replica", False)
+
+        try:
+            # Deserialize pipeline state
+            state = PipelineState.from_dict(state_dict)
+
+            # Process through our local layers
+            new_state, result = self.engine.process_pipeline_stage(state)
+
+            if result:
+                # We're the final stage - return result
+                # Record provenance
+                record = result.to_provenance_record(state.query)
+                self.ledger.add_record(record)
+
+                # Calculate reward (split among all nodes)
+                reward = self._calculate_reward(result) / len(result.nodes_used)
+                self.tokens_earned += reward
+
+                return {
+                    "status": "completed",
+                    "result": {
+                        "request_id": result.request_id,
+                        "output": result.output_text,
+                        "tokens": result.tokens_generated,
+                        "latency_ms": result.latency_ms,
+                        "energy_mj": result.energy_mj,
+                        "nodes_used": result.nodes_used,
+                    }
+                }
+            else:
+                # Forward to next stage
+                next_stage = self.network.get_next_stage(
+                    state.model_id,
+                    new_state.current_layer
+                )
+
+                if not next_stage:
+                    return {
+                        "status": "error",
+                        "error": f"No node found for layer {new_state.current_layer}"
+                    }
+
+                next_node_id, _, _, _, replicas = next_stage
+
+                # Forward to next node (excluding ourselves from replicas)
+                replicas = [r for r in replicas if r != self.node_id]
+
+                response = await self.network.forward_pipeline_state(
+                    next_node_id,
+                    new_state.to_dict(),
+                    replicas
+                )
+
+                if response:
+                    return response
+                else:
+                    return {
+                        "status": "error",
+                        "error": "Failed to forward to next pipeline stage"
+                    }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+
+    async def process_distributed_inference(self, query: str,
+                                            model_id: str = "aria-2b-1bit",
+                                            max_tokens: int = 100,
+                                            total_layers: int = 24
+                                            ) -> Optional[InferenceResult]:
+        """
+        Process an inference request through the distributed pipeline.
+
+        This orchestrates the full pipeline:
+        1. Create initial pipeline state
+        2. Process through local layers (if we have early layers)
+        3. Forward to subsequent nodes in the chain
+        4. Return final result
+
+        This is the main entry point for distributed inference.
+
+        Args:
+            query: Input text/prompt
+            model_id: Which model to use
+            max_tokens: Maximum output tokens
+            total_layers: Total layers in the model
+
+        Returns:
+            InferenceResult if successful, None if pipeline failed
+        """
+        if not self.is_running:
+            raise RuntimeError("Node is not running. Call start() first.")
+
+        # Get pipeline chain
+        chain = self.network.build_pipeline_chain(model_id, total_layers)
+
+        if not chain:
+            raise ValueError(f"No pipeline chain found for model {model_id}")
+
+        # Check if we're the first stage
+        first_node_id = chain[0][0]
+
+        # Create initial pipeline state
+        state = self.engine.create_pipeline_state(
+            query=query,
+            model_id=model_id,
+            max_tokens=max_tokens,
+            total_layers=total_layers,
+            originator_id=self.node_id
+        )
+
+        if first_node_id == self.node_id:
+            # We're first - process locally first
+            shard = self.engine.get_shard_info(model_id)
+            if shard and shard.layer_start == 0:
+                new_state, result = self.engine.process_pipeline_stage(state)
+
+                if result:
+                    # We have all layers - return directly
+                    return result
+
+                state = new_state
+
+        # Find where to forward
+        next_stage = self.network.get_next_stage(model_id, state.current_layer)
+
+        if not next_stage:
+            raise ValueError(
+                f"No node found for layer {state.current_layer}"
+            )
+
+        next_node_id, _, _, _, replicas = next_stage
+
+        # Forward to the pipeline
+        response = await self.network.forward_pipeline_state(
+            next_node_id,
+            state.to_dict(),
+            [r for r in replicas if r != self.node_id]
+        )
+
+        if response and response.get("status") == "completed":
+            result_data = response.get("result", {})
+
+            # Create InferenceResult from response
+            result = InferenceResult(
+                request_id=result_data.get("request_id", state.request_id),
+                output_tokens=[],  # Not transmitted over network
+                output_text=result_data.get("output", ""),
+                latency_ms=result_data.get("latency_ms", 0),
+                energy_mj=result_data.get("energy_mj", 0),
+                nodes_used=result_data.get("nodes_used", []),
+                model_id=model_id,
+                tokens_generated=result_data.get("tokens", 0),
+            )
+
+            # Record provenance locally as orchestrator
+            record = result.to_provenance_record(query)
+            self.ledger.add_record(record)
+
+            return result
+
+        return None
 
     def process_request(self, query: str, model_id: str = "aria-2b-1bit",
                         max_tokens: int = 100) -> InferenceResult:

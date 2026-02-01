@@ -1,7 +1,12 @@
 """
 ARIA Protocol - Distributed 1-Bit Inference Engine
-Handles model sharding, distributed inference pipeline, 
+Handles model sharding, distributed inference pipeline,
 and result aggregation across the P2P network.
+
+Supports real distributed pipeline parallelism:
+- Each node processes its local layers
+- Activations are serialized and forwarded to next node in chain
+- Final node returns result to originator
 
 MIT License - Anthony MURGO, 2026
 """
@@ -10,16 +15,149 @@ import hashlib
 import time
 import struct
 import math
+import base64
+import json
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from aria.ledger import InferenceRecord
+
+
+def serialize_activations(activations: List[float]) -> str:
+    """
+    Serialize activations to a base64-encoded JSON string.
+
+    Uses struct packing for efficient float representation,
+    then base64 encoding for network transport.
+
+    Args:
+        activations: List of float activation values
+
+    Returns:
+        Base64-encoded string of packed floats
+    """
+    packed = struct.pack(f'{len(activations)}f', *activations)
+    return base64.b64encode(packed).decode('ascii')
+
+
+def deserialize_activations(encoded: str) -> List[float]:
+    """
+    Deserialize activations from a base64-encoded string.
+
+    Args:
+        encoded: Base64-encoded string of packed floats
+
+    Returns:
+        List of float activation values
+    """
+    packed = base64.b64decode(encoded.encode('ascii'))
+    num_floats = len(packed) // 4  # 4 bytes per float
+    return list(struct.unpack(f'{num_floats}f', packed))
+
+
+@dataclass
+class PipelineStage:
+    """
+    Represents a stage in the distributed inference pipeline.
+
+    Each stage is a node that processes a specific range of layers.
+    The pipeline chains stages together: stage1 -> stage2 -> stage3
+    """
+    node_id: str
+    shard_id: str
+    layer_start: int
+    layer_end: int
+    host: str = "localhost"
+    port: int = 8765
+    is_replica: bool = False  # True if this is a fallback replica
+
+    def to_dict(self) -> dict:
+        return {
+            "node_id": self.node_id,
+            "shard_id": self.shard_id,
+            "layer_start": self.layer_start,
+            "layer_end": self.layer_end,
+            "host": self.host,
+            "port": self.port,
+            "is_replica": self.is_replica,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PipelineStage":
+        return cls(
+            node_id=data["node_id"],
+            shard_id=data["shard_id"],
+            layer_start=data["layer_start"],
+            layer_end=data["layer_end"],
+            host=data.get("host", "localhost"),
+            port=data.get("port", 8765),
+            is_replica=data.get("is_replica", False),
+        )
+
+
+@dataclass
+class PipelineState:
+    """
+    State passed through the distributed inference pipeline.
+
+    Contains all information needed to continue inference
+    from any point in the pipeline.
+    """
+    request_id: str
+    model_id: str
+    query: str
+    max_tokens: int
+    activations: List[float]  # Current activation state
+    current_layer: int  # Next layer to process
+    total_layers: int  # Total layers in model
+    nodes_used: List[str] = field(default_factory=list)
+    total_energy_mj: float = 0.0
+    start_time: float = field(default_factory=time.time)
+    originator_id: str = ""  # Node that started the request
+
+    def to_dict(self) -> dict:
+        """Serialize state for network transmission."""
+        return {
+            "request_id": self.request_id,
+            "model_id": self.model_id,
+            "query": self.query,
+            "max_tokens": self.max_tokens,
+            "activations_b64": serialize_activations(self.activations),
+            "current_layer": self.current_layer,
+            "total_layers": self.total_layers,
+            "nodes_used": self.nodes_used,
+            "total_energy_mj": self.total_energy_mj,
+            "start_time": self.start_time,
+            "originator_id": self.originator_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PipelineState":
+        """Deserialize state from network transmission."""
+        return cls(
+            request_id=data["request_id"],
+            model_id=data["model_id"],
+            query=data["query"],
+            max_tokens=data["max_tokens"],
+            activations=deserialize_activations(data["activations_b64"]),
+            current_layer=data["current_layer"],
+            total_layers=data["total_layers"],
+            nodes_used=data.get("nodes_used", []),
+            total_energy_mj=data.get("total_energy_mj", 0.0),
+            start_time=data.get("start_time", time.time()),
+            originator_id=data.get("originator_id", ""),
+        )
+
+    @property
+    def is_complete(self) -> bool:
+        """Check if all layers have been processed."""
+        return self.current_layer >= self.total_layers
 
 
 @dataclass
 class ModelShard:
     """
     A shard (fragment) of a 1-bit model.
-    
+
     In ARIA, large models are split into shards that can be
     distributed across multiple nodes. Each shard contains
     a contiguous set of transformer layers.
@@ -31,7 +169,7 @@ class ModelShard:
     size_bytes: int         # Size in bytes
     checksum: str           # SHA-256 of shard data
     weights: Optional[bytes] = None  # Actual ternary weights
-    
+
     @property
     def num_layers(self) -> int:
         return self.layer_end - self.layer_start + 1
@@ -272,7 +410,155 @@ class InferenceEngine:
         """Convert token IDs back to text (placeholder)."""
         # In production: proper BPE detokenization
         return f"[ARIA inference output: {len(tokens)} tokens generated]"
-    
+
+    def create_pipeline_state(self, query: str, model_id: str = "aria-2b-1bit",
+                              max_tokens: int = 100, total_layers: int = 24,
+                              originator_id: str = "") -> PipelineState:
+        """
+        Create initial pipeline state for distributed inference.
+
+        This tokenizes the query and creates the initial activations
+        that will be passed through the distributed pipeline.
+
+        Args:
+            query: Input text
+            model_id: Which model to use
+            max_tokens: Maximum output tokens
+            total_layers: Total layers in the full model
+            originator_id: Node that started the request
+
+        Returns:
+            PipelineState ready to be processed by first node in chain
+        """
+        # Tokenize and create initial activations
+        input_tokens = self._tokenize(query)
+        hidden_dim = 2048  # Default hidden dimension
+
+        # Initial activations from token embeddings
+        activations = [float(t) / 1000.0 for t in input_tokens]
+        activations = (activations + [0.0] * hidden_dim)[:hidden_dim]
+
+        return PipelineState(
+            request_id=hashlib.sha256(f"{query}{time.time()}".encode()).hexdigest()[:16],
+            model_id=model_id,
+            query=query,
+            max_tokens=max_tokens,
+            activations=activations,
+            current_layer=0,
+            total_layers=total_layers,
+            nodes_used=[],
+            total_energy_mj=0.0,
+            originator_id=originator_id or self.node_id,
+        )
+
+    def process_pipeline_stage(self, state: PipelineState) -> Tuple[PipelineState, Optional[InferenceResult]]:
+        """
+        Process the pipeline state through local layers.
+
+        This is the core of distributed inference:
+        1. Takes activations from previous node
+        2. Processes through all local layers
+        3. Returns updated state (or final result if complete)
+
+        Args:
+            state: Current pipeline state with activations
+
+        Returns:
+            Tuple of (updated_state, result)
+            - If not complete: (new_state, None) - forward to next node
+            - If complete: (final_state, InferenceResult) - return to originator
+        """
+        model_id = state.model_id
+        layers = self.layers.get(model_id, [])
+
+        if not layers:
+            raise ValueError(f"Model {model_id} not loaded on this node")
+
+        # Get our shard info
+        shard = None
+        for s in self.loaded_shards.values():
+            if s.model_id == model_id:
+                shard = s
+                break
+
+        if not shard:
+            raise ValueError(f"No shard loaded for model {model_id}")
+
+        # Check if this stage should process
+        if state.current_layer > shard.layer_end:
+            # We've already processed past this shard, pass through
+            return state, None
+
+        if state.current_layer < shard.layer_start:
+            # State is asking for earlier layers we don't have
+            raise ValueError(
+                f"Pipeline state at layer {state.current_layer} but "
+                f"this node has layers {shard.layer_start}-{shard.layer_end}"
+            )
+
+        # Process through our local layers
+        activations = state.activations
+        total_energy = 0.0
+
+        # Only process layers within our shard that are at or after current_layer
+        for layer in layers:
+            if layer.layer_id < state.current_layer:
+                continue
+            if layer.layer_id > shard.layer_end:
+                break
+
+            activations = layer.forward(activations)
+            total_energy += layer.energy_estimate_mj()
+
+        # Update state
+        new_state = PipelineState(
+            request_id=state.request_id,
+            model_id=state.model_id,
+            query=state.query,
+            max_tokens=state.max_tokens,
+            activations=activations,
+            current_layer=shard.layer_end + 1,  # Next layer to process
+            total_layers=state.total_layers,
+            nodes_used=state.nodes_used + [self.node_id],
+            total_energy_mj=state.total_energy_mj + total_energy,
+            start_time=state.start_time,
+            originator_id=state.originator_id,
+        )
+
+        self.total_inferences += 1
+        self.total_energy_mj += total_energy
+
+        # Check if we're the final stage
+        if new_state.is_complete:
+            # Generate final output
+            output_tokens = self._generate_tokens(activations, state.max_tokens)
+            output_text = self._detokenize(output_tokens)
+
+            elapsed_ms = int((time.time() - state.start_time) * 1000)
+
+            result = InferenceResult(
+                request_id=state.request_id,
+                output_tokens=output_tokens,
+                output_text=output_text,
+                latency_ms=elapsed_ms,
+                energy_mj=int(new_state.total_energy_mj),
+                nodes_used=new_state.nodes_used,
+                model_id=state.model_id,
+                tokens_generated=len(output_tokens),
+            )
+
+            return new_state, result
+
+        # Not complete, needs to be forwarded
+        return new_state, None
+
+    def get_shard_info(self, model_id: str) -> Optional[ModelShard]:
+        """Get the shard loaded for a specific model."""
+        for shard in self.loaded_shards.values():
+            if shard.model_id == model_id:
+                return shard
+        return None
+
     def get_stats(self) -> Dict:
         """Get inference engine statistics."""
         return {
