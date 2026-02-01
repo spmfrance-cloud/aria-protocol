@@ -77,27 +77,29 @@ class TestARIANode:
 
         assert shard.num_layers == 4
 
-    def test_start_stop(self):
+    @pytest.mark.asyncio
+    async def test_start_stop(self):
         """Test starting and stopping the node."""
-        node = ARIANode(node_id="test")
+        node = ARIANode(node_id="test", port=19001)
 
         assert node.is_running is False
 
-        node.start()
+        await node.start()
         assert node.is_running is True
 
-        node.stop()
+        await node.stop()
         assert node.is_running is False
 
-    def test_process_request(self):
+    @pytest.mark.asyncio
+    async def test_process_request(self):
         """Test processing an inference request."""
-        node = ARIANode(node_id="test")
+        node = ARIANode(node_id="test", port=19002)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         result = node.process_request(
             query="What is AI?",
@@ -110,17 +112,18 @@ class TestARIANode:
         assert len(result.output_tokens) > 0
         assert result.output_text is not None
 
-        node.stop()
+        await node.stop()
 
-    def test_process_request_updates_stats(self):
+    @pytest.mark.asyncio
+    async def test_process_request_updates_stats(self):
         """Test that processing updates node statistics."""
-        node = ARIANode(node_id="test")
+        node = ARIANode(node_id="test", port=19003)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         initial_tokens = node.tokens_earned
         node.process_request(
@@ -130,17 +133,18 @@ class TestARIANode:
         )
 
         assert node.tokens_earned > initial_tokens
-        node.stop()
+        await node.stop()
 
-    def test_get_stats(self):
+    @pytest.mark.asyncio
+    async def test_get_stats(self):
         """Test getting node statistics."""
-        node = ARIANode(node_id="test-stats")
+        node = ARIANode(node_id="test-stats", port=19004)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
         node.process_request(
             query="Test",
             model_id="aria-2b-1bit",
@@ -157,17 +161,18 @@ class TestARIANode:
         assert stats["node_id"] == "test-stats"
         assert stats["is_running"] is True
 
-        node.stop()
+        await node.stop()
 
-    def test_calculate_reward(self):
+    @pytest.mark.asyncio
+    async def test_calculate_reward(self):
         """Test reward calculation for inference."""
-        node = ARIANode(node_id="test")
+        node = ARIANode(node_id="test", port=19005)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         result = node.process_request(
             query="Test",
@@ -179,17 +184,18 @@ class TestARIANode:
         assert reward > 0
         assert isinstance(reward, float)
 
-        node.stop()
+        await node.stop()
 
-    def test_multiple_requests(self):
+    @pytest.mark.asyncio
+    async def test_multiple_requests(self):
         """Test processing multiple requests."""
-        node = ARIANode(node_id="test")
+        node = ARIANode(node_id="test", port=19006)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         for i in range(3):
             result = node.process_request(
@@ -202,7 +208,7 @@ class TestARIANode:
         stats = node.get_stats()
         assert stats["engine"]["total_inferences"] == 3
 
-        node.stop()
+        await node.stop()
 
     def test_node_with_different_cpu_percent(self):
         """Test node with different CPU allocation."""
@@ -214,15 +220,16 @@ class TestARIANode:
         node = ARIANode(node_id="sync-test")
         assert node.consent.node_id == "sync-test"
 
-    def test_ledger_records_inference(self):
+    @pytest.mark.asyncio
+    async def test_ledger_records_inference(self):
         """Test that inference is recorded in ledger."""
-        node = ARIANode(node_id="ledger-test")
+        node = ARIANode(node_id="ledger-test", port=19007)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         node.process_request(
             query="Test for ledger",
@@ -233,17 +240,18 @@ class TestARIANode:
         # Check pending records in ledger
         assert len(node.ledger.pending_records) > 0
 
-        node.stop()
+        await node.stop()
 
-    def test_pouw_receives_proof(self):
+    @pytest.mark.asyncio
+    async def test_pouw_receives_proof(self):
         """Test that PoUW receives proof after inference."""
-        node = ARIANode(node_id="pouw-test")
+        node = ARIANode(node_id="pouw-test", port=19008)
         node.load_model(
             model_id="aria-2b-1bit",
             num_layers=4,
             hidden_dim=128
         )
-        node.start()
+        await node.start()
 
         node.process_request(
             query="Test for pouw",
@@ -254,4 +262,4 @@ class TestARIANode:
         # Check that proof was submitted
         assert node.pouw.verified_count > 0
 
-        node.stop()
+        await node.stop()
