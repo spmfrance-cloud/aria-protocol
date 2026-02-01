@@ -98,6 +98,11 @@ class ARIANode:
         # Set pipeline callback for distributed inference
         self.network.set_pipeline_callback(self._handle_pipeline_forward)
 
+        # Set CLI command callbacks
+        self.network.set_stats_callback(self.get_stats)
+        self.network.set_ledger_stats_callback(self._get_ledger_stats)
+        self.network.set_ledger_verify_callback(self._verify_ledger)
+
     def load_model(self, model_id: str = "aria-2b-1bit",
                    num_layers: int = 24, hidden_dim: int = 2048,
                    shard_start: int = 0, shard_end: Optional[int] = None):
@@ -517,6 +522,19 @@ class ARIANode:
                 self.sobriety.get_network_savings()
                 if self.sobriety.attestations else {}
             ),
+        }
+
+    def _get_ledger_stats(self) -> Dict:
+        """Get ledger statistics for CLI."""
+        return self.ledger.get_network_stats()
+
+    def _verify_ledger(self) -> Dict:
+        """Verify ledger integrity for CLI."""
+        valid = self.ledger.verify_chain()
+        return {
+            "valid": valid,
+            "chain_length": len(self.ledger.chain),
+            "pending_records": len(self.ledger.pending_records),
         }
 
     def __repr__(self) -> str:
