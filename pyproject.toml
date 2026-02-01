@@ -34,7 +34,7 @@ classifiers = [
     "Topic :: System :: Distributed Computing",
 ]
 dependencies = [
-    "asyncio",
+    "websockets>=12.0",
     "aiohttp",
     "cryptography",
 ]
