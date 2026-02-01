@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aria-protocol"
+version = "0.1.0"
+description = "A peer-to-peer protocol for efficient, ethical, and decentralized AI inference using 1-bit models on CPUs"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "Anthony MURGO", email = "anthony.murgo@outlook.com"}
+]
+keywords = [
+    "p2p",
+    "distributed",
+    "ai",
+    "inference",
+    "1-bit",
+    "cpu",
+    "blockchain",
+    "decentralized"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = [
+    "asyncio",
+    "aiohttp",
+    "cryptography",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.urls]
+Homepage = "https://github.com/spmfrance-cloud/aria-protocol"
+Repository = "https://github.com/spmfrance-cloud/aria-protocol"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aria*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
