@@ -20,12 +20,14 @@ from aria.consent import ARIAConsent, TaskType
 from aria.ledger import ProvenanceLedger
 from aria.network import ARIANetwork, PeerInfo
 from aria.api import ARIAOpenAIServer
+from aria.dashboard import ARIADashboard
 
 # State file for tracking running node
 STATE_DIR = Path.home() / ".aria"
 STATE_FILE = STATE_DIR / "node_state.json"
 LEDGER_FILE = STATE_DIR / "ledger.json"
 API_STATE_FILE = STATE_DIR / "api_state.json"
+DASHBOARD_STATE_FILE = STATE_DIR / "dashboard_state.json"
 
 
 def ensure_state_dir():
@@ -105,6 +107,42 @@ def clear_api_state():
     """Clear API server state file."""
     if API_STATE_FILE.exists():
         API_STATE_FILE.unlink()
+
+
+def save_dashboard_state(port: int, node_port: int, pid: int):
+    """Save running dashboard state to file."""
+    ensure_state_dir()
+    state = {
+        "port": port,
+        "node_port": node_port,
+        "pid": pid,
+        "started_at": datetime.now().isoformat(),
+    }
+    DASHBOARD_STATE_FILE.write_text(json.dumps(state, indent=2))
+
+
+def load_dashboard_state() -> Optional[dict]:
+    """Load dashboard state from file."""
+    if not DASHBOARD_STATE_FILE.exists():
+        return None
+    try:
+        state = json.loads(DASHBOARD_STATE_FILE.read_text())
+        pid = state.get("pid")
+        if pid:
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                DASHBOARD_STATE_FILE.unlink()
+                return None
+        return state
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def clear_dashboard_state():
+    """Clear dashboard state file."""
+    if DASHBOARD_STATE_FILE.exists():
+        DASHBOARD_STATE_FILE.unlink()
 
 
 def format_duration(seconds: float) -> str:
@@ -730,6 +768,110 @@ def cmd_api_status(args):
     return 0
 
 
+class DashboardManager:
+    """Manages ARIA dashboard lifecycle."""
+
+    def __init__(self):
+        self.dashboard: Optional[ARIADashboard] = None
+        self.running = False
+
+    async def start_dashboard(self, port: int, node_host: str, node_port: int):
+        """Start the monitoring dashboard."""
+        self.dashboard = ARIADashboard(
+            port=port,
+            node_host=node_host,
+            node_port=node_port
+        )
+
+        print(f"ARIA Protocol Monitoring Dashboard")
+        print(f"=" * 50)
+        print(f"  Dashboard:     http://localhost:{port}")
+        print(f"  Node Address:  {node_host}:{node_port}")
+        print()
+
+        # Check if node is reachable
+        print("Checking ARIA node connection...")
+        try:
+            import websockets
+            uri = f"ws://{node_host}:{node_port}"
+            async with websockets.connect(uri, close_timeout=2) as ws:
+                msg = {
+                    "type": "get_stats",
+                    "sender_id": "dashboard",
+                    "data": {},
+                    "timestamp": datetime.now().timestamp(),
+                    "protocol": "aria/0.1"
+                }
+                await ws.send(json.dumps(msg))
+                await asyncio.wait_for(ws.recv(), timeout=5)
+                print(f"  Node Status:   Connected")
+        except Exception as e:
+            print(f"  Node Status:   Not reachable ({e})")
+            print()
+            print("Warning: ARIA node is not running or not reachable.")
+            print(f"Start a node with: aria node start --port {node_port}")
+            print()
+
+        # Save state
+        save_dashboard_state(port, node_port, os.getpid())
+
+        # Start dashboard
+        await self.dashboard.start()
+
+        print()
+        print("Open in your browser:")
+        print(f"  http://localhost:{port}")
+        print()
+        print("Dashboard is running. Press Ctrl+C to stop.")
+        print("-" * 50)
+
+        self.running = True
+
+        try:
+            while self.running:
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await self.stop_dashboard()
+
+    async def stop_dashboard(self):
+        """Stop the dashboard."""
+        if self.dashboard:
+            print("\nStopping dashboard...")
+            await self.dashboard.stop()
+            clear_dashboard_state()
+            print("Dashboard stopped.")
+        self.running = False
+
+
+def cmd_dashboard(args):
+    """Handle 'aria dashboard' command."""
+    manager = DashboardManager()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    def signal_handler():
+        manager.running = False
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, signal_handler)
+
+    try:
+        loop.run_until_complete(
+            manager.start_dashboard(
+                port=args.port,
+                node_host=args.node_host,
+                node_port=args.node_port
+            )
+        )
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the CLI."""
     parser = argparse.ArgumentParser(
@@ -742,6 +884,7 @@ Examples:
   aria node status
   aria api start --port 3000 --node-port 8765
   aria api status
+  aria dashboard --port 8080 --node-port 8765
   aria network peers
   aria infer "What is artificial intelligence?" --model aria-2b-1bit
   aria ledger stats
@@ -866,6 +1009,32 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         description="Display status for the running API server"
     )
     api_status.set_defaults(func=cmd_api_status)
+
+    # ===== Dashboard command =====
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
+        help="Start the monitoring dashboard",
+        description="Start a real-time web dashboard for monitoring the ARIA node"
+    )
+    dashboard_parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=8080,
+        help="HTTP port for the dashboard (default: 8080)"
+    )
+    dashboard_parser.add_argument(
+        "--node-host",
+        type=str,
+        default="localhost",
+        help="ARIA node host to connect to (default: localhost)"
+    )
+    dashboard_parser.add_argument(
+        "--node-port",
+        type=int,
+        default=8765,
+        help="ARIA node WebSocket port (default: 8765)"
+    )
+    dashboard_parser.set_defaults(func=cmd_dashboard)
 
     # ===== Network commands =====
     network_parser = subparsers.add_parser(
