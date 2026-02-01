@@ -1,0 +1,267 @@
+"""
+ARIA Protocol - Core Node
+The main ARIA node that ties everything together.
+Join the network. Contribute compute. Earn rewards.
+
+MIT License - Anthony MURGO, 2026
+"""
+
+import hashlib
+import json
+import time
+import uuid
+from typing import Optional, Dict, List
+
+from aria.consent import ARIAConsent, TaskType
+from aria.network import ARIANetwork, PeerInfo, InferenceRequest
+from aria.inference import InferenceEngine, InferenceResult
+from aria.ledger import ProvenanceLedger, InferenceRecord
+from aria.proof import ProofOfUsefulWork, ProofOfSobriety
+
+
+class ARIANode:
+    """
+    A node in the ARIA network.
+    
+    This is the primary entry point for participating in ARIA.
+    A node can contribute CPU resources for AI inference and
+    earn ARIA tokens in return.
+    
+    Minimal example:
+        node = ARIANode(cpu_percent=25, port=8765)
+        node.start()
+    
+    Full example:
+        consent = ARIAConsent(
+            cpu_percent=25,
+            schedule="08:00-22:00",
+            task_types=[TaskType.TEXT_GENERATION],
+            max_bandwidth_mbps=10,
+            max_ram_mb=512
+        )
+        
+        node = ARIANode(consent=consent, port=8765)
+        node.load_model("aria-2b-1bit")
+        node.start()
+        
+        # Process a request
+        result = node.process_request("What is AI?")
+        print(result.output_text)
+        print(node.get_stats())
+    """
+    
+    def __init__(self, 
+                 consent: Optional[ARIAConsent] = None,
+                 cpu_percent: int = 25,
+                 port: int = 8765,
+                 node_id: Optional[str] = None):
+        """
+        Initialize an ARIA node.
+        
+        Args:
+            consent: Explicit consent descriptor. If None, creates default.
+            cpu_percent: CPU percentage to allocate (used if consent is None)
+            port: Network port for P2P communication
+            node_id: Unique node identifier. Auto-generated if None.
+        """
+        # Generate unique node ID
+        self.node_id = node_id or f"aria_{uuid.uuid4().hex[:12]}"
+        
+        # Consent
+        self.consent = consent or ARIAConsent(cpu_percent=cpu_percent)
+        self.consent.node_id = self.node_id
+        
+        # Core components
+        self.network = ARIANetwork(node_id=self.node_id, port=port)
+        self.engine = InferenceEngine(node_id=self.node_id)
+        self.ledger = ProvenanceLedger(difficulty=2)
+        self.pouw = ProofOfUsefulWork()
+        self.sobriety = ProofOfSobriety(node_id=self.node_id)
+        
+        # State
+        self.is_running = False
+        self.tokens_earned = 0.0
+        self.start_time: Optional[float] = None
+        
+    def load_model(self, model_id: str = "aria-2b-1bit", 
+                   num_layers: int = 24, hidden_dim: int = 2048,
+                   shard_start: int = 0, shard_end: Optional[int] = None):
+        """
+        Load a model (or model shard) for inference.
+        
+        Args:
+            model_id: Model identifier
+            num_layers: Total layers in the model
+            hidden_dim: Hidden dimension size
+            shard_start: First layer this node handles
+            shard_end: Last layer this node handles
+        """
+        shard = self.engine.load_model(
+            model_id=model_id,
+            num_layers=num_layers,
+            hidden_dim=hidden_dim,
+            shard_start=shard_start,
+            shard_end=shard_end,
+        )
+        
+        # Announce shards to network
+        self.network.add_peer(PeerInfo(
+            node_id=self.node_id,
+            host="localhost",
+            port=self.network.port,
+            consent=self.consent,
+            available_shards=self.engine.get_loaded_shard_ids(),
+        ))
+        
+        return shard
+    
+    def start(self):
+        """
+        Start the ARIA node.
+        
+        This begins:
+        1. Listening for P2P connections
+        2. Announcing presence to the network
+        3. Accepting inference requests per consent
+        4. Recording provenance for all work done
+        5. Measuring energy for Proof of Sobriety
+        """
+        self.is_running = True
+        self.start_time = time.time()
+        self.sobriety.start_measurement()
+        
+        print(f"[ARIA] Node {self.node_id} started")
+        print(f"[ARIA] Consent: {self.consent}")
+        print(f"[ARIA] Models: {list(self.engine.layers.keys())}")
+        print(f"[ARIA] Listening on port {self.network.port}")
+    
+    def stop(self):
+        """Stop the ARIA node gracefully."""
+        if not self.is_running:
+            return
+        
+        self.is_running = False
+        
+        # Generate final sobriety attestation
+        if self.engine.total_inferences > 0:
+            attestation = self.sobriety.end_measurement(
+                inferences_done=self.engine.total_inferences
+            )
+            print(f"[ARIA] Sobriety rating: {attestation.efficiency_rating}")
+        
+        # Mine any pending records
+        if self.ledger.pending_records:
+            self.ledger.mine_pending_block(miner_id=self.node_id)
+        
+        print(f"[ARIA] Node {self.node_id} stopped")
+        print(f"[ARIA] Total inferences: {self.engine.total_inferences}")
+        print(f"[ARIA] Tokens earned: {self.tokens_earned:.4f} ARIA")
+    
+    def process_request(self, query: str, model_id: str = "aria-2b-1bit",
+                        max_tokens: int = 100) -> InferenceResult:
+        """
+        Process an inference request.
+        
+        This is the main work loop:
+        1. Run inference through the local engine
+        2. Record provenance on the ledger
+        3. Submit Proof of Useful Work
+        4. Calculate and add rewards
+        
+        Args:
+            query: The input text/prompt
+            model_id: Which model to use
+            max_tokens: Maximum output length
+            
+        Returns:
+            InferenceResult with output and metadata
+        """
+        if not self.is_running:
+            raise RuntimeError("Node is not running. Call start() first.")
+        
+        # 1. Run inference
+        result = self.engine.infer(
+            query=query,
+            model_id=model_id,
+            max_tokens=max_tokens,
+        )
+        
+        # 2. Record provenance
+        record = result.to_provenance_record(query)
+        record_hash = self.ledger.add_record(record)
+        
+        # 3. Submit Proof of Useful Work
+        proof = self.pouw.create_proof(
+            node_id=self.node_id,
+            inference_id=result.request_id,
+            query_hash=record.query_hash,
+            output_hash=record.output_hash,
+            model_id=model_id,
+            energy_mj=result.energy_mj,
+            latency_ms=result.latency_ms,
+        )
+        self.pouw.submit_proof(proof)
+        
+        # 4. Calculate rewards
+        reward = self._calculate_reward(result)
+        self.tokens_earned += reward
+        
+        return result
+    
+    def _calculate_reward(self, result: InferenceResult) -> float:
+        """
+        Calculate ARIA token reward for an inference.
+        
+        Reward = base_rate × quality_score × efficiency_bonus
+        
+        Quality: based on latency (faster = better)
+        Efficiency: based on energy consumption (less = better)
+        """
+        base_rate = 0.001  # 0.001 ARIA per inference
+        
+        # Quality score: latency-based [0, 1]
+        # Target: <1000ms = perfect, >5000ms = minimum
+        quality = max(0, min(1, 1 - (result.latency_ms - 1000) / 4000))
+        
+        # Efficiency bonus: energy-based [0.5, 2.0]
+        # Baseline: 150 mJ (GPU equivalent)
+        if result.energy_mj > 0:
+            efficiency = min(2.0, max(0.5, 150 / result.energy_mj))
+        else:
+            efficiency = 1.0
+        
+        return base_rate * max(quality, 0.1) * efficiency
+    
+    def get_stats(self) -> Dict:
+        """Get comprehensive node statistics."""
+        uptime = time.time() - self.start_time if self.start_time else 0
+        engine_stats = self.engine.get_stats()
+        network_stats = self.network.get_network_stats()
+        ledger_stats = self.ledger.get_network_stats()
+        
+        return {
+            "node_id": self.node_id,
+            "is_running": self.is_running,
+            "uptime_seconds": round(uptime),
+            "consent": str(self.consent),
+            "tokens_earned": round(self.tokens_earned, 6),
+            "engine": engine_stats,
+            "network": network_stats,
+            "ledger": ledger_stats,
+            "proofs": {
+                "verified": self.pouw.verified_count,
+                "rejected": self.pouw.rejected_count,
+            },
+            "sobriety": (
+                self.sobriety.get_network_savings() 
+                if self.sobriety.attestations else {}
+            ),
+        }
+    
+    def __repr__(self) -> str:
+        status = "running" if self.is_running else "stopped"
+        return (
+            f"ARIANode(id={self.node_id}, status={status}, "
+            f"inferences={self.engine.total_inferences}, "
+            f"earned={self.tokens_earned:.4f} ARIA)"
+        )
