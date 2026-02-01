@@ -19,11 +19,13 @@ from aria.node import ARIANode
 from aria.consent import ARIAConsent, TaskType
 from aria.ledger import ProvenanceLedger
 from aria.network import ARIANetwork, PeerInfo
+from aria.api import ARIAOpenAIServer
 
 # State file for tracking running node
 STATE_DIR = Path.home() / ".aria"
 STATE_FILE = STATE_DIR / "node_state.json"
 LEDGER_FILE = STATE_DIR / "ledger.json"
+API_STATE_FILE = STATE_DIR / "api_state.json"
 
 
 def ensure_state_dir():
@@ -67,6 +69,42 @@ def clear_node_state():
     """Clear node state file."""
     if STATE_FILE.exists():
         STATE_FILE.unlink()
+
+
+def save_api_state(port: int, node_port: int, pid: int):
+    """Save running API server state to file."""
+    ensure_state_dir()
+    state = {
+        "port": port,
+        "node_port": node_port,
+        "pid": pid,
+        "started_at": datetime.now().isoformat(),
+    }
+    API_STATE_FILE.write_text(json.dumps(state, indent=2))
+
+
+def load_api_state() -> Optional[dict]:
+    """Load API server state from file."""
+    if not API_STATE_FILE.exists():
+        return None
+    try:
+        state = json.loads(API_STATE_FILE.read_text())
+        pid = state.get("pid")
+        if pid:
+            try:
+                os.kill(pid, 0)
+            except OSError:
+                API_STATE_FILE.unlink()
+                return None
+        return state
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+def clear_api_state():
+    """Clear API server state file."""
+    if API_STATE_FILE.exists():
+        API_STATE_FILE.unlink()
 
 
 def format_duration(seconds: float) -> str:
@@ -544,6 +582,154 @@ def cmd_ledger_verify(args):
         return 1
 
 
+class APIServerManager:
+    """Manages ARIA API server lifecycle."""
+
+    def __init__(self):
+        self.server: Optional[ARIAOpenAIServer] = None
+        self.running = False
+
+    async def start_server(self, port: int, node_host: str, node_port: int):
+        """Start the OpenAI-compatible API server."""
+        self.server = ARIAOpenAIServer(
+            port=port,
+            node_host=node_host,
+            node_port=node_port
+        )
+
+        print(f"ARIA OpenAI-Compatible API Server")
+        print(f"=" * 50)
+        print(f"  API Port:      {port}")
+        print(f"  Node Address:  {node_host}:{node_port}")
+        print()
+
+        # Check if node is reachable
+        print("Checking ARIA node connection...")
+        try:
+            import websockets
+            uri = f"ws://{node_host}:{node_port}"
+            async with websockets.connect(uri, close_timeout=2) as ws:
+                msg = {
+                    "type": "get_stats",
+                    "sender_id": "api_server",
+                    "data": {},
+                    "timestamp": datetime.now().timestamp(),
+                    "protocol": "aria/0.1"
+                }
+                await ws.send(json.dumps(msg))
+                await asyncio.wait_for(ws.recv(), timeout=5)
+                print(f"  Node Status:   Connected")
+        except Exception as e:
+            print(f"  Node Status:   Not reachable ({e})")
+            print()
+            print("Warning: ARIA node is not running or not reachable.")
+            print(f"Start a node with: aria node start --port {node_port}")
+            print()
+
+        # Save state
+        save_api_state(port, node_port, os.getpid())
+
+        # Start server
+        await self.server.start()
+
+        print()
+        print("Usage with OpenAI client:")
+        print("-" * 50)
+        print("  from openai import OpenAI")
+        print(f'  client = OpenAI(base_url="http://localhost:{port}/v1", api_key="aria")')
+        print()
+        print("Server is running. Press Ctrl+C to stop.")
+        print("-" * 50)
+
+        self.running = True
+
+        try:
+            while self.running:
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await self.stop_server()
+
+    async def stop_server(self):
+        """Stop the API server."""
+        if self.server:
+            print("\nStopping API server...")
+            await self.server.stop()
+            clear_api_state()
+            print("API server stopped.")
+        self.running = False
+
+
+def cmd_api_start(args):
+    """Handle 'aria api start' command."""
+    manager = APIServerManager()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    def signal_handler():
+        manager.running = False
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, signal_handler)
+
+    try:
+        loop.run_until_complete(
+            manager.start_server(
+                port=args.port,
+                node_host=args.node_host,
+                node_port=args.node_port
+            )
+        )
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
+
+
+def cmd_api_status(args):
+    """Handle 'aria api status' command."""
+    state = load_api_state()
+
+    if not state:
+        print("No ARIA API server is currently running.")
+        print("\nStart an API server with:")
+        print("  aria api start --port 3000")
+        return 1
+
+    print("ARIA API Server Status")
+    print("=" * 50)
+    print(f"  API Port:     {state['port']}")
+    print(f"  Node Port:    {state['node_port']}")
+    print(f"  PID:          {state['pid']}")
+    print(f"  Started:      {state['started_at']}")
+
+    # Calculate uptime
+    started = datetime.fromisoformat(state['started_at'])
+    uptime = (datetime.now() - started).total_seconds()
+    print(f"  Uptime:       {format_duration(uptime)}")
+
+    # Try to check health endpoint
+    try:
+        import urllib.request
+        url = f"http://localhost:{state['port']}/health"
+        with urllib.request.urlopen(url, timeout=2) as response:
+            health = json.loads(response.read().decode())
+            node_status = health.get("node", {}).get("status", "unknown")
+            print(f"  Node Status:  {node_status}")
+    except Exception:
+        print(f"  Node Status:  (could not check)")
+
+    print()
+    print("Endpoints:")
+    print(f"  POST http://localhost:{state['port']}/v1/chat/completions")
+    print(f"  GET  http://localhost:{state['port']}/v1/models")
+    print(f"  GET  http://localhost:{state['port']}/health")
+
+    return 0
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the CLI."""
     parser = argparse.ArgumentParser(
@@ -554,6 +740,8 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   aria node start --port 8765 --cpu 25 --schedule "08:00-22:00"
   aria node status
+  aria api start --port 3000 --node-port 8765
+  aria api status
   aria network peers
   aria infer "What is artificial intelligence?" --model aria-2b-1bit
   aria ledger stats
@@ -632,6 +820,52 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         description="Display status and metrics for the running ARIA node"
     )
     node_status.set_defaults(func=cmd_node_status)
+
+    # ===== API commands =====
+    api_parser = subparsers.add_parser(
+        "api",
+        help="Manage OpenAI-compatible API server",
+        description="Start and manage the OpenAI-compatible HTTP API server"
+    )
+    api_subparsers = api_parser.add_subparsers(
+        title="api commands",
+        dest="api_command",
+        metavar="<subcommand>"
+    )
+
+    # api start
+    api_start = api_subparsers.add_parser(
+        "start",
+        help="Start the OpenAI-compatible API server",
+        description="Start an HTTP server that provides OpenAI-compatible endpoints"
+    )
+    api_start.add_argument(
+        "--port", "-p",
+        type=int,
+        default=3000,
+        help="HTTP port for the API server (default: 3000)"
+    )
+    api_start.add_argument(
+        "--node-host",
+        type=str,
+        default="localhost",
+        help="ARIA node host to connect to (default: localhost)"
+    )
+    api_start.add_argument(
+        "--node-port",
+        type=int,
+        default=8765,
+        help="ARIA node WebSocket port (default: 8765)"
+    )
+    api_start.set_defaults(func=cmd_api_start)
+
+    # api status
+    api_status = api_subparsers.add_parser(
+        "status",
+        help="Show API server status",
+        description="Display status for the running API server"
+    )
+    api_status.set_defaults(func=cmd_api_status)
 
     # ===== Network commands =====
     network_parser = subparsers.add_parser(
@@ -722,6 +956,10 @@ def main():
     # Handle subcommands that need their own help
     if args.command == "node" and getattr(args, "node_command", None) is None:
         parser.parse_args(["node", "--help"])
+        return 0
+
+    if args.command == "api" and getattr(args, "api_command", None) is None:
+        parser.parse_args(["api", "--help"])
         return 0
 
     if args.command == "network" and getattr(args, "network_command", None) is None:

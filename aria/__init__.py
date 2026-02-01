@@ -14,3 +14,4 @@ from aria.ledger import ProvenanceLedger
 from aria.network import ARIANetwork
 from aria.inference import InferenceEngine
 from aria.proof import ProofOfUsefulWork, ProofOfSobriety
+from aria.api import ARIAOpenAIServer
