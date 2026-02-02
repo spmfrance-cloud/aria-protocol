@@ -11,6 +11,7 @@ import hashlib
 import json
 import time
 import uuid
+from pathlib import Path
 from typing import Optional, Dict, List
 
 from aria.consent import ARIAConsent, TaskType
@@ -59,7 +60,11 @@ class ARIANode:
                  consent: Optional[ARIAConsent] = None,
                  cpu_percent: int = 25,
                  port: int = 8765,
-                 node_id: Optional[str] = None):
+                 node_id: Optional[str] = None,
+                 use_tls: bool = False,
+                 cert_path: Optional[Path] = None,
+                 key_path: Optional[Path] = None,
+                 verify_tls: bool = False):
         """
         Initialize an ARIA node.
 
@@ -68,6 +73,10 @@ class ARIANode:
             cpu_percent: CPU percentage to allocate (used if consent is None)
             port: Network port for P2P communication
             node_id: Unique node identifier. Auto-generated if None.
+            use_tls: Enable TLS/WSS for secure connections.
+            cert_path: Path to TLS certificate (auto-generated if None).
+            key_path: Path to TLS private key (auto-generated if None).
+            verify_tls: Verify peer TLS certificates (False for self-signed).
         """
         # Generate unique node ID
         self.node_id = node_id or f"aria_{uuid.uuid4().hex[:12]}"
@@ -76,11 +85,18 @@ class ARIANode:
         self.consent = consent or ARIAConsent(cpu_percent=cpu_percent)
         self.consent.node_id = self.node_id
 
+        # TLS configuration
+        self.use_tls = use_tls
+
         # Core components
         self.network = ARIANetwork(
             node_id=self.node_id,
             port=port,
-            consent=self.consent
+            consent=self.consent,
+            use_tls=use_tls,
+            cert_path=cert_path,
+            key_path=key_path,
+            verify_tls=verify_tls,
         )
         self.engine = InferenceEngine(node_id=self.node_id)
         self.ledger = ProvenanceLedger(difficulty=2)
@@ -159,10 +175,13 @@ class ARIANode:
         # Start the network layer
         await self.network.start()
 
+        protocol = "wss" if self.use_tls else "ws"
         print(f"[ARIA] Node {self.node_id} started")
         print(f"[ARIA] Consent: {self.consent}")
         print(f"[ARIA] Models: {list(self.engine.layers.keys())}")
-        print(f"[ARIA] Listening on port {self.network.port}")
+        print(f"[ARIA] Listening on {protocol}://0.0.0.0:{self.network.port}")
+        if self.use_tls:
+            print(f"[ARIA] TLS enabled (cert: {self.network.cert_path})")
 
     async def stop(self):
         """Stop the ARIA node gracefully (async)."""
