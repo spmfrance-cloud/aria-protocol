@@ -173,7 +173,9 @@ class NodeManager:
         self.running = False
 
     async def start_node(self, port: int, cpu_percent: int, schedule: str,
-                         peers: list = None, model: str = None):
+                         peers: list = None, model: str = None,
+                         use_tls: bool = False, cert_path: str = None,
+                         key_path: str = None):
         """Start an ARIA node with the given configuration."""
         # Parse schedule
         consent = ARIAConsent(
@@ -182,14 +184,24 @@ class NodeManager:
             task_types=[TaskType.TEXT_GENERATION, TaskType.CODE_GENERATION, TaskType.ANY],
         )
 
-        # Create node
-        self.node = ARIANode(consent=consent, port=port)
+        # Create node with TLS options
+        self.node = ARIANode(
+            consent=consent,
+            port=port,
+            use_tls=use_tls,
+            cert_path=Path(cert_path) if cert_path else None,
+            key_path=Path(key_path) if key_path else None,
+        )
 
+        protocol = "wss" if use_tls else "ws"
         print(f"ARIA Node Starting...")
         print(f"  Node ID: {self.node.node_id}")
         print(f"  Port: {port}")
+        print(f"  Protocol: {protocol}")
         print(f"  CPU Limit: {cpu_percent}%")
         print(f"  Schedule: {schedule}")
+        if use_tls:
+            print(f"  TLS: Enabled")
         print()
 
         # Save state
@@ -211,7 +223,7 @@ class NodeManager:
 
         # Start node
         await self.node.start()
-        print(f"Node started on ws://0.0.0.0:{port}")
+        print(f"Node started on {protocol}://0.0.0.0:{port}")
 
         # Connect to peers if specified
         if peers:
@@ -267,7 +279,10 @@ def cmd_node_start(args):
                 cpu_percent=args.cpu,
                 schedule=args.schedule,
                 peers=peers,
-                model=args.model
+                model=args.model,
+                use_tls=args.tls,
+                cert_path=args.cert,
+                key_path=args.key,
             )
         )
     except KeyboardInterrupt:
@@ -897,7 +912,7 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="%(prog)s 0.1.0"
+        version="%(prog)s 0.2.5"
     )
 
     subparsers = parser.add_subparsers(
@@ -953,6 +968,23 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         type=str,
         default=None,
         help="Model to load on startup (e.g., aria-2b-1bit)"
+    )
+    node_start.add_argument(
+        "--tls",
+        action="store_true",
+        help="Enable TLS/WSS for secure connections (auto-generates self-signed cert)"
+    )
+    node_start.add_argument(
+        "--cert",
+        type=str,
+        default=None,
+        help="Path to TLS certificate file (PEM format)"
+    )
+    node_start.add_argument(
+        "--key",
+        type=str,
+        default=None,
+        help="Path to TLS private key file (PEM format)"
     )
     node_start.set_defaults(func=cmd_node_start)
 

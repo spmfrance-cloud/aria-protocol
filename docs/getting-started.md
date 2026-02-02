@@ -253,6 +253,9 @@ aria ledger verify
 | `--schedule` | Available hours (UTC) | 00:00-23:59 |
 | `--model` | Model to load | aria-2b-1bit |
 | `--layers` | Layer range (e.g., 0-7) | all |
+| `--tls` | Enable TLS/WSS encryption | disabled |
+| `--cert` | Path to TLS certificate | auto-generated |
+| `--key` | Path to TLS private key | auto-generated |
 
 ### API Server Configuration
 
@@ -269,6 +272,94 @@ aria ledger verify
 | `--port` | HTTP port | 8080 |
 | `--node-port` | ARIA node port | 8765 |
 | `--node-host` | ARIA node host | localhost |
+
+## TLS/WSS Secure Connections
+
+ARIA Protocol supports TLS encryption for secure WebSocket connections (wss://).
+
+### Quick Start with TLS
+
+```bash
+# Start a node with TLS enabled (auto-generates self-signed certificate)
+aria node start --port 8765 --tls --model aria-2b-1bit
+```
+
+On first run with `--tls`, ARIA automatically generates a self-signed certificate stored in `~/.aria/tls/`.
+
+### Using Custom Certificates
+
+For production deployments, use your own certificates:
+
+```bash
+# With custom certificate and key
+aria node start --port 8765 \
+  --tls \
+  --cert /path/to/server.crt \
+  --key /path/to/server.key
+```
+
+### Generating Certificates
+
+You can generate certificates using OpenSSL:
+
+```bash
+# Generate self-signed certificate (valid for 365 days)
+openssl req -x509 -newkey rsa:2048 \
+  -keyout server.key -out server.crt \
+  -days 365 -nodes \
+  -subj "/CN=localhost"
+```
+
+Or use Let's Encrypt for production:
+
+```bash
+# Using certbot for Let's Encrypt
+certbot certonly --standalone -d your-domain.com
+
+# Use the generated certificates
+aria node start --port 8765 \
+  --tls \
+  --cert /etc/letsencrypt/live/your-domain.com/fullchain.pem \
+  --key /etc/letsencrypt/live/your-domain.com/privkey.pem
+```
+
+### TLS with Python API
+
+```python
+from pathlib import Path
+from aria import ARIANode, ARIAConsent
+
+# Create node with TLS
+node = ARIANode(
+    consent=ARIAConsent(cpu_percent=25),
+    port=8765,
+    use_tls=True,
+    # Optional: custom certificates
+    cert_path=Path("/path/to/server.crt"),
+    key_path=Path("/path/to/server.key"),
+)
+
+await node.start()
+# Node now accepts wss:// connections
+```
+
+### Connecting to TLS-Enabled Peers
+
+When connecting to peers with TLS enabled, ensure the client knows to use `wss://`:
+
+```bash
+# Node with TLS connecting to TLS-enabled peer
+aria node start --port 8766 --tls --peers localhost:8765
+```
+
+### Security Considerations
+
+1. **Development**: Self-signed certificates are fine for local testing
+2. **Production**: Use certificates from a trusted CA (Let's Encrypt, etc.)
+3. **Certificate Verification**: Disabled by default for self-signed certs
+4. **Private Key Security**: Keep your private key file secure (chmod 600)
+
+---
 
 ## Using the Demo Script
 
