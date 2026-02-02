@@ -8,6 +8,10 @@ Supports distributed pipeline inference:
 - Routes activations through node chain
 - Handles timeout and fallback to replicas
 
+Supports TLS/WSS for secure connections:
+- Self-signed certificate generation for development
+- Custom certificate support for production
+
 MIT License - Anthony MURGO, 2026
 """
 
@@ -18,7 +22,11 @@ import time
 import random
 import logging
 import re
+import ssl
+import os
 from dataclasses import dataclass, field, asdict
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional, Callable, Set, Tuple
 
 try:
@@ -28,11 +36,168 @@ try:
 except ImportError:
     raise ImportError("websockets is required: pip install websockets")
 
+# Lazy import for cryptography to avoid import errors in some environments
+CRYPTOGRAPHY_AVAILABLE = False
+_cryptography_modules = {}
+
+def _load_cryptography():
+    """Lazy load cryptography modules."""
+    global CRYPTOGRAPHY_AVAILABLE, _cryptography_modules
+    if _cryptography_modules:
+        return CRYPTOGRAPHY_AVAILABLE
+    try:
+        from cryptography import x509
+        from cryptography.x509.oid import NameOID
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        _cryptography_modules = {
+            'x509': x509,
+            'NameOID': NameOID,
+            'hashes': hashes,
+            'serialization': serialization,
+            'rsa': rsa,
+        }
+        CRYPTOGRAPHY_AVAILABLE = True
+    except Exception:
+        CRYPTOGRAPHY_AVAILABLE = False
+    return CRYPTOGRAPHY_AVAILABLE
+
 from aria.consent import ARIAConsent, TaskType
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("aria.network")
+
+
+# Default TLS certificate directory
+TLS_DIR = Path.home() / ".aria" / "tls"
+
+
+def generate_self_signed_cert(
+    cert_path: Path,
+    key_path: Path,
+    hostname: str = "localhost",
+    days_valid: int = 365
+) -> bool:
+    """
+    Generate a self-signed certificate for development use.
+
+    Args:
+        cert_path: Path to save the certificate
+        key_path: Path to save the private key
+        hostname: Hostname for the certificate
+        days_valid: Number of days the certificate is valid
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if not _load_cryptography():
+        logger.error("cryptography library required for TLS: pip install cryptography")
+        return False
+
+    try:
+        # Get cryptography modules
+        x509 = _cryptography_modules['x509']
+        NameOID = _cryptography_modules['NameOID']
+        hashes = _cryptography_modules['hashes']
+        serialization = _cryptography_modules['serialization']
+        rsa = _cryptography_modules['rsa']
+
+        # Generate private key
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+
+        # Generate certificate
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "ARIA Protocol"),
+            x509.NameAttribute(NameOID.COMMON_NAME, hostname),
+        ])
+
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subject)
+            .issuer_name(issuer)
+            .public_key(key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.utcnow())
+            .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
+            .add_extension(
+                x509.SubjectAlternativeName([
+                    x509.DNSName(hostname),
+                    x509.DNSName("localhost"),
+                    x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
+                ]),
+                critical=False,
+            )
+            .sign(key, hashes.SHA256())
+        )
+
+        # Ensure directory exists
+        cert_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write private key
+        with open(key_path, "wb") as f:
+            f.write(key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            ))
+        os.chmod(key_path, 0o600)  # Secure permissions
+
+        # Write certificate
+        with open(cert_path, "wb") as f:
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+        logger.info(f"Generated self-signed certificate: {cert_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to generate certificate: {e}")
+        return False
+
+
+def create_ssl_context(
+    cert_path: Optional[Path] = None,
+    key_path: Optional[Path] = None,
+    verify: bool = False
+) -> ssl.SSLContext:
+    """
+    Create an SSL context for TLS connections.
+
+    Args:
+        cert_path: Path to certificate file (for server)
+        key_path: Path to private key file (for server)
+        verify: Whether to verify peer certificates
+
+    Returns:
+        Configured SSL context
+    """
+    if cert_path and key_path:
+        # Server context
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(str(cert_path), str(key_path))
+    else:
+        # Client context
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+    if not verify:
+        # Disable verification for self-signed certs (development only)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    else:
+        ctx.verify_mode = ssl.CERT_REQUIRED
+        ctx.check_hostname = True
+
+    return ctx
+
+
+# Import ipaddress for certificate generation
+import ipaddress
 
 
 @dataclass
@@ -129,14 +294,29 @@ class ARIANetwork:
     - forward_pipeline_state(): sends activations to next node with timeout/fallback
     - Automatic fallback to replica nodes on timeout
 
+    Supports TLS/WSS for secure connections:
+    - use_tls=True enables encrypted WebSocket connections
+    - Auto-generates self-signed certificates for development
+    - Supports custom certificates for production
+
     Usage:
+        # Standard (insecure) connection
         network = ARIANetwork(node_id="my_node", port=8765)
         await network.start()
-        await network.bootstrap(["localhost:8766", "localhost:8767"])
 
-        # Build pipeline for distributed inference
-        chain = network.build_pipeline_chain("aria-2b-1bit", total_layers=24)
-        # chain = [(alice, L0-7), (bob, L8-15), (carol, L16-23)]
+        # TLS-enabled connection
+        network = ARIANetwork(node_id="my_node", port=8765, use_tls=True)
+        await network.start()
+
+        # With custom certificates
+        network = ARIANetwork(
+            node_id="my_node",
+            port=8765,
+            use_tls=True,
+            cert_path=Path("/path/to/cert.pem"),
+            key_path=Path("/path/to/key.pem")
+        )
+        await network.start()
     """
 
     HEARTBEAT_INTERVAL = 30  # seconds
@@ -145,11 +325,22 @@ class ARIANetwork:
     MAX_RETRIES = 2          # Maximum retries with replicas
 
     def __init__(self, node_id: str, host: str = "0.0.0.0", port: int = 8765,
-                 consent: Optional[ARIAConsent] = None):
+                 consent: Optional[ARIAConsent] = None,
+                 use_tls: bool = False,
+                 cert_path: Optional[Path] = None,
+                 key_path: Optional[Path] = None,
+                 verify_tls: bool = False):
         self.node_id = node_id
         self.host = host
         self.port = port
         self.consent = consent
+
+        # TLS configuration
+        self.use_tls = use_tls
+        self.cert_path = cert_path or TLS_DIR / "server.crt"
+        self.key_path = key_path or TLS_DIR / "server.key"
+        self.verify_tls = verify_tls
+        self._ssl_context: Optional[ssl.SSLContext] = None
 
         # Routing table
         self.peers: Dict[str, PeerInfo] = {}
@@ -228,12 +419,29 @@ class ARIANetwork:
     # WEBSOCKET SERVER
     # ==========================================
 
+    def _setup_tls(self) -> Optional[ssl.SSLContext]:
+        """Setup TLS if enabled, generating certificates if needed."""
+        if not self.use_tls:
+            return None
+
+        # Check if certificates exist, generate if not
+        if not self.cert_path.exists() or not self.key_path.exists():
+            logger.info(f"[{self.node_id}] Generating self-signed certificate...")
+            if not generate_self_signed_cert(self.cert_path, self.key_path):
+                logger.error(f"[{self.node_id}] Failed to generate TLS certificates")
+                raise RuntimeError("TLS certificate generation failed")
+
+        return create_ssl_context(self.cert_path, self.key_path, self.verify_tls)
+
     async def start(self):
         """Start the WebSocket server and background tasks."""
         if self._running:
             return
 
         self._running = True
+
+        # Setup TLS if enabled
+        self._ssl_context = self._setup_tls()
 
         # Start WebSocket server
         self._server = await serve(
@@ -242,6 +450,7 @@ class ARIANetwork:
             self.port,
             ping_interval=20,
             ping_timeout=30,
+            ssl=self._ssl_context,
         )
 
         # Start heartbeat task
@@ -249,7 +458,8 @@ class ARIANetwork:
         self._tasks.add(heartbeat_task)
         heartbeat_task.add_done_callback(self._tasks.discard)
 
-        logger.info(f"[{self.node_id}] Network started on ws://{self.host}:{self.port}")
+        protocol = "wss" if self.use_tls else "ws"
+        logger.info(f"[{self.node_id}] Network started on {protocol}://{self.host}:{self.port}")
 
     async def stop(self):
         """Stop the WebSocket server and all connections."""
@@ -303,12 +513,29 @@ class ARIANetwork:
     # WEBSOCKET CLIENT
     # ==========================================
 
-    async def connect_to_peer(self, host: str, port: int) -> bool:
-        """Connect to a peer node."""
-        uri = f"ws://{host}:{port}"
+    async def connect_to_peer(self, host: str, port: int, use_tls: Optional[bool] = None) -> bool:
+        """
+        Connect to a peer node.
+
+        Args:
+            host: Peer hostname or IP
+            port: Peer port
+            use_tls: Override TLS setting (uses self.use_tls if None)
+
+        Returns:
+            True if connection successful
+        """
+        tls_enabled = use_tls if use_tls is not None else self.use_tls
+        protocol = "wss" if tls_enabled else "ws"
+        uri = f"{protocol}://{host}:{port}"
+
+        # Setup client SSL context if TLS is enabled
+        ssl_context = None
+        if tls_enabled:
+            ssl_context = create_ssl_context(verify=self.verify_tls)
 
         try:
-            ws = await connect(uri, ping_interval=20, ping_timeout=30)
+            ws = await connect(uri, ping_interval=20, ping_timeout=30, ssl=ssl_context)
 
             # Send peer_announce to introduce ourselves
             announce_msg = self.create_message("peer_announce", {
@@ -990,6 +1217,21 @@ class ARIANetwork:
                 sum(p.reputation for p in alive_peers) / len(alive_peers)
                 if alive_peers else 0
             ),
+            "tls_enabled": self.use_tls,
+        }
+
+    def get_server_uri(self) -> str:
+        """Get the server URI (ws:// or wss://)."""
+        protocol = "wss" if self.use_tls else "ws"
+        return f"{protocol}://{self.host}:{self.port}"
+
+    def get_tls_info(self) -> dict:
+        """Get TLS configuration information."""
+        return {
+            "enabled": self.use_tls,
+            "cert_path": str(self.cert_path) if self.use_tls else None,
+            "key_path": str(self.key_path) if self.use_tls else None,
+            "verify": self.verify_tls,
         }
 
     def __repr__(self) -> str:

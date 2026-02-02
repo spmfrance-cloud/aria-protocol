@@ -1,6 +1,6 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.2.5-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
@@ -85,7 +85,7 @@ print(response.choices[0].message.content)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ARIA PROTOCOL v0.1.0                       │
+│                      ARIA PROTOCOL v0.2.5                       │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
 │  ├── OpenAI-compatible API (aiohttp)                            │
@@ -137,6 +137,9 @@ See [Architecture Documentation](docs/architecture.md) for detailed diagrams and
 | [Getting Started](docs/getting-started.md) | Installation and quick start guide |
 | [Architecture](docs/architecture.md) | System design and component details |
 | [API Reference](docs/api-reference.md) | OpenAI-compatible API documentation |
+| [Protocol Spec](docs/protocol-spec.md) | WebSocket protocol specification |
+| [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
+| [Benchmarks](benchmarks/README.md) | Performance methodology and results |
 | [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
 
 ---
@@ -215,30 +218,22 @@ make test-cov
 
 ## Roadmap
 
-### v0.2.0 - Real Inference
-- [ ] Integrate bitnet.cpp for actual 1-bit inference
-- [ ] Load real trained ternary models
-- [ ] AVX2/NEON kernel optimizations
-- [ ] Quantized model format specification
+| Version | Name | Focus | Status |
+|---------|------|-------|--------|
+| v0.1.0 | Genesis | Whitepaper + reference implementation | ✅ Complete |
+| v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
+| v0.2.5 | Hardening | Benchmarks, Threat model, Security, Protocol spec | 🔄 In Progress |
+| v0.3.0 | Mobile | Mobile nodes, lightweight inference | ⬜ Planned |
+| v0.4.0 | Consensus | Sybil resistance, reputation system | ⬜ Planned |
+| v1.0.0 | Mainnet | Production-ready network | ⬜ Planned |
 
-### v0.3.0 - Mobile Nodes
-- [ ] React Native mobile application
-- [ ] iOS/Android background inference
-- [ ] Battery-aware scheduling
-- [ ] Mobile-optimized networking
+### Current Focus: v0.2.5 Hardening
 
-### v0.4.0 - Enhanced Consensus
-- [ ] Smart contract deployment (EVM-compatible)
-- [ ] Token economics implementation
-- [ ] Reputation system refinement
-- [ ] Slashing conditions
-
-### v1.0.0 - Mainnet Launch
-- [ ] Security audit completion
-- [ ] Mainnet deployment
-- [ ] Public node registration
-- [ ] ARIA token distribution
-- [ ] Governance framework
+- [x] Performance benchmarks and metrics
+- [x] Threat model documentation
+- [x] Protocol specification
+- [x] TLS/WSS support for secure connections
+- [ ] Security audit preparation
 
 ---
 
