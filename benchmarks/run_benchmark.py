@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from aria.node import ARIANode
 from aria.consent import ARIAConsent, TaskType
-from aria.inference import OneBitInferenceEngine
+from aria.inference import InferenceEngine
 
 
 # Default test prompts for reproducibility
@@ -230,7 +230,7 @@ class ARIABenchmark:
 
     def __init__(self, config: BenchmarkConfig):
         self.config = config
-        self.engine: Optional[OneBitInferenceEngine] = None
+        self.engine: Optional[InferenceEngine] = None
         self.node: Optional[ARIANode] = None
 
     def setup(self):
@@ -273,7 +273,7 @@ class ARIABenchmark:
         prompt_idx = 0
         for i in range(self.config.warmup):
             prompt = self.config.prompts[prompt_idx % len(self.config.prompts)]
-            self.engine.run_inference(
+            self.engine.infer(
                 query=prompt,
                 model_id=self.config.model,
                 max_tokens=self.config.max_tokens
@@ -301,7 +301,7 @@ class ARIABenchmark:
             # Measure single inference
             iter_start = time.perf_counter()
 
-            result = self.engine.run_inference(
+            result = self.engine.infer(
                 query=prompt,
                 model_id=self.config.model,
                 max_tokens=self.config.max_tokens
@@ -313,7 +313,7 @@ class ARIABenchmark:
             latency_ms = (iter_end - iter_start) * 1000
             latencies_ms.append(latency_ms)
 
-            tokens = result.get("tokens_generated", self.config.max_tokens)
+            tokens = result.tokens_generated
             tokens_per_request.append(tokens)
             total_tokens += tokens
 
