@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "version": "0.2.5",
+    "timestamp": "2026-02-04T03:45:00.000000Z",
+    "git_commit": "622ca2d",
+    "seed": 42
+  },
+  "environment": {
+    "cpu": "AMD Ryzen 9 7845HX with Radeon Graphics",
+    "cores": 24,
+    "ram_gb": 63.2,
+    "os": "Windows",
+    "os_version": "10.0.26100",
+    "python": "3.9.25",
+    "aria_version": "0.2.5",
+    "bitnet_cpp_version": "1.0",
+    "bitnet_build": "3962 (1f86f058) with Clang 20.1.8"
+  },
+  "config": {
+    "model": "microsoft/BitNet-b1.58-2B-4T",
+    "model_size_gib": 1.10,
+    "model_params_b": 2.41,
+    "quantization": "I2_S (2 bpw ternary)",
+    "prompt_tokens": 512,
+    "generated_tokens": 128,
+    "threads": 4,
+    "backend": "CPU",
+    "tdp_watts": 125.0
+  },
+  "results": {
+    "bitnet_real": {
+      "prompt_processing_tokens_per_sec": 36.37,
+      "token_generation_tokens_per_sec": 36.83,
+      "throughput_tokens_per_sec": 36.83,
+      "energy_mj_per_token": 1696.44,
+      "model_load_time_ms": 504.46,
+      "total_tokens": 128,
+      "prompt_eval_ms_per_token": 26.46,
+      "generation_ms_per_token": 26.54
+    }
+  }
+}

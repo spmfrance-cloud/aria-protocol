@@ -1,0 +1,1242 @@
+"""
+ARIA Protocol - P2P Network Layer
+Handles node discovery, shard location, and inference routing.
+Real WebSocket-based implementation with asyncio.
+
+Supports distributed pipeline inference:
+- Builds pipeline chains from shard registry
+- Routes activations through node chain
+- Handles timeout and fallback to replicas
+
+Supports TLS/WSS for secure connections:
+- Self-signed certificate generation for development
+- Custom certificate support for production
+
+MIT License - Anthony MURGO, 2026
+"""
+
+import asyncio
+import json
+import hashlib
+import time
+import random
+import logging
+import re
+import ssl
+import os
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Callable, Set, Tuple
+
+try:
+    import websockets
+    from websockets.asyncio.server import serve
+    from websockets.asyncio.client import connect
+except ImportError:
+    raise ImportError("websockets is required: pip install websockets")
+
+# Lazy import for cryptography to avoid import errors in some environments
+CRYPTOGRAPHY_AVAILABLE = False
+_cryptography_modules = {}
+
+def _load_cryptography():
+    """Lazy load cryptography modules."""
+    global CRYPTOGRAPHY_AVAILABLE, _cryptography_modules
+    if _cryptography_modules:
+        return CRYPTOGRAPHY_AVAILABLE
+    try:
+        from cryptography import x509
+        from cryptography.x509.oid import NameOID
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        _cryptography_modules = {
+            'x509': x509,
+            'NameOID': NameOID,
+            'hashes': hashes,
+            'serialization': serialization,
+            'rsa': rsa,
+        }
+        CRYPTOGRAPHY_AVAILABLE = True
+    except Exception:
+        CRYPTOGRAPHY_AVAILABLE = False
+    return CRYPTOGRAPHY_AVAILABLE
+
+from aria.consent import ARIAConsent, TaskType
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("aria.network")
+
+
+# Default TLS certificate directory
+TLS_DIR = Path.home() / ".aria" / "tls"
+
+
+def generate_self_signed_cert(
+    cert_path: Path,
+    key_path: Path,
+    hostname: str = "localhost",
+    days_valid: int = 365
+) -> bool:
+    """
+    Generate a self-signed certificate for development use.
+
+    Args:
+        cert_path: Path to save the certificate
+        key_path: Path to save the private key
+        hostname: Hostname for the certificate
+        days_valid: Number of days the certificate is valid
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if not _load_cryptography():
+        logger.error("cryptography library required for TLS: pip install cryptography")
+        return False
+
+    try:
+        # Get cryptography modules
+        x509 = _cryptography_modules['x509']
+        NameOID = _cryptography_modules['NameOID']
+        hashes = _cryptography_modules['hashes']
+        serialization = _cryptography_modules['serialization']
+        rsa = _cryptography_modules['rsa']
+
+        # Generate private key
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+
+        # Generate certificate
+        subject = issuer = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "ARIA Protocol"),
+            x509.NameAttribute(NameOID.COMMON_NAME, hostname),
+        ])
+
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subject)
+            .issuer_name(issuer)
+            .public_key(key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.utcnow())
+            .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
+            .add_extension(
+                x509.SubjectAlternativeName([
+                    x509.DNSName(hostname),
+                    x509.DNSName("localhost"),
+                    x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
+                ]),
+                critical=False,
+            )
+            .sign(key, hashes.SHA256())
+        )
+
+        # Ensure directory exists
+        cert_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write private key
+        with open(key_path, "wb") as f:
+            f.write(key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            ))
+        os.chmod(key_path, 0o600)  # Secure permissions
+
+        # Write certificate
+        with open(cert_path, "wb") as f:
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+        logger.info(f"Generated self-signed certificate: {cert_path}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to generate certificate: {e}")
+        return False
+
+
+def create_ssl_context(
+    cert_path: Optional[Path] = None,
+    key_path: Optional[Path] = None,
+    verify: bool = False
+) -> ssl.SSLContext:
+    """
+    Create an SSL context for TLS connections.
+
+    Args:
+        cert_path: Path to certificate file (for server)
+        key_path: Path to private key file (for server)
+        verify: Whether to verify peer certificates
+
+    Returns:
+        Configured SSL context
+    """
+    if cert_path and key_path:
+        # Server context
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(str(cert_path), str(key_path))
+    else:
+        # Client context
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+    if not verify:
+        # Disable verification for self-signed certs (development only)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    else:
+        ctx.verify_mode = ssl.CERT_REQUIRED
+        ctx.check_hostname = True
+
+    return ctx
+
+
+# Import ipaddress for certificate generation
+import ipaddress
+
+
+@dataclass
+class PeerInfo:
+    """Information about a peer in the network."""
+    node_id: str
+    host: str
+    port: int
+    consent: Optional[ARIAConsent] = None
+    reputation: float = 1.0          # [0, 1] reliability score
+    available_shards: List[str] = field(default_factory=list)
+    last_seen: float = field(default_factory=time.time)
+    total_inferences: int = 0
+    avg_latency_ms: float = 0.0
+    energy_efficiency: float = 1.0   # Lower is better
+
+    @property
+    def is_alive(self) -> bool:
+        """Consider a peer dead if not seen for 5 minutes."""
+        return (time.time() - self.last_seen) < 300
+
+    def quality_score(self) -> float:
+        """
+        Compute a composite quality score for routing decisions.
+        Higher is better.
+        """
+        uptime_factor = min(self.reputation, 1.0)
+        latency_factor = max(0, 1.0 - (self.avg_latency_ms / 5000))
+        efficiency_factor = 1.0 / max(self.energy_efficiency, 0.1)
+
+        return uptime_factor * 0.4 + latency_factor * 0.3 + efficiency_factor * 0.3
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for network transmission."""
+        return {
+            "node_id": self.node_id,
+            "host": self.host,
+            "port": self.port,
+            "consent": self.consent.to_dict() if self.consent else None,
+            "reputation": self.reputation,
+            "available_shards": self.available_shards,
+            "total_inferences": self.total_inferences,
+            "avg_latency_ms": self.avg_latency_ms,
+            "energy_efficiency": self.energy_efficiency,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "PeerInfo":
+        """Create PeerInfo from dictionary."""
+        consent = None
+        if data.get("consent"):
+            consent = ARIAConsent.from_dict(data["consent"])
+        return cls(
+            node_id=data["node_id"],
+            host=data.get("host", "localhost"),
+            port=data.get("port", 8765),
+            consent=consent,
+            reputation=data.get("reputation", 1.0),
+            available_shards=data.get("available_shards", []),
+            total_inferences=data.get("total_inferences", 0),
+            avg_latency_ms=data.get("avg_latency_ms", 0.0),
+            energy_efficiency=data.get("energy_efficiency", 1.0),
+        )
+
+
+@dataclass
+class InferenceRequest:
+    """A request for distributed inference."""
+    request_id: str
+    query: str
+    model_id: str
+    task_type: TaskType = TaskType.TEXT_GENERATION
+    max_tokens: int = 256
+    temperature: float = 0.7
+    ram_mb: int = 512
+    reward: float = 0.01  # ARIA tokens offered
+    timestamp: float = field(default_factory=time.time)
+
+    def to_hash(self) -> str:
+        return hashlib.sha256(
+            json.dumps(asdict(self), sort_keys=True, default=str).encode()
+        ).hexdigest()
+
+
+class ARIANetwork:
+    """
+    The ARIA peer-to-peer network with real WebSocket connections.
+
+    Manages node discovery, routing tables, and inference
+    request matching based on consent parameters.
+
+    Supports distributed pipeline inference:
+    - build_pipeline_chain(): constructs ordered list of nodes for full inference
+    - forward_pipeline_state(): sends activations to next node with timeout/fallback
+    - Automatic fallback to replica nodes on timeout
+
+    Supports TLS/WSS for secure connections:
+    - use_tls=True enables encrypted WebSocket connections
+    - Auto-generates self-signed certificates for development
+    - Supports custom certificates for production
+
+    Usage:
+        # Standard (insecure) connection
+        network = ARIANetwork(node_id="my_node", port=8765)
+        await network.start()
+
+        # TLS-enabled connection
+        network = ARIANetwork(node_id="my_node", port=8765, use_tls=True)
+        await network.start()
+
+        # With custom certificates
+        network = ARIANetwork(
+            node_id="my_node",
+            port=8765,
+            use_tls=True,
+            cert_path=Path("/path/to/cert.pem"),
+            key_path=Path("/path/to/key.pem")
+        )
+        await network.start()
+    """
+
+    HEARTBEAT_INTERVAL = 30  # seconds
+    RECONNECT_DELAY = 5      # seconds
+    PIPELINE_TIMEOUT = 5.0   # seconds - timeout before fallback to replica
+    MAX_RETRIES = 2          # Maximum retries with replicas
+
+    def __init__(self, node_id: str, host: str = "0.0.0.0", port: int = 8765,
+                 consent: Optional[ARIAConsent] = None,
+                 use_tls: bool = False,
+                 cert_path: Optional[Path] = None,
+                 key_path: Optional[Path] = None,
+                 verify_tls: bool = False):
+        self.node_id = node_id
+        self.host = host
+        self.port = port
+        self.consent = consent
+
+        # TLS configuration
+        self.use_tls = use_tls
+        self.cert_path = cert_path or TLS_DIR / "server.crt"
+        self.key_path = key_path or TLS_DIR / "server.key"
+        self.verify_tls = verify_tls
+        self._ssl_context: Optional[ssl.SSLContext] = None
+
+        # Routing table
+        self.peers: Dict[str, PeerInfo] = {}
+
+        # Shard registry: model_shard_id -> list of node_ids
+        self.shard_registry: Dict[str, List[str]] = {}
+
+        # Message handlers
+        self._handlers: Dict[str, Callable] = {}
+
+        # Network stats
+        self.messages_sent = 0
+        self.messages_received = 0
+
+        # WebSocket connections
+        self._server = None
+        self._connections: Dict[str, websockets.asyncio.client.ClientConnection] = {}
+        self._running = False
+        self._tasks: Set[asyncio.Task] = set()
+
+        # Locks for connection access (prevent concurrent recv)
+        self._connection_locks: Dict[str, asyncio.Lock] = {}
+
+        # Available shards on this node
+        self.local_shards: List[str] = []
+
+        # Inference request handler callback
+        self._inference_callback: Optional[Callable] = None
+
+        # Pipeline stage handler callback
+        self._pipeline_callback: Optional[Callable] = None
+
+        # CLI command callbacks
+        self._stats_callback: Optional[Callable] = None
+        self._ledger_stats_callback: Optional[Callable] = None
+        self._ledger_verify_callback: Optional[Callable] = None
+
+        # Register default handlers
+        self._register_default_handlers()
+
+    def _register_default_handlers(self):
+        """Register built-in message handlers."""
+        self._handlers["ping"] = self._handle_ping
+        self._handlers["pong"] = self._handle_pong
+        self._handlers["peer_announce"] = self._handle_peer_announce
+        self._handlers["shard_announce"] = self._handle_shard_announce
+        self._handlers["inference_request"] = self._handle_inference_request
+        self._handlers["get_peers"] = self._handle_get_peers
+        self._handlers["pipeline_forward"] = self._handle_pipeline_forward
+        # CLI command handlers
+        self._handlers["get_stats"] = self._handle_get_stats
+        self._handlers["get_ledger_stats"] = self._handle_get_ledger_stats
+        self._handlers["verify_ledger"] = self._handle_verify_ledger
+
+    def set_inference_callback(self, callback: Callable):
+        """Set callback for handling inference requests."""
+        self._inference_callback = callback
+
+    def set_pipeline_callback(self, callback: Callable):
+        """Set callback for handling pipeline forward requests."""
+        self._pipeline_callback = callback
+
+    def set_stats_callback(self, callback: Callable):
+        """Set callback for handling stats requests (CLI)."""
+        self._stats_callback = callback
+
+    def set_ledger_stats_callback(self, callback: Callable):
+        """Set callback for handling ledger stats requests (CLI)."""
+        self._ledger_stats_callback = callback
+
+    def set_ledger_verify_callback(self, callback: Callable):
+        """Set callback for handling ledger verify requests (CLI)."""
+        self._ledger_verify_callback = callback
+
+    # ==========================================
+    # WEBSOCKET SERVER
+    # ==========================================
+
+    def _setup_tls(self) -> Optional[ssl.SSLContext]:
+        """Setup TLS if enabled, generating certificates if needed."""
+        if not self.use_tls:
+            return None
+
+        # Check if certificates exist, generate if not
+        if not self.cert_path.exists() or not self.key_path.exists():
+            logger.info(f"[{self.node_id}] Generating self-signed certificate...")
+            if not generate_self_signed_cert(self.cert_path, self.key_path):
+                logger.error(f"[{self.node_id}] Failed to generate TLS certificates")
+                raise RuntimeError("TLS certificate generation failed")
+
+        return create_ssl_context(self.cert_path, self.key_path, self.verify_tls)
+
+    async def start(self):
+        """Start the WebSocket server and background tasks."""
+        if self._running:
+            return
+
+        self._running = True
+
+        # Setup TLS if enabled
+        self._ssl_context = self._setup_tls()
+
+        # Start WebSocket server
+        self._server = await serve(
+            self._handle_connection,
+            self.host,
+            self.port,
+            ping_interval=20,
+            ping_timeout=30,
+            ssl=self._ssl_context,
+        )
+
+        # Start heartbeat task
+        heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+        self._tasks.add(heartbeat_task)
+        heartbeat_task.add_done_callback(self._tasks.discard)
+
+        protocol = "wss" if self.use_tls else "ws"
+        logger.info(f"[{self.node_id}] Network started on {protocol}://{self.host}:{self.port}")
+
+    async def stop(self):
+        """Stop the WebSocket server and all connections."""
+        self._running = False
+
+        # Cancel all tasks
+        for task in self._tasks:
+            task.cancel()
+
+        # Close all client connections
+        for node_id, ws in list(self._connections.items()):
+            try:
+                await ws.close()
+            except Exception:
+                pass
+        self._connections.clear()
+        self._connection_locks.clear()
+
+        # Close server
+        if self._server:
+            self._server.close()
+            await self._server.wait_closed()
+            self._server = None
+
+        logger.info(f"[{self.node_id}] Network stopped")
+
+    async def _handle_connection(self, websocket):
+        """Handle incoming WebSocket connections."""
+        peer_id = None
+        try:
+            async for message in websocket:
+                response = await self.handle_message(message)
+                if response:
+                    await websocket.send(response)
+
+                    # Track the connection by peer_id if available
+                    try:
+                        msg = json.loads(message)
+                        sender_id = msg.get("sender_id")
+                        if sender_id and sender_id not in self._connections:
+                            peer_id = sender_id
+                    except:
+                        pass
+
+        except websockets.exceptions.ConnectionClosed:
+            logger.debug(f"[{self.node_id}] Connection closed")
+        except Exception as e:
+            logger.error(f"[{self.node_id}] Connection error: {e}")
+
+    # ==========================================
+    # WEBSOCKET CLIENT
+    # ==========================================
+
+    async def connect_to_peer(self, host: str, port: int, use_tls: Optional[bool] = None) -> bool:
+        """
+        Connect to a peer node.
+
+        Args:
+            host: Peer hostname or IP
+            port: Peer port
+            use_tls: Override TLS setting (uses self.use_tls if None)
+
+        Returns:
+            True if connection successful
+        """
+        tls_enabled = use_tls if use_tls is not None else self.use_tls
+        protocol = "wss" if tls_enabled else "ws"
+        uri = f"{protocol}://{host}:{port}"
+
+        # Setup client SSL context if TLS is enabled
+        ssl_context = None
+        if tls_enabled:
+            ssl_context = create_ssl_context(verify=self.verify_tls)
+
+        try:
+            ws = await connect(uri, ping_interval=20, ping_timeout=30, ssl=ssl_context)
+
+            # Send peer_announce to introduce ourselves
+            announce_msg = self.create_message("peer_announce", {
+                "node_id": self.node_id,
+                "host": "localhost",  # Our host for others to connect back
+                "port": self.port,
+                "consent": self.consent.to_dict() if self.consent else None,
+                "shards": self.local_shards,
+            })
+            await ws.send(announce_msg)
+
+            # Wait for response
+            response = await asyncio.wait_for(ws.recv(), timeout=5.0)
+            resp_data = json.loads(response)
+
+            if resp_data.get("status") == "accepted":
+                # Store connection with its lock
+                peer_id = resp_data.get("peer_id", f"{host}:{port}")
+                self._connections[peer_id] = ws
+                self._connection_locks[peer_id] = asyncio.Lock()
+
+                # Add to peers
+                self.add_peer(PeerInfo(
+                    node_id=peer_id,
+                    host=host,
+                    port=port,
+                ))
+
+                logger.info(f"[{self.node_id}] Connected to peer {peer_id}")
+                return True
+
+            await ws.close()
+            return False
+
+        except asyncio.TimeoutError:
+            logger.warning(f"[{self.node_id}] Connection timeout to {uri}")
+            return False
+        except Exception as e:
+            logger.warning(f"[{self.node_id}] Failed to connect to {uri}: {e}")
+            return False
+
+    async def send_to_peer(self, peer_id: str, message: str) -> Optional[str]:
+        """Send a message to a specific peer and wait for response."""
+        ws = self._connections.get(peer_id)
+        if not ws:
+            # Try to connect if we have peer info
+            if peer_id in self.peers:
+                peer = self.peers[peer_id]
+                if await self.connect_to_peer(peer.host, peer.port):
+                    ws = self._connections.get(peer_id)
+
+        if not ws:
+            return None
+
+        # Get or create lock for this connection
+        if peer_id not in self._connection_locks:
+            self._connection_locks[peer_id] = asyncio.Lock()
+
+        lock = self._connection_locks[peer_id]
+
+        try:
+            async with lock:
+                await ws.send(message)
+                response = await asyncio.wait_for(ws.recv(), timeout=10.0)
+                return response
+        except Exception as e:
+            logger.error(f"[{self.node_id}] Send failed to {peer_id}: {e}")
+            return None
+
+    async def broadcast(self, message: str):
+        """Broadcast a message to all connected peers (fire-and-forget)."""
+        for peer_id, ws in list(self._connections.items()):
+            try:
+                # Fire and forget - don't wait for response
+                await ws.send(message)
+            except Exception:
+                pass
+
+    # ==========================================
+    # BOOTSTRAP & DISCOVERY
+    # ==========================================
+
+    async def bootstrap(self, seed_peers: List[str]):
+        """
+        Bootstrap the network by connecting to known seed peers.
+
+        Args:
+            seed_peers: List of "host:port" strings
+        """
+        logger.info(f"[{self.node_id}] Bootstrapping with {len(seed_peers)} seed peers")
+
+        for peer_addr in seed_peers:
+            try:
+                host, port = peer_addr.split(":")
+                port = int(port)
+
+                # Skip self
+                if port == self.port:
+                    continue
+
+                await self.connect_to_peer(host, port)
+            except ValueError:
+                logger.warning(f"[{self.node_id}] Invalid peer address: {peer_addr}")
+
+        # Request peer lists from connected peers
+        await self._discover_more_peers()
+
+    async def _discover_more_peers(self):
+        """Ask connected peers for their peer lists."""
+        # Skip discovery for now - nodes are already connected via bootstrap
+        # This prevents concurrent access issues during initial setup
+        pass
+
+    # ==========================================
+    # HEARTBEAT
+    # ==========================================
+
+    async def _heartbeat_loop(self):
+        """Send periodic heartbeats to all peers."""
+        while self._running:
+            try:
+                await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+
+                if not self._running:
+                    break
+
+                # Send ping to all connected peers
+                ping_msg = self.create_message("ping", {"timestamp": time.time()})
+
+                for peer_id in list(self._connections.keys()):
+                    try:
+                        # Use a short timeout for heartbeats
+                        response = await asyncio.wait_for(
+                            self.send_to_peer(peer_id, ping_msg),
+                            timeout=5.0
+                        )
+                        if response:
+                            try:
+                                data = json.loads(response)
+                                if data.get("type") == "pong":
+                                    if peer_id in self.peers:
+                                        self.peers[peer_id].last_seen = time.time()
+                            except json.JSONDecodeError:
+                                pass
+                    except asyncio.TimeoutError:
+                        logger.debug(f"[{self.node_id}] Heartbeat timeout for {peer_id}")
+                    except Exception:
+                        pass
+
+                # Prune dead peers
+                self.prune_dead_peers()
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"[{self.node_id}] Heartbeat error: {e}")
+
+    # ==========================================
+    # PEER MANAGEMENT
+    # ==========================================
+
+    def add_peer(self, peer: PeerInfo):
+        """Add or update a peer in the routing table."""
+        peer.last_seen = time.time()
+        self.peers[peer.node_id] = peer
+
+        # Update shard registry
+        for shard_id in peer.available_shards:
+            if shard_id not in self.shard_registry:
+                self.shard_registry[shard_id] = []
+            if peer.node_id not in self.shard_registry[shard_id]:
+                self.shard_registry[shard_id].append(peer.node_id)
+
+    def remove_peer(self, node_id: str):
+        """Remove a peer from the routing table."""
+        if node_id in self.peers:
+            peer = self.peers.pop(node_id)
+            # Clean shard registry
+            for shard_id in peer.available_shards:
+                if shard_id in self.shard_registry:
+                    self.shard_registry[shard_id] = [
+                        nid for nid in self.shard_registry[shard_id]
+                        if nid != node_id
+                    ]
+
+        # Clean up connection and lock
+        self._connection_locks.pop(node_id, None)
+        if node_id in self._connections:
+            ws = self._connections.pop(node_id)
+            asyncio.create_task(ws.close())
+
+    def get_alive_peers(self) -> List[PeerInfo]:
+        """Get all peers that are currently alive."""
+        return [p for p in self.peers.values() if p.is_alive]
+
+    def prune_dead_peers(self):
+        """Remove peers that haven't been seen recently."""
+        dead = [nid for nid, p in self.peers.items() if not p.is_alive]
+        for nid in dead:
+            self.remove_peer(nid)
+
+    # ==========================================
+    # CONSENT-BASED ROUTING
+    # ==========================================
+
+    def find_peers_for_request(self, request: InferenceRequest) -> List[PeerInfo]:
+        """
+        Find peers that match an inference request based on:
+        1. Consent parameters (schedule, task type, resources)
+        2. Available model shards
+        3. Quality score (reputation, latency, efficiency)
+
+        Returns peers sorted by quality score (best first).
+        This is the core routing algorithm of ARIA.
+        """
+        matching_peers = []
+
+        for peer in self.get_alive_peers():
+            # Check consent
+            if peer.consent is None:
+                continue
+
+            req_dict = {
+                "task_type": request.task_type,
+                "ram_mb": request.ram_mb,
+                "reward": request.reward,
+            }
+
+            if not peer.consent.matches_request(req_dict):
+                continue
+
+            # Check if peer has relevant shards
+            # (simplified: check if any shard matches model_id prefix)
+            has_shard = any(
+                s.startswith(request.model_id)
+                for s in peer.available_shards
+            ) if peer.available_shards else True  # If no shards listed, assume available
+
+            if not has_shard:
+                continue
+
+            matching_peers.append(peer)
+
+        # Sort by quality score (best first)
+        matching_peers.sort(key=lambda p: p.quality_score(), reverse=True)
+
+        return matching_peers
+
+    def find_shard_holders(self, shard_id: str) -> List[PeerInfo]:
+        """Find all peers holding a specific model shard."""
+        node_ids = self.shard_registry.get(shard_id, [])
+        return [
+            self.peers[nid] for nid in node_ids
+            if nid in self.peers and self.peers[nid].is_alive
+        ]
+
+    # ==========================================
+    # MESSAGE HANDLING
+    # ==========================================
+
+    async def _handle_ping(self, sender_id: str, data: dict) -> dict:
+        """Respond to ping with pong + our info."""
+        return {
+            "type": "pong",
+            "node_id": self.node_id,
+            "timestamp": time.time(),
+            "peer_count": len(self.get_alive_peers()),
+        }
+
+    async def _handle_pong(self, sender_id: str, data: dict) -> dict:
+        """Handle pong response - update peer last_seen."""
+        if sender_id in self.peers:
+            self.peers[sender_id].last_seen = time.time()
+        return {}  # No response needed
+
+    async def _handle_peer_announce(self, sender_id: str, data: dict) -> dict:
+        """Handle a new peer announcing itself."""
+        consent_data = data.get("consent")
+        consent = ARIAConsent.from_dict(consent_data) if consent_data else None
+
+        peer = PeerInfo(
+            node_id=data["node_id"],
+            host=data.get("host", "unknown"),
+            port=data.get("port", 8765),
+            consent=consent,
+            available_shards=data.get("shards", []),
+        )
+        self.add_peer(peer)
+
+        logger.info(f"[{self.node_id}] Peer announced: {peer.node_id}")
+
+        return {
+            "status": "accepted",
+            "peer_count": len(self.peers),
+            "peer_id": self.node_id,
+        }
+
+    async def _handle_shard_announce(self, sender_id: str, data: dict) -> dict:
+        """Handle a node announcing available shards."""
+        shard_ids = data.get("shard_ids", [])
+
+        if sender_id in self.peers:
+            self.peers[sender_id].available_shards = shard_ids
+            for sid in shard_ids:
+                if sid not in self.shard_registry:
+                    self.shard_registry[sid] = []
+                if sender_id not in self.shard_registry[sid]:
+                    self.shard_registry[sid].append(sender_id)
+
+        # Return empty to avoid cluttering the response queue (broadcast message)
+        return {}
+
+    async def _handle_inference_request(self, sender_id: str, data: dict) -> dict:
+        """Handle an incoming inference request."""
+        if self._inference_callback:
+            try:
+                result = await self._inference_callback(data)
+                return {"status": "completed", "result": result}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+
+        return {"status": "received", "request_id": data.get("request_id")}
+
+    async def _handle_get_peers(self, sender_id: str, data: dict) -> dict:
+        """Return list of known peers."""
+        peer_list = [p.to_dict() for p in self.get_alive_peers() if p.node_id != sender_id]
+        return {"peers": peer_list}
+
+    async def _handle_pipeline_forward(self, sender_id: str, data: dict) -> dict:
+        """
+        Handle a pipeline forward request.
+
+        This is called when another node sends activations to us
+        for processing through our local layers.
+        """
+        if self._pipeline_callback:
+            try:
+                result = await self._pipeline_callback(data)
+                return result
+            except Exception as e:
+                logger.error(f"[{self.node_id}] Pipeline processing error: {e}")
+                return {"status": "error", "error": str(e)}
+
+        return {"status": "error", "error": "No pipeline handler registered"}
+
+    async def _handle_get_stats(self, sender_id: str, data: dict) -> dict:
+        """Handle stats request from CLI."""
+        if self._stats_callback:
+            try:
+                stats = self._stats_callback()
+                return {"status": "ok", "data": stats}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No stats handler registered"}
+
+    async def _handle_get_ledger_stats(self, sender_id: str, data: dict) -> dict:
+        """Handle ledger stats request from CLI."""
+        if self._ledger_stats_callback:
+            try:
+                stats = self._ledger_stats_callback()
+                return {"status": "ok", "data": stats}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No ledger stats handler registered"}
+
+    async def _handle_verify_ledger(self, sender_id: str, data: dict) -> dict:
+        """Handle ledger verify request from CLI."""
+        if self._ledger_verify_callback:
+            try:
+                result = self._ledger_verify_callback()
+                return {"status": "ok", "data": result}
+            except Exception as e:
+                return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "No ledger verify handler registered"}
+
+    # ==========================================
+    # PIPELINE ROUTING
+    # ==========================================
+
+    def _parse_shard_layers(self, shard_id: str) -> Tuple[int, int]:
+        """
+        Parse layer range from shard ID.
+
+        Shard IDs follow the pattern: model_id_Lstart-end
+        Example: "aria-2b-1bit_L0-7" -> (0, 7)
+        """
+        match = re.search(r'_L(\d+)-(\d+)$', shard_id)
+        if match:
+            return int(match.group(1)), int(match.group(2))
+        return -1, -1
+
+    def build_pipeline_chain(self, model_id: str, total_layers: int = 24
+                             ) -> List[Tuple[str, str, int, int, List[str]]]:
+        """
+        Build the complete pipeline chain for distributed inference.
+
+        This analyzes the shard registry and constructs an ordered
+        list of nodes that together cover all model layers.
+
+        Args:
+            model_id: The model to build pipeline for
+            total_layers: Total number of layers in the model
+
+        Returns:
+            List of tuples: (node_id, shard_id, layer_start, layer_end, replica_node_ids)
+            Ordered by layer_start, with fallback replicas for each stage.
+
+        Example:
+            [("alice", "aria-2b-1bit_L0-7", 0, 7, ["alice_backup"]),
+             ("bob", "aria-2b-1bit_L8-15", 8, 15, []),
+             ("carol", "aria-2b-1bit_L16-23", 16, 23, ["carol_backup"])]
+        """
+        # Collect all shards for this model with their layer ranges
+        shard_info = []  # (shard_id, layer_start, layer_end, [node_ids])
+
+        for shard_id, node_ids in self.shard_registry.items():
+            if not shard_id.startswith(model_id):
+                continue
+
+            layer_start, layer_end = self._parse_shard_layers(shard_id)
+            if layer_start < 0:
+                continue
+
+            # Filter to only alive nodes
+            alive_nodes = [
+                nid for nid in node_ids
+                if nid in self.peers and self.peers[nid].is_alive
+            ]
+
+            # Include ourselves if we have this shard
+            if shard_id in self.local_shards and self.node_id not in alive_nodes:
+                alive_nodes.insert(0, self.node_id)
+
+            if alive_nodes:
+                shard_info.append((shard_id, layer_start, layer_end, alive_nodes))
+
+        # Sort by layer_start
+        shard_info.sort(key=lambda x: x[1])
+
+        # Build pipeline chain with primary and replica nodes
+        chain = []
+        for shard_id, layer_start, layer_end, node_ids in shard_info:
+            primary = node_ids[0]  # First node is primary
+            replicas = node_ids[1:] if len(node_ids) > 1 else []
+
+            # Sort replicas by quality score
+            if replicas:
+                replicas.sort(
+                    key=lambda nid: self.peers[nid].quality_score()
+                    if nid in self.peers else 0,
+                    reverse=True
+                )
+
+            chain.append((primary, shard_id, layer_start, layer_end, replicas))
+
+        return chain
+
+    def get_next_stage(self, model_id: str, current_layer: int
+                       ) -> Optional[Tuple[str, str, int, int, List[str]]]:
+        """
+        Get the next stage in the pipeline for a given layer.
+
+        Args:
+            model_id: The model ID
+            current_layer: The layer we need to process next
+
+        Returns:
+            Tuple of (node_id, shard_id, layer_start, layer_end, replicas)
+            or None if no stage found
+        """
+        chain = self.build_pipeline_chain(model_id)
+
+        for node_id, shard_id, layer_start, layer_end, replicas in chain:
+            if layer_start <= current_layer <= layer_end:
+                return (node_id, shard_id, layer_start, layer_end, replicas)
+
+        return None
+
+    async def forward_pipeline_state(self, target_node_id: str,
+                                     state_dict: dict,
+                                     replicas: List[str] = None
+                                     ) -> Optional[dict]:
+        """
+        Forward pipeline state to the next node with timeout and fallback.
+
+        If the primary node doesn't respond within PIPELINE_TIMEOUT seconds,
+        automatically falls back to replica nodes.
+
+        Args:
+            target_node_id: Primary node to forward to
+            state_dict: Serialized pipeline state
+            replicas: List of fallback node IDs
+
+        Returns:
+            Response dict with result, or None if all nodes failed
+        """
+        replicas = replicas or []
+        nodes_to_try = [target_node_id] + replicas[:self.MAX_RETRIES]
+
+        for i, node_id in enumerate(nodes_to_try):
+            is_replica = i > 0
+            if is_replica:
+                logger.warning(
+                    f"[{self.node_id}] Primary node {target_node_id} timed out, "
+                    f"falling back to replica {node_id}"
+                )
+
+            try:
+                msg = self.create_message("pipeline_forward", {
+                    "state": state_dict,
+                    "is_replica": is_replica,
+                })
+
+                # Use our custom timeout instead of the default 10s
+                response = await asyncio.wait_for(
+                    self._send_with_retry(node_id, msg),
+                    timeout=self.PIPELINE_TIMEOUT
+                )
+
+                if response:
+                    try:
+                        result = json.loads(response)
+                        if result.get("status") != "error":
+                            return result
+                        logger.warning(
+                            f"[{self.node_id}] Node {node_id} returned error: "
+                            f"{result.get('error')}"
+                        )
+                    except json.JSONDecodeError:
+                        logger.warning(
+                            f"[{self.node_id}] Invalid JSON from {node_id}"
+                        )
+
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"[{self.node_id}] Timeout waiting for {node_id} "
+                    f"(limit: {self.PIPELINE_TIMEOUT}s)"
+                )
+                continue
+            except Exception as e:
+                logger.warning(
+                    f"[{self.node_id}] Error forwarding to {node_id}: {e}"
+                )
+                continue
+
+        # All nodes failed
+        logger.error(
+            f"[{self.node_id}] All pipeline nodes failed for stage "
+            f"(tried: {nodes_to_try})"
+        )
+        return None
+
+    async def _send_with_retry(self, peer_id: str, message: str) -> Optional[str]:
+        """Send message with connection retry if needed."""
+        ws = self._connections.get(peer_id)
+
+        if not ws:
+            # Try to connect if we have peer info
+            if peer_id in self.peers:
+                peer = self.peers[peer_id]
+                if await self.connect_to_peer(peer.host, peer.port):
+                    ws = self._connections.get(peer_id)
+
+        if not ws:
+            return None
+
+        # Get or create lock for this connection
+        if peer_id not in self._connection_locks:
+            self._connection_locks[peer_id] = asyncio.Lock()
+
+        lock = self._connection_locks[peer_id]
+
+        async with lock:
+            await ws.send(message)
+            response = await ws.recv()
+            return response
+
+    def get_pipeline_info(self, model_id: str) -> dict:
+        """
+        Get information about the pipeline for a model.
+
+        Returns a summary useful for debugging and monitoring.
+        """
+        chain = self.build_pipeline_chain(model_id)
+
+        stages = []
+        for node_id, shard_id, layer_start, layer_end, replicas in chain:
+            stages.append({
+                "node_id": node_id,
+                "shard_id": shard_id,
+                "layers": f"L{layer_start}-{layer_end}",
+                "replicas": len(replicas),
+                "replica_ids": replicas,
+            })
+
+        return {
+            "model_id": model_id,
+            "stages": len(stages),
+            "chain": stages,
+            "complete": self._is_chain_complete(chain),
+        }
+
+    def _is_chain_complete(self, chain: List) -> bool:
+        """Check if chain covers all layers without gaps."""
+        if not chain:
+            return False
+
+        expected_layer = 0
+        for _, _, layer_start, layer_end, _ in chain:
+            if layer_start != expected_layer:
+                return False
+            expected_layer = layer_end + 1
+
+        return True
+
+    async def handle_message(self, raw_message: str) -> str:
+        """
+        Process an incoming message and return a response.
+        Messages are JSON with {type, sender_id, data}.
+        """
+        self.messages_received += 1
+
+        try:
+            msg = json.loads(raw_message)
+            msg_type = msg.get("type", "unknown")
+            sender_id = msg.get("sender_id", "unknown")
+            data = msg.get("data", {})
+
+            # Update last_seen for sender
+            if sender_id in self.peers:
+                self.peers[sender_id].last_seen = time.time()
+
+            handler = self._handlers.get(msg_type)
+            if handler:
+                response = await handler(sender_id, data)
+                if response:
+                    return json.dumps(response)
+                return ""
+            else:
+                return json.dumps({"error": f"Unknown message type: {msg_type}"})
+
+        except json.JSONDecodeError:
+            return json.dumps({"error": "Invalid JSON"})
+
+    def create_message(self, msg_type: str, data: dict) -> str:
+        """Create a properly formatted ARIA protocol message."""
+        self.messages_sent += 1
+        return json.dumps({
+            "type": msg_type,
+            "sender_id": self.node_id,
+            "data": data,
+            "timestamp": time.time(),
+            "protocol": "aria/0.1",
+        })
+
+    async def announce_shards(self, shard_ids: List[str]):
+        """Announce available shards to all connected peers."""
+        self.local_shards = shard_ids
+        msg = self.create_message("shard_announce", {"shard_ids": shard_ids})
+        await self.broadcast(msg)
+
+    # ==========================================
+    # NETWORK STATS
+    # ==========================================
+
+    def get_network_stats(self) -> dict:
+        """Get current network statistics."""
+        alive_peers = self.get_alive_peers()
+        return {
+            "node_id": self.node_id,
+            "total_peers": len(self.peers),
+            "alive_peers": len(alive_peers),
+            "connected_peers": len(self._connections),
+            "total_shards_tracked": sum(len(v) for v in self.shard_registry.values()),
+            "unique_models": len(self.shard_registry),
+            "messages_sent": self.messages_sent,
+            "messages_received": self.messages_received,
+            "avg_peer_reputation": (
+                sum(p.reputation for p in alive_peers) / len(alive_peers)
+                if alive_peers else 0
+            ),
+            "tls_enabled": self.use_tls,
+        }
+
+    def get_server_uri(self) -> str:
+        """Get the server URI (ws:// or wss://)."""
+        protocol = "wss" if self.use_tls else "ws"
+        return f"{protocol}://{self.host}:{self.port}"
+
+    def get_tls_info(self) -> dict:
+        """Get TLS configuration information."""
+        return {
+            "enabled": self.use_tls,
+            "cert_path": str(self.cert_path) if self.use_tls else None,
+            "key_path": str(self.key_path) if self.use_tls else None,
+            "verify": self.verify_tls,
+        }
+
+    def __repr__(self) -> str:
+        stats = self.get_network_stats()
+        return (
+            f"ARIANetwork(id={self.node_id}, peers={stats['alive_peers']}, "
+            f"connected={stats['connected_peers']}, shards={stats['total_shards_tracked']})"
+        )

@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "version": "0.2.5",
+    "timestamp": "2026-02-04T07:15:00.000000Z",
+    "cpu": "AMD Ryzen 9 7845HX with Radeon Graphics",
+    "cores": 24,
+    "ram_gb": 63.2,
+    "os": "Windows 10.0.26100",
+    "test": "context_length",
+    "model": "BitNet-b1.58-2B-4T",
+    "model_size_gib": 1.10,
+    "quantization": "I2_S (2 bpw ternary)",
+    "bitnet_build": "3962 (1f86f058) with Clang 20.1.8",
+    "threads": 8,
+    "temperature": 0
+  },
+  "generation_length_tests": {
+    "description": "Fixed prompt ('The future of AI is', 6 tokens), varying generation length",
+    "results": [
+      {
+        "generated_tokens": 32,
+        "actual_runs": 31,
+        "tokens_per_sec": 36.09,
+        "prompt_tokens_per_sec": 36.70,
+        "ms_per_token": 27.71,
+        "prompt_eval_time_ms": 163.51,
+        "eval_time_ms": 858.90,
+        "model_load_time_ms": 677.56,
+        "total_time_ms": 1028.00
+      },
+      {
+        "generated_tokens": 128,
+        "actual_runs": 127,
+        "tokens_per_sec": 36.61,
+        "prompt_tokens_per_sec": 36.15,
+        "ms_per_token": 27.32,
+        "prompt_eval_time_ms": 165.98,
+        "eval_time_ms": 3469.34,
+        "model_load_time_ms": 576.27,
+        "total_time_ms": 3655.70
+      },
+      {
+        "generated_tokens": 512,
+        "actual_runs": 511,
+        "tokens_per_sec": 34.13,
+        "prompt_tokens_per_sec": 34.93,
+        "ms_per_token": 29.30,
+        "prompt_eval_time_ms": 171.75,
+        "eval_time_ms": 14972.86,
+        "model_load_time_ms": 534.45,
+        "total_time_ms": 15222.67
+      },
+      {
+        "generated_tokens": 1024,
+        "actual_runs": 1023,
+        "tokens_per_sec": 34.00,
+        "prompt_tokens_per_sec": 33.29,
+        "ms_per_token": 29.41,
+        "prompt_eval_time_ms": 180.25,
+        "eval_time_ms": 30084.87,
+        "model_load_time_ms": 539.51,
+        "total_time_ms": 30426.94
+      }
+    ]
+  },
+  "prompt_length_tests": {
+    "description": "Fixed generation (128 tokens), varying prompt length",
+    "results": [
+      {
+        "test": "E",
+        "prompt": "AI is",
+        "prompt_tokens": 3,
+        "prompt_eval_tokens_per_sec": 34.21,
+        "prompt_eval_time_ms": 87.70,
+        "generation_tokens_per_sec": 34.51,
+        "ms_per_token": 28.98,
+        "model_load_time_ms": 528.11,
+        "total_time_ms": 3787.30
+      },
+      {
+        "test": "F",
+        "prompt": "Artificial intelligence has transformed the way we interact with technology...",
+        "prompt_tokens": 59,
+        "prompt_eval_tokens_per_sec": 37.68,
+        "prompt_eval_time_ms": 1565.75,
+        "generation_tokens_per_sec": 36.30,
+        "ms_per_token": 27.55,
+        "model_load_time_ms": 527.68,
+        "total_time_ms": 5085.40
+      },
+      {
+        "test": "G",
+        "prompt": "The evolution of distributed computing systems has fundamentally changed...",
+        "prompt_tokens": 224,
+        "prompt_eval_tokens_per_sec": 36.83,
+        "prompt_eval_time_ms": 6082.41,
+        "generation_tokens_per_sec": 35.61,
+        "ms_per_token": 28.08,
+        "model_load_time_ms": 538.71,
+        "total_time_ms": 9670.69
+      },
+      {
+        "test": "H",
+        "prompt": "The field of quantum computing represents one of the most significant paradigm shifts...",
+        "prompt_tokens": 557,
+        "prompt_eval_tokens_per_sec": 34.97,
+        "prompt_eval_time_ms": 15926.22,
+        "generation_tokens_per_sec": 32.72,
+        "ms_per_token": 30.56,
+        "model_load_time_ms": 537.90,
+        "total_time_ms": 19829.62
+      }
+    ]
+  },
+  "analysis": {
+    "generation_length": {
+      "finding": "Generation throughput is remarkably stable: 36.6 t/s at 32 tokens vs 34.0 t/s at 1024 tokens (only 7% degradation). The 1-bit LUT kernels maintain consistent per-token latency even as the KV cache grows.",
+      "degradation_32_to_1024": "7.1% throughput decrease",
+      "ms_per_token_range": "27.32 - 29.41 ms",
+      "scaling": "Near-linear time scaling with token count"
+    },
+    "prompt_length": {
+      "finding": "Prompt processing speed is consistent at ~35-38 t/s regardless of prompt length. However, longer prompts cause a slight degradation in generation speed (34.5 t/s with 3 tokens prompt vs 32.7 t/s with 557 tokens) due to larger KV cache lookups during autoregressive generation.",
+      "prompt_throughput_range": "34.21 - 37.68 t/s",
+      "generation_degradation_3_to_557": "5.2% decrease in generation speed with 557-token prompt vs 3-token prompt",
+      "time_to_first_token": "Scales linearly with prompt length (88ms for 3 tokens, 15926ms for 557 tokens)"
+    },
+    "aria_recommendation": "For ARIA distributed inference: (1) Generation length has minimal impact on per-token throughput, so batching longer generations is efficient. (2) Prompt length adds linear latency to time-to-first-token but barely affects generation speed. (3) For interactive use, keep prompts under 250 tokens for sub-7s time-to-first-token."
+  }
+}
