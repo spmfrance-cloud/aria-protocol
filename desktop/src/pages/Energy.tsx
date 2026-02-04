@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Zap, Leaf, DollarSign, Cloud } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { EnergySavingsCard } from "@/components/energy/EnergySavingsCard";
@@ -22,14 +23,8 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
 };
 
-const periods: { value: Period; label: string }[] = [
-  { value: "today", label: "Today" },
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-  { value: "all", label: "All Time" },
-];
-
 export default function Energy() {
+  const { t } = useTranslation();
   const {
     period,
     setPeriod,
@@ -39,6 +34,13 @@ export default function Energy() {
     comparisonData,
     impactMetrics,
   } = useEnergy();
+
+  const periods: { value: Period; labelKey: string }[] = [
+    { value: "today", labelKey: "energy.today" },
+    { value: "week", labelKey: "energy.week" },
+    { value: "month", labelKey: "energy.month" },
+    { value: "all", labelKey: "energy.allTime" },
+  ];
 
   return (
     <motion.div
@@ -54,7 +56,7 @@ export default function Energy() {
       >
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            Energy & Savings
+            {t("energy.title")}
           </h1>
           <p className="text-sm text-text-secondary">
             Track your energy impact and savings from local inference
@@ -74,7 +76,7 @@ export default function Energy() {
                   : "text-text-secondary hover:text-text-primary"
               )}
             >
-              {p.label}
+              {t(p.labelKey)}
             </button>
           ))}
         </div>
@@ -87,15 +89,15 @@ export default function Energy() {
       >
         <StatCard
           icon={Zap}
-          label="Total Energy Used"
+          label={t("energy.totalEnergy")}
           value={stats.totalEnergyKwh}
           suffix="kWh"
-          trend={{ value: -8.2, label: "more efficient" }}
+          trend={{ value: -8.2, label: t("energy.moreEfficient") }}
           variant="success"
         />
         <StatCard
           icon={Leaf}
-          label="CO₂ Avoided"
+          label={t("energy.co2Avoided")}
           value={stats.co2AvoidedKg}
           suffix="kg"
           trend={{ value: 12.5, label: "vs last period" }}
@@ -103,7 +105,7 @@ export default function Energy() {
         />
         <StatCard
           icon={DollarSign}
-          label="Money Saved"
+          label={t("energy.moneySaved")}
           value={stats.moneySaved}
           suffix="$"
           trend={{ value: 15.3, label: "vs last period" }}
@@ -111,10 +113,10 @@ export default function Energy() {
         />
         <StatCard
           icon={Cloud}
-          label="vs Cloud Comparison"
+          label={t("energy.vsCloud")}
           value={stats.cloudComparisonPercent}
           suffix="%"
-          trend={{ value: 0, label: "more efficient than cloud" }}
+          trend={{ value: 0, label: t("energy.moreEfficient") }}
           variant="success"
         />
       </motion.div>
