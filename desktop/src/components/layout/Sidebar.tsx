@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -13,11 +14,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/models", label: "Models", icon: Box },
-  { path: "/chat", label: "Chat", icon: MessageSquare },
-  { path: "/energy", label: "Energy", icon: Zap },
-  { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { path: "/models", labelKey: "nav.models", icon: Box },
+  { path: "/chat", labelKey: "nav.chat", icon: MessageSquare },
+  { path: "/energy", labelKey: "nav.energy", icon: Zap },
+  { path: "/settings", labelKey: "nav.settings", icon: Settings },
 ] as const;
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <motion.aside
@@ -65,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {navItems.map(({ path, label, icon: Icon }) => {
+        {navItems.map(({ path, labelKey, icon: Icon }) => {
           const isActive =
             path === "/"
               ? location.pathname === "/"
@@ -111,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
                       transition={{ duration: 0.15 }}
                       className="relative z-10 text-sm font-medium whitespace-nowrap"
                     >
-                      {label}
+                      {t(labelKey)}
                     </motion.span>
                   )}
                 </AnimatePresence>

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Box, Search } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
@@ -36,6 +37,7 @@ const cardItem = {
 };
 
 export default function Models() {
+  const { t } = useTranslation();
   const {
     models,
     getModelState,
@@ -99,11 +101,11 @@ export default function Models() {
         <motion.header variants={item} className="space-y-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-text-primary">
-              Model Manager
+              {t("models.title")}
             </h1>
             <Badge variant="default">
               <Box size={12} />
-              {installedCount} installed
+              {installedCount} {t("models.installed").toLowerCase()}
             </Badge>
           </div>
           <p className="text-sm text-text-secondary">
@@ -118,25 +120,28 @@ export default function Models() {
         >
           {/* Tabs */}
           <div className="flex items-center p-1 rounded-lg bg-surface/60 border border-border/40">
-            {(["available", "installed"] as Tab[]).map((tab) => (
+            {([
+              { value: "available" as Tab, labelKey: "models.available" },
+              { value: "installed" as Tab, labelKey: "models.installed" },
+            ]).map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
                 className={cn(
                   "relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-200",
-                  activeTab === tab
+                  activeTab === tab.value
                     ? "text-text-primary"
                     : "text-text-secondary hover:text-text-primary"
                 )}
               >
-                {activeTab === tab && (
+                {activeTab === tab.value && (
                   <motion.div
                     layoutId="tab-indicator"
                     className="absolute inset-0 rounded-md bg-primary/15 border border-primary/20"
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10 capitalize">{tab}</span>
+                <span className="relative z-10">{t(tab.labelKey)}</span>
               </button>
             ))}
           </div>
@@ -144,7 +149,7 @@ export default function Models() {
           {/* Search */}
           <div className="flex-1 max-w-xs">
             <Input
-              placeholder="Search models..."
+              placeholder={t("models.searchModels")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               icon={<Search size={16} />}
@@ -209,7 +214,7 @@ export default function Models() {
                     />
                     <p className="text-sm text-text-secondary">
                       {activeTab === "installed"
-                        ? "No models installed yet"
+                        ? t("models.noModels")
                         : "No models found"}
                     </p>
                     {activeTab === "installed" && (

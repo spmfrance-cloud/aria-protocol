@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { MessageSquare, Menu, X, Wifi } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ConversationList } from "@/components/chat/ConversationList";
@@ -24,6 +25,7 @@ const item = {
 };
 
 export default function Chat() {
+  const { t } = useTranslation();
   const {
     conversations,
     activeConversationId,
@@ -157,7 +159,7 @@ export default function Chat() {
               </span>
               <Badge variant="success" className="text-[10px] py-0 px-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                Online
+                {t("dashboard.online")}
               </Badge>
             </div>
           </div>
