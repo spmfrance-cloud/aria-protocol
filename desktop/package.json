@@ -8,7 +8,18 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:windows": "tauri build --target x86_64-pc-windows-msvc",
+    "tauri:build:mac": "tauri build --target x86_64-apple-darwin",
+    "tauri:build:mac-arm": "tauri build --target aarch64-apple-darwin",
+    "tauri:build:linux": "tauri build --target x86_64-unknown-linux-gnu",
+    "electron:dev": "electron electron/main.js",
+    "electron:build": "electron-builder",
+    "electron:build:windows": "electron-builder --win",
+    "electron:build:mac": "electron-builder --mac",
+    "electron:build:linux": "electron-builder --linux"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
@@ -32,6 +43,8 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.19",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0",

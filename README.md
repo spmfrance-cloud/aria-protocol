@@ -141,6 +141,31 @@ See [Architecture Documentation](docs/architecture.md) for detailed diagrams and
 
 ---
 
+## Desktop App
+
+ARIA Desktop provides a graphical interface for non-developers to run and manage ARIA nodes.
+
+| Platform | Architecture | Download |
+|----------|-------------|----------|
+| Windows 10+ | x64 | [ARIA-Desktop-0.5.0-win-x64.exe](https://github.com/spmfrance-cloud/aria-protocol/releases) |
+| macOS 11+ | Intel | [ARIA-Desktop-0.5.0-mac-x64.dmg](https://github.com/spmfrance-cloud/aria-protocol/releases) |
+| macOS 11+ | Apple Silicon | [ARIA-Desktop-0.5.0-mac-arm64.dmg](https://github.com/spmfrance-cloud/aria-protocol/releases) |
+| Ubuntu 20.04+ | x64 | [ARIA-Desktop-0.5.0-linux-x64.AppImage](https://github.com/spmfrance-cloud/aria-protocol/releases) |
+
+Built with **Tauri 2.0** (primary, ~10 MB) and **Electron** (alternative, ~150 MB).
+
+Features:
+- One-click node setup and management
+- Local AI chat with BitNet models
+- Energy consumption tracking and savings dashboard
+- Model download and management
+- 12-language interface support
+- System tray integration
+
+See [desktop/README.md](desktop/README.md) for build instructions and development guide.
+
+---
+
 ## Why ARIA?
 
 | Problem | ARIA's Solution |
@@ -185,7 +210,7 @@ Visit [aria-protocol.github.io](https://spmfrance-cloud.github.io/aria-protocol/
 
 ```
 aria-protocol/
-├── aria/
+├── aria/                  # Python backend
 │   ├── __init__.py        # Package exports
 │   ├── node.py            # Core ARIA node
 │   ├── network.py         # P2P WebSocket networking
@@ -198,6 +223,11 @@ aria-protocol/
 │   ├── cli.py             # Command-line interface
 │   ├── api.py             # OpenAI-compatible API
 │   └── dashboard.py       # Real-time web dashboard
+├── desktop/               # Desktop app (Tauri + Electron)
+│   ├── src-tauri/         # Tauri/Rust backend
+│   ├── electron/          # Electron alternative
+│   ├── src/               # React frontend (shared)
+│   └── package.json       # Node.js dependencies
 ├── tests/                 # Test suite
 ├── examples/              # Demo and integration examples
 ├── docs/                  # Documentation
@@ -264,7 +294,7 @@ make test-cov
 | v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
 | v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
 | v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
-| v0.5.0 | Desktop App | Electron/Tauri GUI for non-developers | 🔄 Next |
+| v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | 🔄 In Progress |
 | v0.6.0 | Testnet Alpha | Public bootstrap nodes, 50+ community nodes | ⬜ Planned |
 | v0.7.0 | Reputation | Node reliability scoring, anti-Sybil | ⬜ Planned |
 | v0.8.0 | Mobile | iOS/Android nodes with on-device inference | ⬜ Planned |
@@ -272,9 +302,13 @@ make test-cov
 
 ### Current Focus: v0.5.0 Desktop App
 
-- [ ] Electron/Tauri cross-platform GUI
+- [x] Tauri 2.0 cross-platform build configuration
+- [x] Electron alternative build configuration
+- [x] CI/CD pipelines for Windows, macOS, Linux
+- [x] Frontend ↔ Backend communication layer
 - [ ] One-click node setup for non-developers
 - [ ] System tray integration
+- [ ] Auto-updater with code signing
 
 ---
 
