@@ -4,6 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
+![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue.svg)
 
 **Autonomous Responsible Intelligence Architecture**
 
@@ -78,6 +79,33 @@ print(response.choices[0].message.content)
 | **Proof of Sobriety** | Verifiable energy efficiency attestations | ✅ Complete |
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
 | **bitnet.cpp Integration** | Real 1-bit inference kernels | 🔄 Simulation |
+
+---
+
+## Benchmarks
+
+Real-world performance on AMD Ryzen 9 7845HX (8 threads):
+
+| Model | Params | Tokens/s | Energy* |
+|-------|--------|----------|---------|
+| BitNet-b1.58-large | 0.7B | 89.65 t/s | ~11 mJ/token |
+| BitNet-b1.58-2B-4T | 2.4B | 36.94 t/s | ~28 mJ/token |
+| Llama3-8B-1.58 | 8.0B | 15.03 t/s | ~66 mJ/token |
+
+*Energy is estimated via CPU-time × TDP. See [benchmarks documentation](./benchmarks/README.md) for methodology and limitations.
+
+Key findings:
+- **Thread scaling**: Optimal at 8 threads; 1-bit LUT kernels are memory-bound
+- **Parallel inference**: 3 concurrent streams yield only +11% throughput → validates P2P architecture
+- **Context length**: Stable performance (-7% degradation from 32 to 1024 tokens)
+
+All benchmarks are reproducible:
+```bash
+pip install -e .
+python benchmarks/run_benchmark.py --prompts 5 --output results.json
+```
+
+Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ---
 
