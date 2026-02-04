@@ -5,7 +5,7 @@ A peer-to-peer efficient AI inference protocol.
 Released under MIT License.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.4.0"
 __author__ = "Anthony MURGO"
 
 from aria.node import ARIANode
@@ -16,3 +16,5 @@ from aria.inference import InferenceEngine
 from aria.proof import ProofOfUsefulWork, ProofOfSobriety
 from aria.api import ARIAOpenAIServer
 from aria.dashboard import ARIADashboard
+from aria.bitnet_native import BitNetNative
+from aria.model_manager import ModelManager
