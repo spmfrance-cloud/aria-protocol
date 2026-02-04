@@ -1,0 +1,91 @@
+name: Desktop CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+
+jobs:
+  check-frontend:
+    runs-on: ubuntu-latest
+    name: Frontend (TypeScript + Vite)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: TypeScript check
+        working-directory: desktop
+        run: npx tsc --noEmit
+
+      - name: Build frontend
+        working-directory: desktop
+        run: npm run build
+
+  check-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-22.04, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.platform }}
+    name: Tauri (${{ matrix.platform }})
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri -> target
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      - name: Install frontend dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: desktop
+        run: npm run build
+
+      - name: Check Rust compilation
+        working-directory: desktop/src-tauri
+        run: cargo check
