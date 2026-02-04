@@ -21,6 +21,7 @@ from aria.ledger import ProvenanceLedger
 from aria.network import ARIANetwork, PeerInfo
 from aria.api import ARIAOpenAIServer
 from aria.dashboard import ARIADashboard
+from aria.model_manager import ModelManager, SUPPORTED_MODELS
 
 # State file for tracking running node
 STATE_DIR = Path.home() / ".aria"
@@ -175,7 +176,7 @@ class NodeManager:
     async def start_node(self, port: int, cpu_percent: int, schedule: str,
                          peers: list = None, model: str = None,
                          use_tls: bool = False, cert_path: str = None,
-                         key_path: str = None):
+                         key_path: str = None, backend: str = "auto"):
         """Start an ARIA node with the given configuration."""
         # Parse schedule
         consent = ARIAConsent(
@@ -184,13 +185,14 @@ class NodeManager:
             task_types=[TaskType.TEXT_GENERATION, TaskType.CODE_GENERATION, TaskType.ANY],
         )
 
-        # Create node with TLS options
+        # Create node with TLS options and backend
         self.node = ARIANode(
             consent=consent,
             port=port,
             use_tls=use_tls,
             cert_path=Path(cert_path) if cert_path else None,
             key_path=Path(key_path) if key_path else None,
+            backend=backend,
         )
 
         protocol = "wss" if use_tls else "ws"
@@ -198,6 +200,7 @@ class NodeManager:
         print(f"  Node ID: {self.node.node_id}")
         print(f"  Port: {port}")
         print(f"  Protocol: {protocol}")
+        print(f"  Backend: {backend}")
         print(f"  CPU Limit: {cpu_percent}%")
         print(f"  Schedule: {schedule}")
         if use_tls:
@@ -283,12 +286,80 @@ def cmd_node_start(args):
                 use_tls=args.tls,
                 cert_path=args.cert,
                 key_path=args.key,
+                backend=args.backend,
             )
         )
     except KeyboardInterrupt:
         pass
     finally:
         loop.close()
+
+
+def cmd_model_download(args):
+    """Handle 'aria model download' command."""
+    model_name = args.name
+
+    print(f"ARIA Model Download")
+    print("=" * 50)
+    print(f"  Model: {model_name}")
+    print()
+
+    manager = ModelManager()
+
+    try:
+        path = manager.download_model(model_name, force=args.force)
+        print()
+        print(f"Model downloaded successfully!")
+        print(f"  Location: {path}")
+        return 0
+    except ValueError as e:
+        print(f"Error: {e}")
+        return 1
+    except ConnectionError as e:
+        print(f"Download failed: {e}")
+        return 1
+
+
+def cmd_model_list(args):
+    """Handle 'aria model list' command."""
+    manager = ModelManager()
+
+    print("ARIA Models")
+    print("=" * 70)
+    print()
+
+    # Show installed models
+    installed = manager.list_models()
+
+    if installed:
+        print("Installed Models")
+        print("-" * 70)
+        print(f"{'Name':<25} {'Params':<10} {'Size':<12} {'Path'}")
+        print("-" * 70)
+
+        for model in installed:
+            size_str = ModelManager.format_size(model.size_on_disk)
+            print(f"{model.name:<25} {model.params:<10} {size_str:<12} {model.path}")
+        print()
+    else:
+        print("No models installed.\n")
+
+    # Show available models
+    print("Available Models")
+    print("-" * 70)
+    print(f"{'Name':<25} {'Params':<10} {'Status':<12} {'Description'}")
+    print("-" * 70)
+
+    installed_names = {m.name for m in installed}
+    for name, meta in SUPPORTED_MODELS.items():
+        status = "installed" if name in installed_names else "available"
+        print(f"{name:<25} {meta['params']:<10} {status:<12} {meta['description']}")
+
+    print()
+    print("Download a model with:")
+    print("  aria model download <name>")
+
+    return 0
 
 
 def cmd_node_status(args):
@@ -895,8 +966,11 @@ def create_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  aria node start --port 8765 --cpu 25 --schedule "08:00-22:00"
+  aria node start --port 8765 --cpu 25 --backend auto
+  aria node start --port 8765 --backend native --model aria-2b-1bit
   aria node status
+  aria model download BitNet-b1.58-2B-4T
+  aria model list
   aria api start --port 3000 --node-port 8765
   aria api status
   aria dashboard --port 8080 --node-port 8765
@@ -912,7 +986,7 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="%(prog)s 0.2.5"
+        version="%(prog)s 0.4.0"
     )
 
     subparsers = parser.add_subparsers(
@@ -986,6 +1060,14 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         default=None,
         help="Path to TLS private key file (PEM format)"
     )
+    node_start.add_argument(
+        "--backend",
+        type=str,
+        default="auto",
+        choices=["auto", "native", "simulation"],
+        help="Inference backend: auto (try native, fallback simulation), "
+             "native (require bitnet.cpp), simulation (default: auto)"
+    )
     node_start.set_defaults(func=cmd_node_start)
 
     # node status
@@ -995,6 +1077,44 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         description="Display status and metrics for the running ARIA node"
     )
     node_status.set_defaults(func=cmd_node_status)
+
+    # ===== Model commands =====
+    model_parser = subparsers.add_parser(
+        "model",
+        help="Manage BitNet models",
+        description="Download, list, and manage BitNet models"
+    )
+    model_subparsers = model_parser.add_subparsers(
+        title="model commands",
+        dest="model_command",
+        metavar="<subcommand>"
+    )
+
+    # model download
+    model_download = model_subparsers.add_parser(
+        "download",
+        help="Download a BitNet model",
+        description="Download a model from HuggingFace Hub"
+    )
+    model_download.add_argument(
+        "name",
+        type=str,
+        help="Model name (e.g., BitNet-b1.58-large, BitNet-b1.58-2B-4T, Llama3-8B-1.58)"
+    )
+    model_download.add_argument(
+        "--force", "-f",
+        action="store_true",
+        help="Force re-download even if model exists"
+    )
+    model_download.set_defaults(func=cmd_model_download)
+
+    # model list
+    model_list = model_subparsers.add_parser(
+        "list",
+        help="List available and installed models",
+        description="Show all supported models and their installation status"
+    )
+    model_list.set_defaults(func=cmd_model_list)
 
     # ===== API commands =====
     api_parser = subparsers.add_parser(
@@ -1157,6 +1277,10 @@ def main():
     # Handle subcommands that need their own help
     if args.command == "node" and getattr(args, "node_command", None) is None:
         parser.parse_args(["node", "--help"])
+        return 0
+
+    if args.command == "model" and getattr(args, "model_command", None) is None:
+        parser.parse_args(["model", "--help"])
         return 0
 
     if args.command == "api" and getattr(args, "api_command", None) is None:
