@@ -1,0 +1,105 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.aria.desktop",
+  "productName": "ARIA Desktop",
+  "copyright": "Copyright © 2026 ARIA Protocol Contributors",
+  "directories": {
+    "output": "release",
+    "buildResources": "src-tauri/icons"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "!node_modules/.cache"
+  ],
+  "extraMetadata": {
+    "main": "electron/main.js"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "src-tauri/icons/icon.ico",
+    "artifactName": "${productName}-${version}-win-${arch}.${ext}",
+    "publisherName": "ARIA Protocol"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "src-tauri/icons/icon.ico",
+    "uninstallerIcon": "src-tauri/icons/icon.ico",
+    "installerHeaderIcon": "src-tauri/icons/icon.ico",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "ARIA Desktop"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "src-tauri/icons/icon.icns",
+    "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+    "category": "public.app-category.developer-tools",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": null,
+    "entitlementsInherit": null,
+    "identity": null
+  },
+  "dmg": {
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ],
+    "window": {
+      "width": 540,
+      "height": 380
+    }
+  },
+  "linux": {
+    "target": [
+      { "target": "AppImage", "arch": ["x64"] },
+      { "target": "deb", "arch": ["x64"] },
+      { "target": "rpm", "arch": ["x64"] }
+    ],
+    "icon": "src-tauri/icons",
+    "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+    "category": "Development",
+    "synopsis": "ARIA Protocol Desktop Application",
+    "description": "Cross-platform desktop application for the ARIA Protocol decentralized AI network",
+    "desktop": {
+      "StartupNotify": "true",
+      "Terminal": "false",
+      "Type": "Application",
+      "Categories": "Development;Science;Utility"
+    }
+  },
+  "deb": {
+    "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6"],
+    "packageCategory": "utils",
+    "priority": "optional"
+  },
+  "rpm": {
+    "fpm": ["--rpm-rpmbuild-define", "_build_id_links none"]
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "spmfrance-cloud",
+    "repo": "aria-protocol",
+    "releaseType": "release"
+  }
+}

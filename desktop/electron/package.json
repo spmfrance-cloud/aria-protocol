@@ -1,0 +1,16 @@
+{
+  "name": "aria-desktop-electron",
+  "version": "0.5.0",
+  "description": "ARIA Protocol Desktop Application (Electron)",
+  "main": "main.js",
+  "author": {
+    "name": "ARIA Protocol Contributors",
+    "email": "contact@aria-protocol.org"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/spmfrance-cloud/aria-protocol",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spmfrance-cloud/aria-protocol.git"
+  }
+}
