@@ -1,6 +1,6 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
@@ -79,6 +79,8 @@ print(response.choices[0].message.content)
 | **Proof of Sobriety** | Verifiable energy efficiency attestations | ✅ Complete |
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
 | **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Validated |
+| **Native BitNet** | Python ctypes bindings to bitnet.cpp | ✅ Complete |
+| **Model Manager** | Auto-download models from HuggingFace | ✅ Complete |
 
 ---
 
@@ -113,7 +115,7 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ARIA PROTOCOL v0.2.5                       │
+│                      ARIA PROTOCOL v0.4.0                       │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
 │  ├── OpenAI-compatible API (aiohttp)                            │
@@ -128,7 +130,8 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 1: COMPUTE                                               │
 │  ├── P2P Network (WebSocket)                                    │
-│  ├── 1-bit Inference Engine                                     │
+│  ├── Native BitNet Engine (ctypes → bitnet.cpp)                 │
+│  ├── Model Manager (HuggingFace auto-download)                  │
 │  ├── Model Sharding & Distribution                              │
 │  └── Consent-based Routing                                      │
 └─────────────────────────────────────────────────────────────────┘
@@ -183,20 +186,22 @@ Visit [aria-protocol.github.io](https://spmfrance-cloud.github.io/aria-protocol/
 ```
 aria-protocol/
 ├── aria/
-│   ├── __init__.py      # Package exports
-│   ├── node.py          # Core ARIA node
-│   ├── network.py       # P2P WebSocket networking
-│   ├── inference.py     # 1-bit inference engine
-│   ├── ledger.py        # Provenance blockchain
-│   ├── proof.py         # PoUW & Proof of Sobriety
-│   ├── consent.py       # Consent contracts
-│   ├── cli.py           # Command-line interface
-│   ├── api.py           # OpenAI-compatible API
-│   └── dashboard.py     # Real-time web dashboard
-├── tests/               # Test suite (102 tests)
-├── examples/            # Demo and integration examples
-├── docs/                # Documentation
-└── pyproject.toml       # Package configuration
+│   ├── __init__.py        # Package exports
+│   ├── node.py            # Core ARIA node
+│   ├── network.py         # P2P WebSocket networking
+│   ├── inference.py       # 1-bit inference engine
+│   ├── bitnet_native.py   # Native bitnet.cpp bindings (ctypes)
+│   ├── model_manager.py   # Model download & cache management
+│   ├── ledger.py          # Provenance blockchain
+│   ├── proof.py           # PoUW & Proof of Sobriety
+│   ├── consent.py         # Consent contracts
+│   ├── cli.py             # Command-line interface
+│   ├── api.py             # OpenAI-compatible API
+│   └── dashboard.py       # Real-time web dashboard
+├── tests/                 # Test suite
+├── examples/              # Demo and integration examples
+├── docs/                  # Documentation
+└── pyproject.toml         # Package configuration
 ```
 
 ---
@@ -258,19 +263,84 @@ make test-cov
 | v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
 | v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
 | v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
-| v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | 🔄 Next |
-| v0.5.0 | Desktop App | Electron/Tauri GUI for non-developers | ⬜ Planned |
+| v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
+| v0.5.0 | Desktop App | Electron/Tauri GUI for non-developers | 🔄 Next |
 | v0.6.0 | Testnet Alpha | Public bootstrap nodes, 50+ community nodes | ⬜ Planned |
 | v0.7.0 | Reputation | Node reliability scoring, anti-Sybil | ⬜ Planned |
 | v0.8.0 | Mobile | iOS/Android nodes with on-device inference | ⬜ Planned |
 | v1.0.0 | Mainnet | Production network, token economics, DAO | ⬜ Planned |
 
-### Current Focus: v0.4.0 Native BitNet
+### Current Focus: v0.5.0 Desktop App
 
-- [ ] Direct Python bindings for bitnet.cpp
-- [ ] Auto-download models from HuggingFace
-- [ ] Seamless fallback simulation → real inference
-- [ ] Integration tests with real 1-bit weights
+- [ ] Electron/Tauri cross-platform GUI
+- [ ] One-click node setup for non-developers
+- [ ] System tray integration
+
+---
+
+## Native BitNet Integration
+
+ARIA v0.4.0 introduces native Python bindings for bitnet.cpp, replacing the previous subprocess-based approach.
+
+### Supported Models
+
+| Model | Params | HuggingFace Repo |
+|-------|--------|------------------|
+| BitNet-b1.58-large | 0.7B | `1bitLLM/bitnet_b1_58-large` |
+| BitNet-b1.58-2B-4T | 2.4B | `1bitLLM/bitnet_b1_58-2B-4T` |
+| Llama3-8B-1.58 | 8.0B | `HF1BitLLM/Llama3-8B-1.58-100B-tokens` |
+
+### Model Download
+
+```bash
+# List available models
+aria model list
+
+# Download a model
+aria model download BitNet-b1.58-2B-4T
+
+# Models are cached in ~/.aria/models/
+```
+
+### Backend Modes
+
+```bash
+# Auto-detect: use native bitnet.cpp if available, else simulation
+aria node start --backend auto
+
+# Force native mode (requires compiled bitnet.cpp)
+aria node start --backend native
+
+# Force simulation mode (no native library needed)
+aria node start --backend simulation
+```
+
+### Compiling bitnet.cpp
+
+To use native inference, compile bitnet.cpp as a shared library:
+
+```bash
+# Clone bitnet.cpp
+git clone https://github.com/microsoft/bitnet.cpp
+cd bitnet.cpp
+
+# Build shared library
+mkdir build && cd build
+cmake .. -DBUILD_SHARED_LIBS=ON
+cmake --build . --config Release
+
+# Install (choose one):
+# Option 1: Copy to ARIA lib directory
+mkdir -p ~/.aria/lib
+cp libbitnet.so ~/.aria/lib/     # Linux
+cp libbitnet.dylib ~/.aria/lib/  # macOS
+
+# Option 2: System-wide install
+sudo cp libbitnet.so /usr/local/lib/
+sudo ldconfig
+```
+
+ARIA auto-detects the library from `~/.aria/lib/`, `/usr/local/lib/`, or the current build directory. If not found, it seamlessly falls back to simulation mode.
 
 ---
 

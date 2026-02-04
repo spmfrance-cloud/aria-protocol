@@ -64,7 +64,8 @@ class ARIANode:
                  use_tls: bool = False,
                  cert_path: Optional[Path] = None,
                  key_path: Optional[Path] = None,
-                 verify_tls: bool = False):
+                 verify_tls: bool = False,
+                 backend: str = "simulation"):
         """
         Initialize an ARIA node.
 
@@ -77,6 +78,7 @@ class ARIANode:
             cert_path: Path to TLS certificate (auto-generated if None).
             key_path: Path to TLS private key (auto-generated if None).
             verify_tls: Verify peer TLS certificates (False for self-signed).
+            backend: Inference backend - "auto", "native", or "simulation".
         """
         # Generate unique node ID
         self.node_id = node_id or f"aria_{uuid.uuid4().hex[:12]}"
@@ -98,7 +100,7 @@ class ARIANode:
             key_path=key_path,
             verify_tls=verify_tls,
         )
-        self.engine = InferenceEngine(node_id=self.node_id)
+        self.engine = InferenceEngine(node_id=self.node_id, backend=backend)
         self.ledger = ProvenanceLedger(difficulty=2)
         self.pouw = ProofOfUsefulWork()
         self.sobriety = ProofOfSobriety(node_id=self.node_id)

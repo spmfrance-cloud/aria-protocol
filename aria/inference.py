@@ -8,6 +8,11 @@ Supports real distributed pipeline parallelism:
 - Activations are serialized and forwarded to next node in chain
 - Final node returns result to originator
 
+Backend modes:
+- "auto": Use native bitnet.cpp if available, fallback to simulation
+- "native": Require native bitnet.cpp (error if unavailable)
+- "simulation": Always use simulation mode
+
 MIT License - Anthony MURGO, 2026
 """
 
@@ -17,9 +22,12 @@ import struct
 import math
 import base64
 import json
+import logging
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple, Any
 from aria.ledger import InferenceRecord
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_activations(activations: List[float]) -> str:
@@ -270,26 +278,70 @@ class TernaryLayer:
 class InferenceEngine:
     """
     The ARIA distributed inference engine.
-    
+
     Manages model shards, executes inference pipelines,
     and coordinates distributed computation across nodes.
-    
+
+    Supports multiple backends:
+    - "auto": Try native bitnet.cpp, fallback to simulation
+    - "native": Require native bitnet.cpp library
+    - "simulation": Always use simulation mode (default)
+
     Usage:
-        engine = InferenceEngine(node_id="my_node")
+        engine = InferenceEngine(node_id="my_node", backend="auto")
         engine.load_model("aria-2b-1bit", num_layers=24)
-        
+
         result = engine.infer(
             query="What is the meaning of life?",
             max_tokens=100
         )
     """
-    
-    def __init__(self, node_id: str):
+
+    def __init__(self, node_id: str, backend: str = "simulation"):
+        """
+        Initialize the inference engine.
+
+        Args:
+            node_id: Unique node identifier
+            backend: Backend mode - "auto", "native", or "simulation"
+        """
+        if backend not in ("auto", "native", "simulation"):
+            raise ValueError(
+                f"Invalid backend: {backend}. "
+                f"Must be 'auto', 'native', or 'simulation'"
+            )
+
         self.node_id = node_id
+        self.backend = backend
         self.loaded_shards: Dict[str, ModelShard] = {}
         self.layers: Dict[str, List[TernaryLayer]] = {}  # model_id -> layers
         self.total_inferences = 0
         self.total_energy_mj = 0.0
+        self._bitnet = None  # Lazy-initialized BitNetNative instance
+
+        # Initialize native backend if requested
+        if backend in ("auto", "native"):
+            try:
+                from aria.bitnet_native import BitNetNative
+                self._bitnet = BitNetNative()
+
+                if backend == "native" and self._bitnet.is_simulation:
+                    raise RuntimeError(
+                        "Native backend requested but bitnet.cpp library "
+                        "not found. Install bitnet.cpp or use backend='auto'."
+                    )
+
+                if self._bitnet.is_native:
+                    logger.info("Using native bitnet.cpp backend")
+                else:
+                    logger.info("Native library not found, using simulation fallback")
+            except ImportError:
+                if backend == "native":
+                    raise RuntimeError(
+                        "Native backend requested but BitNetNative module "
+                        "not available."
+                    )
+                logger.info("BitNetNative not available, using simulation mode")
     
     def load_model(self, model_id: str, num_layers: int = 24, 
                    hidden_dim: int = 2048, shard_start: int = 0,
@@ -561,8 +613,10 @@ class InferenceEngine:
 
     def get_stats(self) -> Dict:
         """Get inference engine statistics."""
-        return {
+        stats = {
             "node_id": self.node_id,
+            "backend": self.backend,
+            "native_available": self._bitnet.is_native if self._bitnet else False,
             "loaded_models": list(self.layers.keys()),
             "loaded_shards": len(self.loaded_shards),
             "total_layers": sum(len(l) for l in self.layers.values()),
@@ -570,10 +624,13 @@ class InferenceEngine:
             "total_inferences": self.total_inferences,
             "total_energy_mj": self.total_energy_mj,
             "avg_energy_per_inference_mj": (
-                self.total_energy_mj / self.total_inferences 
+                self.total_energy_mj / self.total_inferences
                 if self.total_inferences > 0 else 0
             ),
         }
+        if self._bitnet:
+            stats["bitnet"] = self._bitnet.get_stats()
+        return stats
     
     def __repr__(self) -> str:
         stats = self.get_stats()
