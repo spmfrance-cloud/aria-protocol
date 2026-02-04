@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
+use tauri_plugin_shell::ShellExt;
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ impl Default for AriaState {
 // ── Commands ───────────────────────────────────────────────────────
 
 #[tauri::command]
-pub fn get_system_info() -> serde_json::Value {
+fn get_system_info() -> serde_json::Value {
     serde_json::json!({
         "os": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
@@ -72,12 +73,12 @@ pub fn get_system_info() -> serde_json::Value {
 }
 
 #[tauri::command]
-pub fn get_app_version() -> String {
+fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
 #[tauri::command]
-pub async fn get_node_status(state: State<'_, AriaState>) -> Result<NodeStatus, String> {
+async fn get_node_status(state: State<'_, AriaState>) -> Result<NodeStatus, String> {
     let running = *state.node_running.lock().map_err(|e| e.to_string())?;
     let api_base = state.api_base.lock().map_err(|e| e.to_string())?.clone();
 
@@ -125,7 +126,7 @@ pub async fn get_node_status(state: State<'_, AriaState>) -> Result<NodeStatus, 
 }
 
 #[tauri::command]
-pub async fn start_node(
+async fn start_node(
     state: State<'_, AriaState>,
     app: tauri::AppHandle,
 ) -> Result<String, String> {
@@ -151,7 +152,7 @@ pub async fn start_node(
 }
 
 #[tauri::command]
-pub async fn stop_node(state: State<'_, AriaState>) -> Result<String, String> {
+async fn stop_node(state: State<'_, AriaState>) -> Result<String, String> {
     let running = *state.node_running.lock().map_err(|e| e.to_string())?;
     if !running {
         return Err("Node is not running".to_string());
@@ -173,7 +174,7 @@ pub async fn stop_node(state: State<'_, AriaState>) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn get_models(state: State<'_, AriaState>) -> Result<Vec<ModelInfo>, String> {
+async fn get_models(state: State<'_, AriaState>) -> Result<Vec<ModelInfo>, String> {
     let api_base = state.api_base.lock().map_err(|e| e.to_string())?.clone();
     let client = reqwest::Client::new();
 
@@ -195,7 +196,7 @@ pub async fn get_models(state: State<'_, AriaState>) -> Result<Vec<ModelInfo>, S
 }
 
 #[tauri::command]
-pub async fn download_model(
+async fn download_model(
     name: String,
     state: State<'_, AriaState>,
 ) -> Result<DownloadProgress, String> {
@@ -224,7 +225,7 @@ pub async fn download_model(
 }
 
 #[tauri::command]
-pub async fn send_inference(
+async fn send_inference(
     prompt: String,
     model: String,
     state: State<'_, AriaState>,
@@ -270,6 +271,30 @@ pub async fn send_inference(
         }
         Err(e) => Err(format!("Inference request failed: {}", e)),
     }
+}
+
+// ── App Entry ─────────────────────────────────────────────────────
+
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_deep_link::init())
+        .manage(AriaState::default())
+        .invoke_handler(tauri::generate_handler![
+            get_system_info,
+            get_app_version,
+            get_node_status,
+            start_node,
+            stop_node,
+            get_models,
+            download_model,
+            send_inference,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running ARIA Desktop");
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
