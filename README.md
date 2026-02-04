@@ -1,6 +1,6 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.2.5-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
@@ -78,7 +78,7 @@ print(response.choices[0].message.content)
 | **Proof of Useful Work** | Mining = Inference (no wasted computation) | ✅ Complete |
 | **Proof of Sobriety** | Verifiable energy efficiency attestations | ✅ Complete |
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
-| **bitnet.cpp Integration** | Real 1-bit inference kernels | 🔄 Simulation |
+| **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Validated |
 
 ---
 
@@ -250,18 +250,21 @@ make test-cov
 |---------|------|-------|--------|
 | v0.1.0 | Genesis | Whitepaper + reference implementation | ✅ Complete |
 | v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
-| v0.2.5 | Hardening | Benchmarks, Threat model, Security, Protocol spec | 🔄 In Progress |
-| v0.3.0 | Mobile | Mobile nodes, lightweight inference | ⬜ Planned |
-| v0.4.0 | Consensus | Sybil resistance, reputation system | ⬜ Planned |
-| v1.0.0 | Mainnet | Production-ready network | ⬜ Planned |
+| v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
+| v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
+| v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | 🔄 Next |
+| v0.5.0 | Desktop App | Electron/Tauri GUI for non-developers | ⬜ Planned |
+| v0.6.0 | Testnet Alpha | Public bootstrap nodes, 50+ community nodes | ⬜ Planned |
+| v0.7.0 | Reputation | Node reliability scoring, anti-Sybil | ⬜ Planned |
+| v0.8.0 | Mobile | iOS/Android nodes with on-device inference | ⬜ Planned |
+| v1.0.0 | Mainnet | Production network, token economics, DAO | ⬜ Planned |
 
-### Current Focus: v0.2.5 Hardening
+### Current Focus: v0.4.0 Native BitNet
 
-- [x] Performance benchmarks and metrics
-- [x] Threat model documentation
-- [x] Protocol specification
-- [x] TLS/WSS support for secure connections
-- [ ] Security audit preparation
+- [ ] Direct Python bindings for bitnet.cpp
+- [ ] Auto-download models from HuggingFace
+- [ ] Seamless fallback simulation → real inference
+- [ ] Integration tests with real 1-bit weights
 
 ---
 
