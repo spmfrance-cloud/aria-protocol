@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "version": "0.2.5",
+    "timestamp": "2026-02-04T06:30:00.000000Z",
+    "cpu": "AMD Ryzen 9 7845HX with Radeon Graphics",
+    "cores": 24,
+    "ram_gb": 63.2,
+    "os": "Windows 10.0.26100",
+    "test": "model_scaling",
+    "threads": 8,
+    "bitnet_build": "3962 (1f86f058) with Clang 20.1.8",
+    "quantization": "I2_S (2 bpw ternary)",
+    "prompt": "The future of technology is",
+    "prompt_tokens": 6,
+    "generated_tokens": 128,
+    "temperature": 0
+  },
+  "models": [
+    {
+      "name": "bitnet_b1_58-large",
+      "source": "1bitLLM/bitnet_b1_58-large",
+      "params_b": 0.7,
+      "gguf_size_mb": 257.27,
+      "architecture": "bitnet",
+      "context_length": 2048,
+      "tokens_per_sec": 89.65,
+      "prompt_tokens_per_sec": 91.07,
+      "ms_per_token": 11.16,
+      "model_load_time_ms": 168.39,
+      "total_time_ms": 1490.86
+    },
+    {
+      "name": "BitNet-b1.58-2B-4T",
+      "source": "microsoft/BitNet-b1.58-2B-4T",
+      "params_b": 2.4,
+      "gguf_size_mb": 1132.78,
+      "architecture": "bitnet-b1.58",
+      "context_length": 4096,
+      "tokens_per_sec": 26.69,
+      "prompt_tokens_per_sec": 26.75,
+      "ms_per_token": 37.47,
+      "model_load_time_ms": 657.92,
+      "total_time_ms": 5008.64
+    },
+    {
+      "name": "Llama3-8B-1.58-100B-tokens",
+      "source": "HF1BitLLM/Llama3-8B-1.58-100B-tokens",
+      "params_b": 8.0,
+      "gguf_size_mb": 3676.50,
+      "architecture": "llama (1.58-bit)",
+      "context_length": 8192,
+      "tokens_per_sec": 15.03,
+      "prompt_tokens_per_sec": 15.95,
+      "ms_per_token": 66.53,
+      "model_load_time_ms": 1031.44,
+      "total_time_ms": 8847.95
+    }
+  ],
+  "scaling_analysis": {
+    "throughput_scaling": {
+      "0.7B_to_2.4B": "3.43x more params -> 3.36x slower (89.65 -> 26.69 t/s)",
+      "2.4B_to_8B": "3.33x more params -> 1.78x slower (26.69 -> 15.03 t/s)",
+      "0.7B_to_8B": "11.4x more params -> 5.97x slower (89.65 -> 15.03 t/s)"
+    },
+    "load_time_scaling": {
+      "0.7B_to_2.4B": "3.91x slower (168 -> 658 ms)",
+      "2.4B_to_8B": "1.57x slower (658 -> 1031 ms)",
+      "0.7B_to_8B": "6.13x slower (168 -> 1031 ms)"
+    },
+    "memory_bandwidth_estimate": {
+      "0.7B": "257 MB * 89.65 t/s = ~23 GB/s effective",
+      "2.4B": "1133 MB * 26.69 t/s = ~30 GB/s effective",
+      "8B": "3677 MB * 15.03 t/s = ~55 GB/s effective"
+    },
+    "key_finding": "Throughput scales roughly inversely with model size for smaller models (0.7B->2.4B), but sub-linearly for larger models (2.4B->8B) as the memory subsystem becomes saturated. The 8B model still runs at 15 t/s on CPU, which is viable for interactive use.",
+    "aria_recommendation": "For latency-sensitive ARIA nodes, the 0.7B model offers 89.65 t/s. For quality-critical inference, the 2.4B model at 26.69 t/s provides the best quality/speed tradeoff. The 8B model at 15 t/s is viable but better suited for nodes with higher memory bandwidth."
+  },
+  "note": "bitnet_b1_58-3B could not be downloaded due to HuggingFace Xet Storage timeouts. This model would fill the gap between 2.4B and 8B."
+}
