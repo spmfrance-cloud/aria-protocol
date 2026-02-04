@@ -527,43 +527,13 @@ Activation × Weight = Lookup Table Operation
 
 ### 8.1 What ARIA Provides
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ARIA UNIQUE VALUE                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────┐                                        │
-│  │  EFFICIENCY     │  • 99% energy reduction vs cloud       │
-│  │                 │  • Runs on existing hardware           │
-│  │                 │  • No GPU required                     │
-│  └─────────────────┘                                        │
-│                                                             │
-│  ┌─────────────────┐                                        │
-│  │  PRIVACY        │  • 100% local inference                │
-│  │                 │  • No data sent to cloud               │
-│  │                 │  • GDPR-compliant by design            │
-│  └─────────────────┘                                        │
-│                                                             │
-│  ┌─────────────────┐                                        │
-│  │  SCALABILITY    │  • P2P horizontal scaling              │
-│  │                 │  • No central infrastructure           │
-│  │                 │  • Add nodes = add capacity            │
-│  └─────────────────┘                                        │
-│                                                             │
-│  ┌─────────────────┐                                        │
-│  │  TRANSPARENCY   │  • Immutable provenance ledger         │
-│  │                 │  • Every inference recorded            │
-│  │                 │  • Auditable energy consumption        │
-│  └─────────────────┘                                        │
-│                                                             │
-│  ┌─────────────────┐                                        │
-│  │  SOVEREIGNTY    │  • No vendor lock-in                   │
-│  │                 │  • Open protocol (MIT license)         │
-│  │                 │  • Community-governed network          │
-│  └─────────────────┘                                        │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+| Benefit | Details |
+|---------|---------|
+| **Efficiency** | 99% energy reduction vs cloud, runs on existing hardware, no GPU required |
+| **Privacy** | 100% local inference, no data sent to cloud, GDPR-compliant by design |
+| **Scalability** | P2P horizontal scaling, no central infrastructure, add nodes = add capacity |
+| **Transparency** | Immutable provenance ledger, every inference recorded, auditable energy consumption |
+| **Sovereignty** | No vendor lock-in, open protocol (MIT license), community-governed network |
 
 ### 8.2 Target Use Cases
 
