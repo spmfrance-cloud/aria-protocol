@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Protocol - Decentralized AI Inference for Everyone</title>
+    <meta name="description" content="ARIA Protocol enables peer-to-peer AI inference on consumer CPUs with 99.6% energy savings. Open-source, MIT licensed.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F310;</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="nav-logo">ARIA</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#benchmarks">Benchmarks</a>
+                <a href="#architecture">Architecture</a>
+                <a href="https://github.com/spmfrance-cloud/aria-protocol" class="btn btn-outline btn-sm" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="container">
+            <pre class="ascii-logo" aria-hidden="true">
+     _    ____  ___    _
+    / \  |  _ \|_ _|  / \
+   / _ \ | |_) || |  / _ \
+  / ___ \|  _ < | | / ___ \
+ /_/   \_\_| \_\___/_/   \_\
+            </pre>
+            <p class="hero-version">v0.3.0</p>
+            <h1 class="hero-title">Decentralized AI Inference<br><span class="text-gradient">for Everyone</span></h1>
+            <p class="hero-subtitle">
+                A peer-to-peer protocol for efficient, ethical, and decentralized AI inference.
+                Run 1-bit quantized models on any CPU with 99.6% energy savings.
+            </p>
+            <div class="hero-actions">
+                <a href="https://github.com/spmfrance-cloud/aria-protocol" class="btn btn-primary" target="_blank" rel="noopener">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    View on GitHub
+                </a>
+                <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/getting-started.md" class="btn btn-secondary" target="_blank" rel="noopener">
+                    Get Started
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">102</span>
+                    <span class="stat-label">Tests Passing</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">MIT</span>
+                    <span class="stat-label">License</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">5,855</span>
+                    <span class="stat-label">Lines of Code</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Why ARIA?</h2>
+            <p class="section-subtitle">AI inference without expensive hardware, excessive energy, or centralized control.</p>
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <path d="M9 9h6M9 12h6M9 15h3"/>
+                            <path d="M4 8h-2M4 12h-2M4 16h-2M20 8h2M20 12h2M20 16h2M8 4v-2M12 4v-2M16 4v-2M8 20v2M12 20v2M16 20v2"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">CPU-Efficient</h3>
+                    <div class="card-metric">89 t/s</div>
+                    <p class="card-desc">1-bit ternary weights (-1, 0, +1) replace expensive multiplications with simple additions. Runs on any consumer CPU &mdash; no GPU required.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Energy-Conscious</h3>
+                    <div class="card-metric">11 mJ/token</div>
+                    <p class="card-desc">99.6% energy reduction compared to cloud APIs. A single node uses ~241 kWh/year vs 25,550 kWh for cloud solutions.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="5" r="3"/>
+                            <circle cx="5" cy="19" r="3"/>
+                            <circle cx="19" cy="19" r="3"/>
+                            <path d="M12 8v3M7.5 17.5l3-5.5M16.5 17.5l-3-5.5"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Truly Decentralized</h3>
+                    <div class="card-metric">P2P</div>
+                    <p class="card-desc">WebSocket-based peer-to-peer networking with pipeline parallelism. No central server, no single point of failure. Your data stays yours.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benchmarks -->
+    <section id="benchmarks" class="benchmarks">
+        <div class="container">
+            <h2 class="section-title">Real-World Benchmarks</h2>
+            <p class="section-subtitle">Tested on AMD Ryzen 9 7845HX &mdash; 8 threads, reproducible results.</p>
+
+            <div class="table-wrapper">
+                <table class="bench-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Parameters</th>
+                            <th>Throughput</th>
+                            <th>Energy*</th>
+                            <th>Latency (p50)</th>
+                            <th>Memory</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>BitNet-b1.58-large</strong></td>
+                            <td>0.7B</td>
+                            <td class="highlight">89.65 t/s</td>
+                            <td>~11 mJ/token</td>
+                            <td>88 ms</td>
+                            <td>~400 MB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BitNet-b1.58-2B-4T</strong></td>
+                            <td>2.4B</td>
+                            <td class="highlight">36.94 t/s</td>
+                            <td>~28 mJ/token</td>
+                            <td>504 ms</td>
+                            <td>~1.3 GB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Llama3-8B-1.58</strong></td>
+                            <td>8.0B</td>
+                            <td class="highlight">15.03 t/s</td>
+                            <td>~66 mJ/token</td>
+                            <td>1,031 ms</td>
+                            <td>~4.2 GB</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="table-note">*Energy is estimated via CPU-time x TDP. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
+
+            <!-- Cost Comparison -->
+            <h3 class="subsection-title">3-Year Total Cost of Ownership</h3>
+            <div class="table-wrapper">
+                <table class="bench-table">
+                    <thead>
+                        <tr>
+                            <th>Solution</th>
+                            <th>Hardware</th>
+                            <th>Running Costs</th>
+                            <th>Total</th>
+                            <th>vs ARIA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>GPT-4o / Claude 3.5</td>
+                            <td>$0</td>
+                            <td>$164,250</td>
+                            <td>$164,250</td>
+                            <td class="highlight-red">2,161x</td>
+                        </tr>
+                        <tr>
+                            <td>Llama API</td>
+                            <td>$0</td>
+                            <td>$32,850</td>
+                            <td>$32,850</td>
+                            <td class="highlight-red">432x</td>
+                        </tr>
+                        <tr>
+                            <td>RTX 4090 (local)</td>
+                            <td>$2,000</td>
+                            <td>$6,533</td>
+                            <td>$8,533</td>
+                            <td class="highlight-red">112x</td>
+                        </tr>
+                        <tr class="row-highlight">
+                            <td><strong>ARIA Protocol</strong></td>
+                            <td>$0</td>
+                            <td>$76</td>
+                            <td><strong>$76</strong></td>
+                            <td class="highlight-green">1x</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="table-note">Assumptions: 10M tokens/day, existing CPU hardware, electricity at $0.25/kWh.</p>
+
+            <!-- Key Findings -->
+            <div class="findings">
+                <div class="finding">
+                    <span class="finding-icon">&#x1F9F5;</span>
+                    <div>
+                        <strong>Thread Scaling</strong>
+                        <p>Optimal at 8 threads. 1-bit LUT kernels are memory-bound, not compute-bound.</p>
+                    </div>
+                </div>
+                <div class="finding">
+                    <span class="finding-icon">&#x1F500;</span>
+                    <div>
+                        <strong>Parallel Inference</strong>
+                        <p>3 concurrent streams yield only +11% throughput &mdash; validates P2P distribution approach.</p>
+                    </div>
+                </div>
+                <div class="finding">
+                    <span class="finding-icon">&#x1F4CF;</span>
+                    <div>
+                        <strong>Context Length</strong>
+                        <p>Stable performance with only -7% degradation from 32 to 1024 tokens.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture" class="architecture">
+        <div class="container">
+            <h2 class="section-title">Architecture</h2>
+            <p class="section-subtitle">A 3-layer distributed system designed for resilience and efficiency.</p>
+            <div class="arch-diagram">
+                <div class="arch-layer">
+                    <div class="arch-label">Layer 3: Service</div>
+                    <div class="arch-items">
+                        <span>OpenAI-Compatible API</span>
+                        <span>Web Dashboard</span>
+                        <span>CLI Interface</span>
+                    </div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-label">Layer 2: Consensus</div>
+                    <div class="arch-items">
+                        <span>Provenance Ledger</span>
+                        <span>Proof of Useful Work</span>
+                        <span>Proof of Sobriety</span>
+                        <span>Consent Contracts</span>
+                    </div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-label">Layer 1: Compute</div>
+                    <div class="arch-items">
+                        <span>P2P Network</span>
+                        <span>1-bit Inference Engine</span>
+                        <span>Model Sharding</span>
+                        <span>Consent-based Routing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart">
+        <div class="container">
+            <h2 class="section-title">Get Started in 3 Commands</h2>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot yellow"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">Terminal</span>
+                </div>
+                <pre class="code-content"><code><span class="code-comment"># Install ARIA Protocol</span>
+<span class="code-prompt">$</span> pip install aria-protocol
+
+<span class="code-comment"># Start a node</span>
+<span class="code-prompt">$</span> aria node start --port 8765 --model aria-2b-1bit
+
+<span class="code-comment"># Start the API server</span>
+<span class="code-prompt">$</span> aria api start --port 3000</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="container">
+            <h2 class="cta-title">Join the Decentralized AI Movement</h2>
+            <p class="cta-text">ARIA is open-source, MIT licensed, and ready for contributors.</p>
+            <div class="cta-actions">
+                <a href="https://github.com/spmfrance-cloud/aria-protocol" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub Repository
+                </a>
+                <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/getting-started.md" class="btn btn-secondary btn-lg" target="_blank" rel="noopener">
+                    Documentation
+                </a>
+                <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" class="btn btn-secondary btn-lg" target="_blank" rel="noopener">
+                    Benchmark Report
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="footer-logo">ARIA Protocol</span>
+                    <p>Autonomous Responsible Intelligence Architecture</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-col">
+                        <h4>Project</h4>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol" target="_blank" rel="noopener">GitHub</a>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/getting-started.md" target="_blank" rel="noopener">Getting Started</a>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/api-reference.md" target="_blank" rel="noopener">API Reference</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Resources</h4>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/architecture.md" target="_blank" rel="noopener">Architecture</a>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">Benchmarks</a>
+                        <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/protocol-spec.md" target="_blank" rel="noopener">Protocol Spec</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>MIT License &copy; 2026 Anthony MURGO</p>
+                <p class="footer-quote">"The era of centralized AI infrastructure need not be permanent."</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -158,6 +158,12 @@ See [Architecture Documentation](docs/architecture.md) for detailed diagrams and
 
 ---
 
+## Website
+
+Visit [aria-protocol.github.io](https://spmfrance-cloud.github.io/aria-protocol/) for benchmarks and documentation.
+
+---
+
 ## Documentation
 
 | Document | Description |
