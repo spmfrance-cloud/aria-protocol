@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   Zap,
@@ -26,6 +27,7 @@ const item = {
 };
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function Dashboard() {
       {/* Header */}
       <motion.header variants={item} className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">
-          Welcome back
+          {t("dashboard.welcome")}
         </h1>
         <p className="text-sm text-text-secondary">
           {format(currentTime, "EEEE, MMMM d, yyyy")} —{" "}
@@ -62,7 +64,7 @@ export default function Dashboard() {
 
         <StatCard
           icon={Activity}
-          label="Tokens / sec"
+          label={t("dashboard.tokensPerSec")}
           value={58.4}
           suffix="tok/s"
           trend={{ value: 12.3, label: "vs last hour" }}
@@ -86,10 +88,10 @@ export default function Dashboard() {
 
         <StatCard
           icon={Zap}
-          label="Energy"
+          label={t("dashboard.energyUsage")}
           value={2.4}
           suffix="mJ/token"
-          trend={{ value: -8.2, label: "more efficient" }}
+          trend={{ value: -8.2, label: t("energy.moreEfficient") }}
           variant="success"
         >
           <div className="flex items-center gap-1 mt-1">
@@ -100,7 +102,7 @@ export default function Dashboard() {
 
         <StatCard
           icon={Users}
-          label="Peers Connected"
+          label={t("dashboard.peersConnected")}
           value={24}
           trend={{ value: 4.1, label: "new peers today" }}
           variant="default"
