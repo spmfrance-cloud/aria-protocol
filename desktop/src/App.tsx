@@ -5,6 +5,7 @@ import DesignSystem from "./pages/DesignSystem";
 import Models from "./pages/Models";
 import Chat from "./pages/Chat";
 import Energy from "./pages/Energy";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/models" element={<Models />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/energy" element={<Energy />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/design" element={<DesignSystem />} />
         </Routes>
       </Layout>
