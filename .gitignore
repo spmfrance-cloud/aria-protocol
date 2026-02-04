@@ -148,7 +148,13 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
+# Node
+node_modules/
+
 # Project specific
 *.pem
 *.key
 node_data/
+
+# Allow desktop src lib (not Python lib)
+!desktop/src/lib/
