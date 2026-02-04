@@ -63,6 +63,52 @@ Computed from individual request latencies across all iterations.
 
 Peak resident set size (RSS) measured during inference using `resource.getrusage()` on Unix systems or `psutil` when available.
 
+## Prefill vs Decode Performance
+
+Our benchmarks report both metrics separately:
+
+| Metric | Description | Typical Use |
+|--------|-------------|-------------|
+| **Prompt eval (prefill)** | Processing the input prompt | Measures context ingestion speed |
+| **Token generation (decode)** | Generating new tokens | Critical metric for interactive use |
+
+In our results:
+- `prompt_tokens_per_sec`: Prefill throughput
+- `tokens_per_sec` / `generation_tokens_per_sec`: Decode throughput
+
+For latency-sensitive applications (chatbots, real-time), **decode speed** is the key metric.
+For batch processing (summarization, analysis), **prefill speed** matters more.
+
+## Energy Measurement Limitations
+
+Energy consumption (`mJ/token`) is **estimated**, not directly measured. The calculation uses:
+
+```
+energy_per_token = (cpu_time * TDP_watts) / tokens_generated * 1000
+```
+
+**Important caveats:**
+
+- TDP (Thermal Design Power) is a maximum rating, not actual consumption
+- Real power draw varies with workload, temperature, and CPU state
+- We assume 100% CPU utilization during inference (conservative estimate)
+- No direct power measurement via RAPL, external meters, or GPU power APIs
+
+**How to improve accuracy:**
+
+- Use `--tdp <watts>` to specify your actual CPU TDP
+- For precise measurements, use external power meters or Intel RAPL interfaces
+- Compare relative values (same hardware) rather than absolute values
+
+**Why we still report it:**
+
+Despite limitations, estimated energy provides:
+- Reproducible comparisons across runs
+- Relative efficiency metrics between models/configurations
+- A baseline for future direct measurement integration
+
+We welcome contributions to add direct power measurement support.
+
 ## Running Benchmarks
 
 ### Quick Start
@@ -232,6 +278,17 @@ benchmark:
         name: benchmark-results
         path: benchmarks/results/
 ```
+
+## Note on Output Quality
+
+These benchmarks focus on **systems performance** (throughput, latency, energy). They do not measure output quality (perplexity, accuracy, coherence).
+
+Output quality is assumed comparable when:
+- Using the same model weights
+- Using identical generation parameters (temperature, top_p, etc.)
+- Using the same quantization format (I2_S)
+
+For quality benchmarks, refer to the original model publications (e.g., [Microsoft BitNet b1.58 Technical Report](https://huggingface.co/papers/2504.12285)).
 
 ## Contributing
 
