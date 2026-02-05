@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { getMockResponse, generateTitle } from "@/lib/mockResponses";
+import { detectLanguage } from "@/lib/detectLanguage";
 
 export interface Message {
   id: string;
@@ -105,12 +106,11 @@ export function useChat() {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, backendAvailable: boolean = false) => {
       if (isGenerating) return;
 
       let convId = activeConversationId;
 
-      // If current conversation has no messages, use it; otherwise check if we need it
       const userMsg: Message = {
         id: createId(),
         role: "user",
@@ -136,7 +136,27 @@ export function useChat() {
       setIsGenerating(true);
       abortRef.current = false;
 
-      const fullResponse = getMockResponse(content);
+      let fullResponse: string;
+      let realStats: { tokensPerSecond: number; tokensGenerated: number } | null = null;
+
+      // Try real backend first if available
+      if (backendAvailable && window.ariaElectron?.sendInference) {
+        try {
+          const lang = detectLanguage(content);
+          const result = await window.ariaElectron.sendInference(content, selectedModel, lang);
+          fullResponse = result.text || 'No response from backend.';
+          realStats = {
+            tokensPerSecond: result.tokens_per_second || 0,
+            tokensGenerated: result.tokens_generated || Math.floor(fullResponse.length / 4),
+          };
+        } catch (err) {
+          console.warn('[ARIA Chat] Backend inference failed, falling back to mock:', err);
+          fullResponse = getMockResponse(content);
+        }
+      } else {
+        fullResponse = getMockResponse(content);
+      }
+
       const assistantMsgId = createId();
 
       // Add empty assistant message
@@ -162,7 +182,6 @@ export function useChat() {
       // Typewriter effect — character by character
       let charIndex = 0;
       const totalChars = fullResponse.length;
-      // Calculate interval to finish in 2-4 seconds
       const duration = 2000 + Math.random() * 2000;
       const charInterval = duration / totalChars;
 
@@ -177,23 +196,33 @@ export function useChat() {
             return;
           }
 
-          // Add a few characters at a time for smoother rendering
           const charsToAdd = Math.max(1, Math.floor(Math.random() * 3) + 1);
           charIndex = Math.min(charIndex + charsToAdd, totalChars);
 
           const currentText = fullResponse.slice(0, charIndex);
 
-          // Approximate tokens (roughly 1 token per 4 chars)
-          tokenCount = Math.floor(charIndex / 4);
-          const elapsedMs = Date.now() - statsStart;
-          const tokPerSec =
-            elapsedMs > 0 ? (tokenCount / elapsedMs) * 1000 : 0;
-
-          setGenerationStats({
-            tokensGenerated: tokenCount,
-            tokensPerSecond: Math.round(tokPerSec * 10) / 10,
-            elapsedMs,
-          });
+          // Use real stats if we have them, otherwise approximate
+          if (realStats) {
+            tokenCount = Math.floor(
+              (charIndex / totalChars) * realStats.tokensGenerated
+            );
+            const elapsedMs = Date.now() - statsStart;
+            setGenerationStats({
+              tokensGenerated: tokenCount,
+              tokensPerSecond: realStats.tokensPerSecond,
+              elapsedMs,
+            });
+          } else {
+            tokenCount = Math.floor(charIndex / 4);
+            const elapsedMs = Date.now() - statsStart;
+            const tokPerSec =
+              elapsedMs > 0 ? (tokenCount / elapsedMs) * 1000 : 0;
+            setGenerationStats({
+              tokensGenerated: tokenCount,
+              tokensPerSecond: Math.round(tokPerSec * 10) / 10,
+              elapsedMs,
+            });
+          }
 
           setConversations((prev) =>
             prev.map((c) => {
@@ -219,7 +248,7 @@ export function useChat() {
 
       setIsGenerating(false);
     },
-    [activeConversationId, isGenerating]
+    [activeConversationId, isGenerating, selectedModel]
   );
 
   const stopGeneration = useCallback(() => {
