@@ -984,6 +984,7 @@ def create_parser() -> argparse.ArgumentParser:
 Examples:
   aria node start --port 8765 --cpu 25 --backend auto
   aria node start --port 8765 --backend native --model aria-2b-1bit
+  aria node start --port 8765 --backend subprocess
   aria node status
   aria model download BitNet-b1.58-2B-4T
   aria model list
@@ -1002,7 +1003,7 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="%(prog)s 0.4.0"
+        version="%(prog)s 0.5.2"
     )
 
     subparsers = parser.add_subparsers(
@@ -1080,9 +1081,10 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
         "--backend",
         type=str,
         default="auto",
-        choices=["auto", "native", "simulation"],
-        help="Inference backend: auto (try native, fallback simulation), "
-             "native (require bitnet.cpp), simulation (default: auto)"
+        choices=["auto", "native", "subprocess", "simulation"],
+        help="Inference backend: auto (try native, then subprocess, fallback simulation), "
+             "native (require bitnet.cpp DLL), subprocess (use llama-cli.exe), "
+             "simulation (default: auto)"
     )
     node_start.set_defaults(func=cmd_node_start)
 
