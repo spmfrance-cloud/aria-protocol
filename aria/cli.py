@@ -269,8 +269,14 @@ def cmd_node_start(args):
     def signal_handler():
         manager.running = False
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, signal_handler)
+    # add_signal_handler is not supported on Windows, use signal.signal instead
+    import sys
+    if sys.platform != "win32":
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, signal_handler)
+    else:
+        # On Windows, use signal.signal for SIGINT (Ctrl+C)
+        signal.signal(signal.SIGINT, lambda s, f: signal_handler())
 
     # Parse peers
     peers = args.peers.split(",") if args.peers else None
@@ -795,8 +801,13 @@ def cmd_api_start(args):
     def signal_handler():
         manager.running = False
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, signal_handler)
+    # add_signal_handler is not supported on Windows, use signal.signal instead
+    import sys
+    if sys.platform != "win32":
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, signal_handler)
+    else:
+        signal.signal(signal.SIGINT, lambda s, f: signal_handler())
 
     try:
         loop.run_until_complete(
@@ -941,8 +952,13 @@ def cmd_dashboard(args):
     def signal_handler():
         manager.running = False
 
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, signal_handler)
+    # add_signal_handler is not supported on Windows, use signal.signal instead
+    import sys
+    if sys.platform != "win32":
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, signal_handler)
+    else:
+        signal.signal(signal.SIGINT, lambda s, f: signal_handler())
 
     try:
         loop.run_until_complete(
