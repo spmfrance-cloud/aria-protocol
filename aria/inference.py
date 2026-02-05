@@ -9,8 +9,9 @@ Supports real distributed pipeline parallelism:
 - Final node returns result to originator
 
 Backend modes:
-- "auto": Use native bitnet.cpp if available, fallback to simulation
-- "native": Require native bitnet.cpp (error if unavailable)
+- "auto": Use native bitnet.cpp if available, then subprocess, fallback to simulation
+- "native": Require native bitnet.cpp DLL (error if unavailable)
+- "subprocess": Use llama-cli.exe subprocess for real inference
 - "simulation": Always use simulation mode
 
 MIT License - Anthony MURGO, 2026
@@ -283,8 +284,9 @@ class InferenceEngine:
     and coordinates distributed computation across nodes.
 
     Supports multiple backends:
-    - "auto": Try native bitnet.cpp, fallback to simulation
-    - "native": Require native bitnet.cpp library
+    - "auto": Try native bitnet.cpp, then subprocess, fallback to simulation
+    - "native": Require native bitnet.cpp library (DLL)
+    - "subprocess": Use llama-cli.exe subprocess for real inference
     - "simulation": Always use simulation mode (default)
 
     Usage:
@@ -297,18 +299,19 @@ class InferenceEngine:
         )
     """
 
-    def __init__(self, node_id: str, backend: str = "simulation"):
+    def __init__(self, node_id: str, backend: str = "simulation", threads: int = 8):
         """
         Initialize the inference engine.
 
         Args:
             node_id: Unique node identifier
-            backend: Backend mode - "auto", "native", or "simulation"
+            backend: Backend mode - "auto", "native", "subprocess", or "simulation"
+            threads: Number of CPU threads for subprocess backend
         """
-        if backend not in ("auto", "native", "simulation"):
+        if backend not in ("auto", "native", "subprocess", "simulation"):
             raise ValueError(
                 f"Invalid backend: {backend}. "
-                f"Must be 'auto', 'native', or 'simulation'"
+                f"Must be 'auto', 'native', 'subprocess', or 'simulation'"
             )
 
         self.node_id = node_id
@@ -318,31 +321,82 @@ class InferenceEngine:
         self.total_inferences = 0
         self.total_energy_mj = 0.0
         self._bitnet = None  # Lazy-initialized BitNetNative instance
+        self._subprocess_backend = None  # Lazy-initialized BitNetSubprocess instance
+        self._active_backend = "simulation"  # Track which backend is active
 
-        # Initialize native backend if requested
+        # Initialize backends based on mode
+        self._init_backends(backend, threads)
+
+    def _init_backends(self, backend: str, threads: int):
+        """
+        Initialize inference backends based on mode.
+
+        Priority for "auto" mode:
+        1. Native ctypes (bitnet.dll) - fastest, not yet available
+        2. Subprocess (llama-cli.exe) - real inference via CLI
+        3. Simulation - fallback when nothing else works
+        """
+        if backend == "simulation":
+            self._active_backend = "simulation"
+            logger.info("Using simulation backend (explicitly requested)")
+            return
+
+        # Try native bitnet.cpp DLL first
         if backend in ("auto", "native"):
             try:
                 from aria.bitnet_native import BitNetNative
                 self._bitnet = BitNetNative()
 
-                if backend == "native" and self._bitnet.is_simulation:
+                if self._bitnet.is_native:
+                    self._active_backend = "native"
+                    logger.info("Using native bitnet.cpp DLL backend")
+                    return
+                elif backend == "native":
                     raise RuntimeError(
                         "Native backend requested but bitnet.cpp library "
                         "not found. Install bitnet.cpp or use backend='auto'."
                     )
-
-                if self._bitnet.is_native:
-                    logger.info("Using native bitnet.cpp backend")
-                else:
-                    logger.info("Native library not found, using simulation fallback")
             except ImportError:
                 if backend == "native":
                     raise RuntimeError(
                         "Native backend requested but BitNetNative module "
                         "not available."
                     )
-                logger.info("BitNetNative not available, using simulation mode")
-    
+                logger.debug("BitNetNative import failed, trying subprocess backend")
+
+        # Try subprocess backend (llama-cli.exe)
+        if backend in ("auto", "subprocess"):
+            try:
+                from aria.bitnet_subprocess import BitNetSubprocess
+                self._subprocess_backend = BitNetSubprocess(threads=threads)
+
+                if self._subprocess_backend.is_available:
+                    self._active_backend = "subprocess"
+                    logger.info(
+                        f"Using subprocess backend: {self._subprocess_backend.exe_path}"
+                    )
+                    return
+                elif backend == "subprocess":
+                    raise RuntimeError(
+                        "Subprocess backend requested but llama-cli executable "
+                        "not found. Compile bitnet.cpp or use backend='auto'."
+                    )
+            except ImportError:
+                if backend == "subprocess":
+                    raise RuntimeError(
+                        "Subprocess backend requested but BitNetSubprocess module "
+                        "not available."
+                    )
+                logger.debug("BitNetSubprocess import failed")
+
+        # Fallback to simulation
+        self._active_backend = "simulation"
+        logger.info(
+            "No native backend available. Using simulation mode. "
+            "For real inference, compile bitnet.cpp and ensure llama-cli.exe "
+            "is in ~/Documents/BitNet/build/bin/Release/"
+        )
+
     def load_model(self, model_id: str, num_layers: int = 24, 
                    hidden_dim: int = 2048, shard_start: int = 0,
                    shard_end: Optional[int] = None):
@@ -388,52 +442,137 @@ class InferenceEngine:
         return list(self.loaded_shards.keys())
     
     def infer(self, query: str, model_id: str = "aria-2b-1bit",
-              max_tokens: int = 100) -> InferenceResult:
+              max_tokens: int = 100, temperature: float = 0.7) -> InferenceResult:
         """
         Run inference on the local model shard.
-        
+
+        Uses the best available backend:
+        1. Native bitnet.cpp DLL (if available)
+        2. Subprocess llama-cli.exe (if available)
+        3. Simulation (fallback)
+
         In a full ARIA network, this would be one step in a
         distributed pipeline. The orchestrator chains multiple
         nodes together to process all layers sequentially.
-        
+
         Args:
             query: Input text
             model_id: Which model to use
             max_tokens: Maximum output tokens
-            
+            temperature: Sampling temperature
+
         Returns:
             InferenceResult with output, timing, and energy data
         """
+        # Use subprocess backend for real inference if available
+        if self._active_backend == "subprocess" and self._subprocess_backend:
+            return self._infer_subprocess(query, model_id, max_tokens, temperature)
+
+        # Use native DLL backend if available
+        if self._active_backend == "native" and self._bitnet:
+            return self._infer_native(query, model_id, max_tokens, temperature)
+
+        # Fall back to simulation
+        return self._infer_simulation(query, model_id, max_tokens)
+
+    def _infer_subprocess(self, query: str, model_id: str,
+                          max_tokens: int, temperature: float) -> InferenceResult:
+        """Run inference via llama-cli.exe subprocess."""
+        result = self._subprocess_backend.run_inference(
+            prompt=query,
+            model_id=model_id,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+        if result.get("error"):
+            # Fallback to simulation on error
+            logger.warning(
+                f"Subprocess inference failed: {result['error']}. "
+                f"Falling back to simulation."
+            )
+            return self._infer_simulation(query, model_id, max_tokens)
+
+        self.total_inferences += 1
+        energy_mj = result.get("energy_estimate_mj", 0)
+        self.total_energy_mj += energy_mj
+
+        return InferenceResult(
+            request_id=hashlib.sha256(f"{query}{time.time()}".encode()).hexdigest()[:16],
+            output_tokens=[],  # Subprocess doesn't return token IDs
+            output_text=result.get("output", ""),
+            latency_ms=int(result.get("time_ms", 0)),
+            energy_mj=int(energy_mj),
+            nodes_used=[self.node_id],
+            model_id=model_id,
+            tokens_generated=result.get("tokens_generated", 0),
+        )
+
+    def _infer_native(self, query: str, model_id: str,
+                      max_tokens: int, temperature: float) -> InferenceResult:
+        """Run inference via native bitnet.cpp DLL."""
         start_time = time.time()
-        
+
+        try:
+            output_text = self._bitnet.generate(query, max_tokens, temperature)
+        except Exception as e:
+            logger.warning(f"Native inference failed: {e}. Falling back to simulation.")
+            return self._infer_simulation(query, model_id, max_tokens)
+
+        elapsed_ms = int((time.time() - start_time) * 1000)
+
+        # Estimate energy (native backend should eventually provide this)
+        total_energy = 0.028 * 1000  # ~28 mJ baseline for 2B model
+
+        self.total_inferences += 1
+        self.total_energy_mj += total_energy
+
+        return InferenceResult(
+            request_id=hashlib.sha256(f"{query}{time.time()}".encode()).hexdigest()[:16],
+            output_tokens=[],
+            output_text=output_text,
+            latency_ms=elapsed_ms,
+            energy_mj=int(total_energy),
+            nodes_used=[self.node_id],
+            model_id=model_id,
+            tokens_generated=max_tokens,  # Approximate
+        )
+
+    def _infer_simulation(self, query: str, model_id: str,
+                          max_tokens: int) -> InferenceResult:
+        """Run inference in simulation mode."""
+        start_time = time.time()
+
         layers = self.layers.get(model_id, [])
         if not layers:
-            raise ValueError(f"Model {model_id} not loaded on this node")
-        
+            # Load a default model if none loaded
+            self.load_model(model_id)
+            layers = self.layers.get(model_id, [])
+
         # Tokenize (simplified)
         input_tokens = self._tokenize(query)
-        
+
         # Initial activations from token embeddings
         activations = [float(t) / 1000.0 for t in input_tokens]
         # Pad/truncate to hidden_dim
-        hidden_dim = layers[0].input_dim
+        hidden_dim = layers[0].input_dim if layers else 2048
         activations = (activations + [0.0] * hidden_dim)[:hidden_dim]
-        
+
         # Forward pass through all local layers
         total_energy = 0.0
         for layer in layers:
             activations = layer.forward(activations)
             total_energy += layer.energy_estimate_mj()
-        
+
         # Generate output tokens (simplified)
         output_tokens = self._generate_tokens(activations, max_tokens)
         output_text = self._detokenize(output_tokens)
-        
+
         elapsed_ms = int((time.time() - start_time) * 1000)
-        
+
         self.total_inferences += 1
         self.total_energy_mj += total_energy
-        
+
         return InferenceResult(
             request_id=hashlib.sha256(f"{query}{time.time()}".encode()).hexdigest()[:16],
             output_tokens=output_tokens,
@@ -616,7 +755,12 @@ class InferenceEngine:
         stats = {
             "node_id": self.node_id,
             "backend": self.backend,
+            "active_backend": self._active_backend,
             "native_available": self._bitnet.is_native if self._bitnet else False,
+            "subprocess_available": (
+                self._subprocess_backend.is_available
+                if self._subprocess_backend else False
+            ),
             "loaded_models": list(self.layers.keys()),
             "loaded_shards": len(self.loaded_shards),
             "total_layers": sum(len(l) for l in self.layers.values()),
@@ -630,6 +774,8 @@ class InferenceEngine:
         }
         if self._bitnet:
             stats["bitnet"] = self._bitnet.get_stats()
+        if self._subprocess_backend:
+            stats["subprocess"] = self._subprocess_backend.get_stats()
         return stats
     
     def __repr__(self) -> str:

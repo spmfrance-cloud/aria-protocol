@@ -323,44 +323,109 @@ class ARIAOpenAIServer:
 
         Returns list of available models in OpenAI format.
         """
-        # Try to get models from node
-        result = await self._send_to_node("get_stats", {})
+        try:
+            # Try to get models from node
+            result = await self._send_to_node("get_stats", {})
 
-        models = []
-        if result and "data" in result:
-            data = result.get("data", {})
-            engine = data.get("engine", {})
+            models = []
+            if result and not result.get("error"):
+                # Handle both response formats: {"data": {...}} and {"result": {...}}
+                data = result.get("data", {})
+                if not data:
+                    data = result.get("result", {})
+                engine = data.get("engine", {})
 
-            # Get loaded models from engine stats
-            loaded_models = engine.get("loaded_models", 0)
-            if loaded_models > 0:
-                models.append({
-                    "id": "aria-2b-1bit",
-                    "object": "model",
-                    "created": int(time.time()),
-                    "owned_by": "aria-protocol",
-                    "permission": [],
-                    "root": "aria-2b-1bit",
-                    "parent": None
-                })
+                # Get loaded models from engine stats
+                loaded_models = engine.get("loaded_models", 0)
+                if loaded_models > 0:
+                    # Add all supported BitNet models
+                    models = self._get_default_models()
 
-        # Always include default model
-        if not models:
-            models.append({
+            # Always include default models list
+            if not models:
+                models = self._get_default_models()
+
+            response = web.json_response({
+                "object": "list",
+                "data": models
+            })
+            return self._add_cors_headers(response)
+
+        except Exception as e:
+            # On any error, return default models list (don't return 500)
+            models = self._get_default_models()
+            response = web.json_response({
+                "object": "list",
+                "data": models
+            })
+            return self._add_cors_headers(response)
+
+    def _get_default_models(self) -> List[Dict]:
+        """
+        Get the default list of supported BitNet models.
+
+        Returns models in OpenAI format with ARIA-specific metadata.
+        """
+        created_time = int(time.time())
+        return [
+            {
+                "id": "bitnet-b1.58-large",
+                "object": "model",
+                "created": created_time,
+                "owned_by": "aria-protocol",
+                "permission": [],
+                "root": "bitnet-b1.58-large",
+                "parent": None,
+                "meta": {
+                    "display_name": "BitNet b1.58 Large",
+                    "params": "0.7B",
+                    "quantization": "1.58-bit"
+                }
+            },
+            {
+                "id": "bitnet-b1.58-2b-4t",
+                "object": "model",
+                "created": created_time,
+                "owned_by": "aria-protocol",
+                "permission": [],
+                "root": "bitnet-b1.58-2b-4t",
+                "parent": None,
+                "meta": {
+                    "display_name": "BitNet b1.58 2B 4T",
+                    "params": "2.4B",
+                    "quantization": "1.58-bit"
+                }
+            },
+            {
+                "id": "llama3-8b-1.58",
+                "object": "model",
+                "created": created_time,
+                "owned_by": "aria-protocol",
+                "permission": [],
+                "root": "llama3-8b-1.58",
+                "parent": None,
+                "meta": {
+                    "display_name": "Llama3 8B 1.58",
+                    "params": "8.0B",
+                    "quantization": "1.58-bit"
+                }
+            },
+            {
                 "id": "aria-2b-1bit",
                 "object": "model",
-                "created": int(time.time()),
+                "created": created_time,
                 "owned_by": "aria-protocol",
                 "permission": [],
                 "root": "aria-2b-1bit",
-                "parent": None
-            })
-
-        response = web.json_response({
-            "object": "list",
-            "data": models
-        })
-        return self._add_cors_headers(response)
+                "parent": None,
+                "meta": {
+                    "display_name": "ARIA 2B 1-bit (alias)",
+                    "params": "2.4B",
+                    "quantization": "1.58-bit",
+                    "alias_of": "bitnet-b1.58-2b-4t"
+                }
+            },
+        ]
 
     async def _handle_health(self, request: web.Request) -> web.Response:
         """
