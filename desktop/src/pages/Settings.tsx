@@ -339,7 +339,7 @@ export default function Settings() {
                   ARIA Protocol
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  {t("settings.version")} v0.5.0
+                  {t("settings.version")} v0.5.1
                 </p>
               </div>
             </div>
@@ -349,7 +349,7 @@ export default function Settings() {
                 {t("settings.checkUpdates")}
               </Button>
               <a
-                href="https://github.com/aria-protocol"
+                href="https://github.com/spmfrance-cloud/aria-protocol"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -359,7 +359,7 @@ export default function Settings() {
                 </Button>
               </a>
               <a
-                href="https://docs.aria-protocol.org"
+                href="https://spmfrance-cloud.github.io/aria-protocol/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -369,7 +369,7 @@ export default function Settings() {
                 </Button>
               </a>
               <a
-                href="https://github.com/aria-protocol/issues"
+                href="https://github.com/spmfrance-cloud/aria-protocol/issues"
                 target="_blank"
                 rel="noopener noreferrer"
               >
