@@ -132,6 +132,48 @@ The foundation of ARIA, handling actual inference computation and network commun
 └────────────────────────────────────────────────────────────┘
 ```
 
+#### Inference Backends
+
+ARIA supports multiple inference backends with automatic fallback:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Backend Selection (auto mode)               │
+│                                                              │
+│  Priority 1: Native DLL (bitnet.cpp ctypes)                  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ BitNetNative — Direct ctypes bindings to bitnet.dll   │   │
+│  │ ✓ Fastest option (in-process, zero IPC overhead)      │   │
+│  │ ✗ Requires compiled bitnet.dll/libbitnet.so            │   │
+│  └──────────────────────────────────────────────────────┘   │
+│              │ unavailable? ▼                                │
+│  Priority 2: Subprocess (llama-cli.exe)                      │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ BitNetSubprocess — Calls llama-cli.exe as subprocess  │   │
+│  │ ✓ Real 1-bit inference on CPU                         │   │
+│  │ ✓ Works with standard bitnet.cpp builds               │   │
+│  │ ✓ Parses perf stats from stderr                       │   │
+│  │ ✗ Subprocess overhead (~50-100ms per call)             │   │
+│  └──────────────────────────────────────────────────────┘   │
+│              │ unavailable? ▼                                │
+│  Priority 3: Simulation (reference implementation)           │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ TernaryLayer simulation — Protocol mechanics demo     │   │
+│  │ ✓ Always available, no dependencies                   │   │
+│  │ ✓ Full protocol flow (ledger, proofs, rewards)        │   │
+│  │ ✗ No real language model output                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                              │
+│  CLI: aria node start --backend auto|native|subprocess|sim  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Backend | Module | Real Inference | Dependencies | Overhead |
+|---------|--------|---------------|--------------|----------|
+| native | bitnet_native.py | Yes | bitnet.dll / libbitnet.so | None (in-process) |
+| subprocess | bitnet_subprocess.py | Yes | llama-cli.exe (bitnet.cpp) | ~50-100ms IPC |
+| simulation | inference.py | No | None | None |
+
 #### Model Sharding
 
 Models are split across multiple nodes for distributed inference:
@@ -612,13 +654,15 @@ All node-to-node communication uses a JSON-based WebSocket protocol:
 │  ┌───────────┐         ┌───────────┐         ┌───────────┐                 │
 │  │inference.py│         │ ledger.py │         │ consent.py│                 │
 │  │ (engine)  │         │(blockchain)│         │(contracts)│                 │
-│  └───────────┘         └─────┬─────┘         └───────────┘                 │
-│                              │                                              │
-│                              ▼                                              │
-│                        ┌───────────┐                                        │
-│                        │ proof.py  │                                        │
-│                        │(PoUW/PoS) │                                        │
-│                        └───────────┘                                        │
+│  └─────┬─────┘         └─────┬─────┘         └───────────┘                 │
+│        │                     │                                              │
+│   ┌────┴─────┐               ▼                                              │
+│   │          │         ┌───────────┐                                        │
+│   ▼          ▼         │ proof.py  │                                        │
+│ ┌──────┐ ┌──────────┐ │(PoUW/PoS) │                                        │
+│ │bitnet│ │bitnet_   │ └───────────┘                                        │
+│ │native│ │subprocess│                                                       │
+│ └──────┘ └──────────┘                                                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -632,6 +676,8 @@ aria-protocol/
 │   ├── node.py          # ARIANode - main orchestrator
 │   ├── network.py       # ARIANetwork - P2P WebSocket layer
 │   ├── inference.py     # InferenceEngine, TernaryLayer, ModelShard
+│   ├── bitnet_native.py     # Native ctypes bindings to bitnet.cpp
+│   ├── bitnet_subprocess.py # Subprocess backend using llama-cli.exe
 │   ├── ledger.py        # ProvenanceLedger, Block, InferenceRecord
 │   ├── proof.py         # ProofOfUsefulWork, ProofOfSobriety
 │   ├── consent.py       # ARIAConsent, TaskType
