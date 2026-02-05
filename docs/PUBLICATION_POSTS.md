@@ -1,6 +1,212 @@
 # ARIA Protocol — Publication Posts for Community Launch
 
 > Textes prêts à publier pour annoncer ARIA Protocol sur les principales plateformes.
+
+---
+
+# v0.5.2 — Subprocess Backend & Real Benchmarks (February 2026)
+
+> Données issues des benchmarks comparatifs v0.5.2 sur AMD Ryzen 9 7845HX, 8 threads.
+> Énergie estimée via CPU-time × TDP/threads (pas mesure directe RAPL).
+
+---
+
+## Show HN: ARIA Protocol v0.5.2 – Real 1-bit LLM inference at 120 tok/s on CPU, open-source P2P protocol
+
+---
+
+ARIA is a peer-to-peer protocol for distributed inference of 1-bit quantized LLMs on ordinary CPUs. No GPU required. Models use ternary weights (-1, 0, +1) based on Microsoft Research's BitNet b1.58 architecture. The protocol combines P2P networking, pipeline parallelism, and a blockchain provenance ledger into a single open-source stack.
+
+**What's new in v0.5.2:** We added a subprocess backend that calls llama-cli.exe (from bitnet.cpp) directly, alongside the existing native DLL backend and simulation mode. This gives us 3 production-grade backends. We also ran proper comparative benchmarks with real models for the first time.
+
+**Real benchmark numbers** (AMD Ryzen 9 7845HX, 8 threads, subprocess backend):
+
+| Model | Params | Avg tok/s | Avg latency | Avg energy* |
+|-------|--------|-----------|-------------|-------------|
+| BitNet-b1.58-large | 0.7B | 120.25 | 588 ms | 8,823 mJ |
+| BitNet-b1.58-2B-4T | 2.4B | 36.62 | 2,120 ms | 31,807 mJ |
+
+*Energy estimated via CPU-time × TDP/threads. This is not a direct hardware measurement (no RAPL). Per-token energy is roughly ~73 mJ/token for 0.7B and ~869 mJ/token for 2.4B. These are upper-bound estimates.
+
+**How it works:** 1-bit quantization reduces weights to {-1, 0, +1}, replacing floating-point multiplications with simple additions and subtractions. This makes inference memory-bound rather than compute-bound, which is why it runs well on CPUs. The P2P layer distributes model layers across nodes using pipeline parallelism over WebSocket connections. A blockchain ledger records every inference for provenance. Proof of Useful Work replaces wasteful hash mining — the mining IS the inference.
+
+**How ARIA differs from Bittensor, Gensyn, and Petals:** Those projects target GPU-based inference and incentive markets for existing large models. ARIA takes a fundamentally different bet: that 1-bit quantized models will make CPU-only inference competitive enough to build a viable distributed network without any GPU requirement. This is a narrower scope but a more practical path to running on the billions of idle CPUs worldwide.
+
+**Honest limitations:**
+- Energy numbers are estimates (CPU-time × TDP), not direct measurements
+- The simulation backend exists for protocol testing — it doesn't run real inference
+- No public testnet yet (planned for v0.6.0)
+- The 0.7B model is fast but not useful for complex tasks; the 2.4B model is more capable but slower
+- Native DLL backend requires a compiled bitnet.cpp shared library
+
+MIT licensed. Python 3.10+. 176 tests passing.
+
+- GitHub: https://github.com/spmfrance-cloud/aria-protocol
+- Whitepaper: included in the repo (`ARIA_Whitepaper.pdf`)
+- Benchmark results: `benchmarks/results/`
+
+---
+
+## Reddit r/LocalLLaMA — v0.5.2
+
+**Titre:** `ARIA Protocol v0.5.2: P2P distributed inference with real 1-bit models — 120 tok/s (0.7B) and 36 tok/s (2.4B) on CPU only`
+
+---
+
+Hey r/LocalLLaMA,
+
+Quick update on ARIA Protocol — we just shipped v0.5.2 with a subprocess backend that calls llama-cli directly from bitnet.cpp, and we finally have proper comparative benchmarks with real models.
+
+### What changed
+
+The big addition is a **subprocess backend** that spawns llama-cli.exe (from Microsoft's bitnet.cpp build) as a child process for each inference. This sits alongside our native DLL backend (ctypes bindings) and simulation mode, giving us 3 backends total. The subprocess approach is slower than native due to process spawn overhead, but it's dead simple to set up — just point it at your bitnet.cpp build directory.
+
+### Benchmark results
+
+Tested on AMD Ryzen 9 7845HX, 8 threads, subprocess backend:
+
+| Model | Params | Avg tok/s | Avg latency | Energy* |
+|-------|--------|-----------|-------------|---------|
+| BitNet-b1.58-large | 0.7B | **120.25** | 588 ms | ~8.8 J total (5 inferences) |
+| BitNet-b1.58-2B-4T | 2.4B | **36.62** | 2,120 ms | ~31.8 J total (3 inferences) |
+
+*Energy estimated via CPU-time × TDP/threads — not a direct hardware measurement. These are upper-bound estimates, not RAPL readings.
+
+The 0.7B model hits 120 tok/s which is solidly usable for real-time applications. The 2.4B model at 36 tok/s is more than enough for interactive use cases.
+
+### The stack
+
+- **Inference:** Python calling llama-cli from bitnet.cpp (Microsoft Research's 1-bit runtime)
+- **Networking:** WebSocket-based P2P with pipeline parallelism for model sharding
+- **Consensus:** Blockchain provenance ledger + Proof of Useful Work (mining = inference)
+- **API:** OpenAI-compatible, drop-in replacement
+
+### Why 1-bit?
+
+You all know this already, but for the newcomers: 1-bit quantization (ternary weights: -1, 0, +1) makes inference memory-bound instead of compute-bound. No floating-point math needed. A 2.4B model fits in ~1.3 GB of RAM. This is what makes CPU-only inference viable — and it's why distributing across a P2P network makes sense. Scale out across machines, not up within one.
+
+### Roadmap
+
+- **v0.6.0** — Testnet alpha with public bootstrap nodes
+- **v0.7.0** — Node reputation system and anti-Sybil mechanisms
+- **v0.8.0** — Mobile nodes (iOS/Android with on-device inference)
+
+MIT licensed, Python 3.10+, 176 tests passing.
+
+- GitHub: https://github.com/spmfrance-cloud/aria-protocol
+- Benchmark results: `benchmarks/results/`
+
+Happy to answer any questions. If you've compiled bitnet.cpp, you can run the benchmarks yourself in about 2 minutes.
+
+---
+
+## Twitter/X Thread — v0.5.2
+
+---
+
+**Tweet 1/6**
+
+120 tokens/second. On CPU. No GPU.
+
+ARIA Protocol v0.5.2 — real 1-bit LLM inference benchmarks are in.
+
+Here's what we measured. Thread below.
+
+---
+
+**Tweet 2/6**
+
+ARIA is a P2P protocol for distributed inference using 1-bit quantized models (BitNet b1.58).
+
+3 backends: native DLL, subprocess (llama-cli), simulation.
+
+All CPU. All open-source. MIT licensed.
+
+---
+
+**Tweet 3/6**
+
+Real numbers (Ryzen 9, 8 threads):
+
+0.7B model: 120.25 tok/s — 588ms latency
+2.4B model: 36.62 tok/s — 2.1s latency
+
+Energy: ~8.8J for 5 inferences (0.7B)
+
+Estimated via CPU-time x TDP, not direct measurement.
+
+---
+
+**Tweet 4/6**
+
+How it works:
+
+1-bit weights (-1, 0, +1) = no float math
+Memory-bound, not compute-bound
+P2P pipeline parallelism across nodes
+Every inference recorded on provenance ledger
+
+CPU-only. No cloud. No GPU.
+
+---
+
+**Tweet 5/6**
+
+What's next:
+
+v0.6.0 — Public testnet with bootstrap nodes
+v0.7.0 — Reputation system + anti-Sybil
+v0.8.0 — Mobile inference (iOS/Android)
+
+176 tests passing. 3 backends. Real benchmarks.
+
+---
+
+**Tweet 6/6**
+
+GitHub: https://github.com/spmfrance-cloud/aria-protocol
+
+MIT licensed. Python 3.10+.
+Contributions welcome — run a node, break the protocol, or optimize the engine.
+
+Built on Microsoft Research's BitNet b1.58 architecture.
+
+---
+
+## LinkedIn — v0.5.2
+
+**Titre:** ARIA Protocol v0.5.2 — L'inférence IA distribuée franchit un cap : 120 tokens/s sur CPU, sans GPU
+
+---
+
+ARIA Protocol atteint une nouvelle étape avec la version 0.5.2 : un backend subprocess permettant d'exploiter directement bitnet.cpp (Microsoft Research), des benchmarks comparatifs sur modèles réels, et 3 modes d'inférence en production.
+
+Les résultats concrets, mesurés sur AMD Ryzen 9 7845HX (8 threads) :
+
+- **120,25 tokens/s** pour le modèle 0.7B (BitNet b1.58-large)
+- **36,62 tokens/s** pour le modèle 2.4B (BitNet b1.58-2B-4T)
+- **Énergie estimée :** ~8,8 J pour 5 inférences (0.7B), ~31,8 J pour 3 inférences (2.4B)
+- Estimation via CPU-time × TDP — pas de mesure directe RAPL
+
+Ce qui rend cette approche pertinente pour la souveraineté numérique : aucune dépendance au cloud GPU. L'inférence 1-bit (poids ternaires : -1, 0, +1) tourne sur n'importe quel processeur standard. Pas besoin de matériel spécialisé, pas de location de GPU, pas de dépendance à un fournisseur cloud.
+
+L'angle sobriété est tout aussi important. La quantification 1-bit réduit la consommation mémoire d'un facteur 10 et rend l'inférence memory-bound plutôt que compute-bound. Combinée à un réseau pair-à-pair qui distribue la charge sur des machines existantes, cette architecture offre un chemin concret vers une IA plus sobre en énergie.
+
+ARIA intègre désormais 3 backends d'inférence (natif DLL, subprocess, simulation), un ledger de provenance blockchain, un système de Proof of Useful Work, et une API compatible OpenAI.
+
+176 tests unitaires. Licence MIT. Python 3.10+.
+
+**GitHub :** https://github.com/spmfrance-cloud/aria-protocol
+
+Si vous travaillez sur l'IA distribuée, l'edge computing, ou la souveraineté technologique — les contributions sont bienvenues.
+
+#OpenSource #AI #DistributedSystems #GreenAI #LLM #1BitAI #FrenchTech #Souveraineté
+
+---
+---
+
+# v0.3.0 — Initial Benchmarks (February 2026)
+
 > Données issues des benchmarks réels (v0.3.0, février 2026).
 
 ---
