@@ -537,6 +537,63 @@ a:hover {
     color: var(--text-secondary);
 }
 
+/* --- Desktop App --- */
+.desktop {
+    padding: 100px 0;
+    background: var(--bg-secondary);
+}
+
+.desktop .cards {
+    margin-bottom: 48px;
+}
+
+.desktop-features {
+    max-width: 700px;
+    margin: 0 auto 48px;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.2s;
+}
+
+.feature-item:hover {
+    border-color: var(--border-light);
+}
+
+.feature-item svg {
+    color: var(--green);
+    flex-shrink: 0;
+}
+
+.feature-item span {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+}
+
+.feature-item strong {
+    color: var(--text-primary);
+}
+
+.desktop-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 /* --- Quick Start --- */
 .quickstart {
     padding: 100px 0;
@@ -747,6 +804,11 @@ a:hover {
     }
 
     .cta-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .desktop-actions {
         flex-direction: column;
         align-items: center;
     }
