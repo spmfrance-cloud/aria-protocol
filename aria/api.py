@@ -197,9 +197,14 @@ class ARIAOpenAIServer:
             return await self._stream_response(request, result, model)
 
         # Format as OpenAI response
+        # The network handler returns {"status": "completed", "result": {...}}
+        # where result contains the inference output from the node
         data = result.get("data", {})
+        if not data:
+            # Try legacy format: result directly contains the data
+            data = result.get("result", {})
         output_text = data.get("output", "")
-        tokens_generated = data.get("tokens_generated", 0)
+        tokens_generated = data.get("tokens_generated", data.get("tokens", 0))
 
         # Estimate prompt tokens (rough approximation)
         prompt_tokens = len(query.split()) * 2
