@@ -1,9 +1,9 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.2-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
-![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-176%20passing-brightgreen.svg)
 ![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue.svg)
 
 **Autonomous Responsible Intelligence Architecture**
@@ -80,13 +80,25 @@ print(response.choices[0].message.content)
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
 | **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Validated |
 | **Native BitNet** | Python ctypes bindings to bitnet.cpp | ✅ Complete |
+| **Subprocess Backend** | llama-cli process-based inference | ✅ Complete |
 | **Model Manager** | Auto-download models from HuggingFace | ✅ Complete |
 
 ---
 
 ## Benchmarks
 
-Real-world performance on AMD Ryzen 9 7845HX (8 threads):
+### v0.5.2 — Subprocess backend (latest)
+
+Real-world performance on AMD Ryzen 9 7845HX (8 threads, subprocess backend calling llama-cli):
+
+| Model | Params | Avg tok/s | Avg latency | Avg energy* |
+|-------|--------|-----------|-------------|-------------|
+| BitNet-b1.58-large | 0.7B | **120.25** | 588 ms | 8,823 mJ |
+| BitNet-b1.58-2B-4T | 2.4B | **36.62** | 2,120 ms | 31,807 mJ |
+
+### v0.3.0 — Direct bitnet.cpp benchmarks
+
+Earlier benchmarks using bitnet.cpp directly (different methodology, not directly comparable):
 
 | Model | Params | Tokens/s | Energy* |
 |-------|--------|----------|---------|
@@ -94,7 +106,7 @@ Real-world performance on AMD Ryzen 9 7845HX (8 threads):
 | BitNet-b1.58-2B-4T | 2.4B | 36.94 t/s | ~28 mJ/token |
 | Llama3-8B-1.58 | 8.0B | 15.03 t/s | ~66 mJ/token |
 
-*Energy is estimated via CPU-time × TDP. See [benchmarks documentation](./benchmarks/README.md) for methodology and limitations.
+*Energy is estimated via CPU-time × TDP/threads — not a direct hardware measurement (no RAPL). See [benchmarks documentation](./benchmarks/README.md) for methodology and limitations.
 
 Key findings:
 - **Thread scaling**: Optimal at 8 threads; 1-bit LUT kernels are memory-bound
@@ -104,6 +116,11 @@ Key findings:
 All benchmarks are reproducible:
 ```bash
 pip install -e .
+
+# v0.5.2 comparative benchmark (requires bitnet.cpp build)
+python benchmarks/compare_backends.py --prompts 5 --max-tokens 50 --threads 8 --output results.json
+
+# v0.3.0 direct benchmark
 python benchmarks/run_benchmark.py --prompts 5 --output results.json
 ```
 
@@ -115,7 +132,7 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ARIA PROTOCOL v0.4.0                       │
+│                      ARIA PROTOCOL v0.5.2                       │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
 │  ├── OpenAI-compatible API (aiohttp)                            │
@@ -131,6 +148,8 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 │  LAYER 1: COMPUTE                                               │
 │  ├── P2P Network (WebSocket)                                    │
 │  ├── Native BitNet Engine (ctypes → bitnet.cpp)                 │
+│  ├── Subprocess Backend (llama-cli → bitnet.cpp)                │
+│  ├── Simulation Backend (protocol testing)                      │
 │  ├── Model Manager (HuggingFace auto-download)                  │
 │  ├── Model Sharding & Distribution                              │
 │  └── Consent-based Routing                                      │
@@ -216,6 +235,7 @@ aria-protocol/
 │   ├── network.py         # P2P WebSocket networking
 │   ├── inference.py       # 1-bit inference engine
 │   ├── bitnet_native.py   # Native bitnet.cpp bindings (ctypes)
+│   ├── bitnet_subprocess.py # Subprocess backend (llama-cli)
 │   ├── model_manager.py   # Model download & cache management
 │   ├── ledger.py          # Provenance blockchain
 │   ├── proof.py           # PoUW & Proof of Sobriety
@@ -294,21 +314,26 @@ make test-cov
 | v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
 | v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
 | v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
-| v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | 🔄 In Progress |
+| v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | ✅ Complete |
+| v0.5.2 | Subprocess Backend | Multi-backend inference, comparative benchmarks | ✅ Complete |
 | v0.6.0 | Testnet Alpha | Public bootstrap nodes, 50+ community nodes | ⬜ Planned |
 | v0.7.0 | Reputation | Node reliability scoring, anti-Sybil | ⬜ Planned |
 | v0.8.0 | Mobile | iOS/Android nodes with on-device inference | ⬜ Planned |
 | v1.0.0 | Mainnet | Production network, token economics, DAO | ⬜ Planned |
 
-### Current Focus: v0.5.0 Desktop App
+### Current Focus: v0.6.0 Testnet Alpha
 
-- [x] Tauri 2.0 cross-platform build configuration
-- [x] Electron alternative build configuration
-- [x] CI/CD pipelines for Windows, macOS, Linux
-- [x] Frontend ↔ Backend communication layer
-- [ ] One-click node setup for non-developers
-- [ ] System tray integration
-- [ ] Auto-updater with code signing
+- [ ] Public bootstrap node infrastructure
+- [ ] Node discovery and NAT traversal
+- [ ] Community node onboarding (target: 50+ nodes)
+- [ ] Network health monitoring dashboard
+
+### v0.5.2 Highlights
+
+- [x] Subprocess backend (llama-cli integration)
+- [x] Comparative benchmarks across 3 backends
+- [x] 176 tests passing with full backend isolation
+- [x] 120.25 tok/s on 0.7B model (subprocess, 8 threads)
 
 ---
 
@@ -338,12 +363,23 @@ aria model download BitNet-b1.58-2B-4T
 
 ### Backend Modes
 
+ARIA supports 3 inference backends:
+
+| Backend | Description | Requirements |
+|---------|-------------|--------------|
+| `native` | Python ctypes bindings to bitnet.cpp shared library | Compiled `libbitnet.so`/`.dll` |
+| `subprocess` | Spawns `llama-cli` from bitnet.cpp as a child process | bitnet.cpp build with `llama-cli` binary |
+| `simulation` | Simulated inference for protocol development and testing | None |
+
 ```bash
 # Auto-detect: use native bitnet.cpp if available, else simulation
 aria node start --backend auto
 
-# Force native mode (requires compiled bitnet.cpp)
+# Force native mode (requires compiled bitnet.cpp shared library)
 aria node start --backend native
+
+# Force subprocess mode (requires llama-cli binary from bitnet.cpp)
+aria node start --backend subprocess
 
 # Force simulation mode (no native library needed)
 aria node start --backend simulation
