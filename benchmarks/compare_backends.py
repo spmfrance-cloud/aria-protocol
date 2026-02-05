@@ -180,10 +180,10 @@ def print_summary(all_results, model_id, num_prompts, max_tokens):
     """Print a formatted comparison table to stdout."""
     print()
     print("ARIA Backend Comparison Benchmark")
-    print("\u2550" * 58)
+    print("=" * 58)
     print(f"Model: {model_id} | Prompts: {num_prompts} | Max tokens: {max_tokens}")
     print(f"{'Backend':<17}{'Avg tok/s':>10}{'Avg latency':>14}{'Avg energy':>13}   Status")
-    print("\u2500" * 58)
+    print("-" * 58)
 
     for backend_name, results in all_results.items():
         ok = [r for r in results if r["status"] == "ok"]
@@ -196,7 +196,7 @@ def print_summary(all_results, model_id, num_prompts, max_tokens):
         avg_nrg = _avg([r["energy_estimate_mj"] for r in ok])
 
         if avg_tps == float("inf"):
-            tps_str = "\u221e"
+            tps_str = "inf"
         else:
             tps_str = f"{avg_tps:.2f}"
 
@@ -206,7 +206,7 @@ def print_summary(all_results, model_id, num_prompts, max_tokens):
             lat_str = f"{avg_lat:.2f} ms"
 
         nrg_str = f"{avg_nrg:.2f} mJ"
-        status = "\u2713 (reference)" if backend_name == "simulation" else "\u2713"
+        status = "ok (reference)" if backend_name == "simulation" else "ok"
 
         print(f"{backend_name:<17}{tps_str:>10}{lat_str:>14}{nrg_str:>13}   {status}")
 

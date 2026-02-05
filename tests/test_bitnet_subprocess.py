@@ -19,6 +19,8 @@ from aria.inference import InferenceEngine, InferenceResult
 class TestBitNetSubprocessInit:
     """Tests for BitNetSubprocess initialization and executable discovery."""
 
+    @patch("aria.bitnet_subprocess.DEFAULT_MODEL_PATHS", [])
+    @patch("aria.bitnet_subprocess.DEFAULT_BITNET_PATHS", [])
     def test_unavailable_when_no_executable(self):
         """Backend should be unavailable when no executable is found."""
         backend = BitNetSubprocess(
@@ -32,6 +34,8 @@ class TestBitNetSubprocessInit:
         backend = BitNetSubprocess(exe_path="/fake")
         assert backend.backend_name == "native_subprocess"
 
+    @patch("aria.bitnet_subprocess.DEFAULT_MODEL_PATHS", [])
+    @patch("aria.bitnet_subprocess.DEFAULT_BITNET_PATHS", [])
     def test_repr_unavailable(self):
         """Repr should show unavailable status."""
         backend = BitNetSubprocess(exe_path="/fake")
@@ -163,6 +167,8 @@ class TestBitNetSubprocessModelPaths:
         path = backend.get_model_path("nonexistent-model")
         assert path is None
 
+    @patch("aria.bitnet_subprocess.DEFAULT_MODEL_PATHS", [])
+    @patch("aria.bitnet_subprocess.DEFAULT_BITNET_PATHS", [])
     def test_get_model_path_no_models_dir(self):
         """Should return None when no models_dir configured."""
         backend = BitNetSubprocess(
@@ -323,6 +329,8 @@ class TestBitNetSubprocessInference:
         if hasattr(self, "_tmpdir"):
             shutil.rmtree(self._tmpdir, ignore_errors=True)
 
+    @patch("aria.bitnet_subprocess.DEFAULT_MODEL_PATHS", [])
+    @patch("aria.bitnet_subprocess.DEFAULT_BITNET_PATHS", [])
     def test_inference_unavailable_backend(self):
         """Should return error when backend is unavailable."""
         backend = BitNetSubprocess(exe_path="/nonexistent")
@@ -484,6 +492,8 @@ class TestBitNetSubprocessInference:
 class TestBitNetSubprocessGetStats:
     """Tests for get_stats method."""
 
+    @patch("aria.bitnet_subprocess.DEFAULT_MODEL_PATHS", [])
+    @patch("aria.bitnet_subprocess.DEFAULT_BITNET_PATHS", [])
     def test_stats_unavailable(self):
         """Stats should reflect unavailable backend."""
         backend = BitNetSubprocess(exe_path="/fake")
