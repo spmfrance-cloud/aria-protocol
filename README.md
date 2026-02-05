@@ -78,7 +78,7 @@ print(response.choices[0].message.content)
 | **Proof of Useful Work** | Mining = Inference (no wasted computation) | ✅ Complete |
 | **Proof of Sobriety** | Verifiable energy efficiency attestations | ✅ Complete |
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
-| **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Validated |
+| **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Complete |
 | **Native BitNet** | Python ctypes bindings to bitnet.cpp | ✅ Complete |
 | **Subprocess Backend** | llama-cli process-based inference | ✅ Complete |
 | **Model Manager** | Auto-download models from HuggingFace | ✅ Complete |
@@ -166,12 +166,12 @@ ARIA Desktop provides a graphical interface for non-developers to run and manage
 
 | Platform | Architecture | Download |
 |----------|-------------|----------|
-| Windows 10+ | x64 | [ARIA-Desktop-0.5.0-win-x64.exe](https://github.com/spmfrance-cloud/aria-protocol/releases) |
-| macOS 11+ | Intel | [ARIA-Desktop-0.5.0-mac-x64.dmg](https://github.com/spmfrance-cloud/aria-protocol/releases) |
-| macOS 11+ | Apple Silicon | [ARIA-Desktop-0.5.0-mac-arm64.dmg](https://github.com/spmfrance-cloud/aria-protocol/releases) |
-| Ubuntu 20.04+ | x64 | [ARIA-Desktop-0.5.0-linux-x64.AppImage](https://github.com/spmfrance-cloud/aria-protocol/releases) |
+| Windows 10+ | x64 | [Download .exe](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
+| macOS 11+ | Intel | [Download .dmg](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
+| macOS 11+ | Apple Silicon | [Download .dmg](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
+| Ubuntu 20.04+ | x64 | [Download .AppImage](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
 
-Built with **Tauri 2.0** (primary, ~10 MB) and **Electron** (alternative, ~150 MB).
+Built with **Tauri 2.0** (primary, ~15 MB) and **Electron** (alternative, ~150 MB).
 
 Features:
 - One-click node setup and management
@@ -207,7 +207,7 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 
 ## Website
 
-Visit [aria-protocol.github.io](https://spmfrance-cloud.github.io/aria-protocol/) for benchmarks and documentation.
+Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.io/aria-protocol/) for benchmarks and documentation.
 
 ---
 
@@ -264,7 +264,7 @@ We welcome contributions! Here's how to get started:
 
 ```bash
 # Clone the repository
-git clone https://github.com/aria-protocol/aria-protocol.git
+git clone https://github.com/spmfrance-cloud/aria-protocol.git
 cd aria-protocol
 
 # Install development dependencies
@@ -339,15 +339,15 @@ make test-cov
 
 ## Native BitNet Integration
 
-ARIA v0.4.0 introduces native Python bindings for bitnet.cpp, replacing the previous subprocess-based approach.
+ARIA supports native Python bindings for bitnet.cpp via ctypes, alongside a subprocess backend using llama-cli.
 
 ### Supported Models
 
 | Model | Params | HuggingFace Repo |
 |-------|--------|------------------|
-| BitNet-b1.58-large | 0.7B | `1bitLLM/bitnet_b1_58-large` |
-| BitNet-b1.58-2B-4T | 2.4B | `1bitLLM/bitnet_b1_58-2B-4T` |
-| Llama3-8B-1.58 | 8.0B | `HF1BitLLM/Llama3-8B-1.58-100B-tokens` |
+| BitNet-b1.58-large | 0.7B | `microsoft/bitnet-b1.58-large` |
+| BitNet-b1.58-2B-4T | 2.4B | `microsoft/bitnet-b1.58-2B-4T` |
+| Llama3-8B-1.58 | 8.0B | `microsoft/Llama3-8B-1.58-100B-tokens` |
 
 ### Model Download
 
@@ -445,7 +445,7 @@ MIT License. See [LICENSE](LICENSE) for details.
   author = {Anthony MURGO},
   title = {ARIA: Autonomous Responsible Intelligence Architecture},
   year = {2026},
-  url = {https://github.com/aria-protocol/aria-protocol}
+  url = {https://github.com/spmfrance-cloud/aria-protocol}
 }
 ```
 
