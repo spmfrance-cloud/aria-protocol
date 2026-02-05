@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-02-05T20:22:46.447742",
+  "system_info": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu": "AMD64 Family 25 Model 97 Stepping 2, AuthenticAMD",
+    "threads": 8,
+    "python_version": "3.14.3"
+  },
+  "model": "bitnet-b1.58-2b-4t",
+  "num_prompts": 3,
+  "max_tokens": 50,
+  "results": {
+    "native": [],
+    "subprocess": [
+      {
+        "tokens_per_second": 37.03,
+        "latency_ms": 2064.82,
+        "energy_estimate_mj": 30972.23,
+        "energy_mj_per_token": 632.09,
+        "output_length": 278,
+        "prompt": "What is artificial intelligence?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 36.56,
+        "latency_ms": 2092.94,
+        "energy_estimate_mj": 31394.14,
+        "energy_mj_per_token": 640.7,
+        "output_length": 266,
+        "prompt": "Explain quantum computing in simple terms.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 36.27,
+        "latency_ms": 2203.61,
+        "energy_estimate_mj": 33054.08,
+        "energy_mj_per_token": 674.57,
+        "output_length": 167,
+        "prompt": "Write a Python function to sort a list.",
+        "status": "ok"
+      }
+    ],
+    "simulation": [
+      {
+        "tokens_per_second": null,
+        "latency_ms": 11.14,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "What is artificial intelligence?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 11.28,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "Explain quantum computing in simple terms.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 11.28,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "Write a Python function to sort a list.",
+        "status": "ok"
+      }
+    ]
+  }
+}
