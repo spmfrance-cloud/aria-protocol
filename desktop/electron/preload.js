@@ -16,8 +16,11 @@ contextBridge.exposeInMainWorld('ariaElectron', {
   downloadModel: (name) => ipcRenderer.invoke('download-model', name),
 
   // Inference
-  sendInference: (prompt, model) =>
-    ipcRenderer.invoke('send-inference', { prompt, model }),
+  sendInference: (prompt, model, language) =>
+    ipcRenderer.invoke('send-inference', { prompt, model, language }),
+
+  // Backend status
+  checkBackendStatus: () => ipcRenderer.invoke('check-backend-status'),
 
   // Events
   onNodeStatus: (callback) => {
