@@ -150,7 +150,7 @@ function setupIPC() {
   ipcMain.handle('get-node-status', async () => {
     const running = ariaProcess !== null;
     try {
-      const response = await fetch(`${ARIA_API_BASE}/v1/status`);
+      const response = await fetch(`${ARIA_API_BASE}/health`);
       const data = await response.json();
       return { ...data, running: true };
     } catch {
@@ -159,7 +159,7 @@ function setupIPC() {
         peer_count: 0,
         uptime_seconds: 0,
         version: app.getVersion(),
-        backend: running ? 'offline' : 'none',
+        backend: running ? 'starting' : 'offline',
         model: null,
       };
     }
@@ -199,26 +199,62 @@ function setupIPC() {
     }
   });
 
-  ipcMain.handle('send-inference', async (_event, { prompt, model }) => {
+  ipcMain.handle('send-inference', async (_event, { prompt, model, language }) => {
     try {
+      const systemPrompt = language && language !== 'en'
+        ? `You are a helpful AI assistant running on ARIA Protocol. Always respond in the same language as the user's message. Current user language: ${language}.`
+        : 'You are a helpful AI assistant running on ARIA Protocol.';
+
       const response = await fetch(`${ARIA_API_BASE}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
+          model: model || 'aria-2b-1bit',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
           stream: false,
+          max_tokens: 512,
         }),
       });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `API returned ${response.status}`);
+      }
+
       const data = await response.json();
       return {
-        text: data.choices?.[0]?.message?.content || 'No response',
-        tokens_per_second: data.usage?.tokens_per_second || 0,
-        model,
+        text: data.choices?.[0]?.message?.content || 'No response generated.',
+        tokens_per_second: data.usage?.completion_tokens > 0
+          ? Math.round((data.usage.completion_tokens / (Date.now() / 1000 - data.created)) * 10) / 10
+          : 0,
+        model: data.model || model,
         energy_mj: data.usage?.energy_mj || 0,
+        tokens_generated: data.usage?.completion_tokens || 0,
+        prompt_tokens: data.usage?.prompt_tokens || 0,
       };
     } catch (err) {
-      throw new Error(`Inference request failed: ${err.message}`);
+      throw new Error(`Inference failed: ${err.message}`);
+    }
+  });
+
+  ipcMain.handle('check-backend-status', async () => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2000);
+      const response = await fetch(`${ARIA_API_BASE}/health`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (response.ok) {
+        const data = await response.json();
+        return { available: true, status: data.status, node: data.node };
+      }
+      return { available: false, reason: 'unhealthy' };
+    } catch {
+      return { available: false, reason: 'unreachable' };
     }
   });
 }
