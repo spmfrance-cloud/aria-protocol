@@ -21,7 +21,7 @@ jobs:
             args: '--target x86_64-apple-darwin'
             rust-target: x86_64-apple-darwin
           - platform: macos-latest
-            args: '--target aarch64-apple-darwin'
+            args: '--target aarch64-apple-darwin --bundles app,updater'
             rust-target: aarch64-apple-darwin
           - platform: ubuntu-22.04
             args: ''
@@ -69,6 +69,7 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MACOSX_DEPLOYMENT_TARGET: '10.13'
         with:
           projectPath: desktop
           args: ${{ matrix.args }}
@@ -80,7 +81,8 @@ jobs:
             ### Downloads
             See the assets below for your platform:
             - **Windows**: `.msi` or `.exe` installer
-            - **macOS**: `.dmg` disk image
+            - **macOS Intel**: `.dmg` disk image
+            - **macOS Apple Silicon**: `.app` bundle
             - **Linux**: `.AppImage` or `.deb` package
 
             ### What's New
