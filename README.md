@@ -1,6 +1,6 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-orange.svg)
 ![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)
