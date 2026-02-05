@@ -71,6 +71,7 @@
     }
   },
   "linux": {
+    "maintainer": "SPM FRANCE SARL <contact@spmfrance.com>",
     "target": [
       { "target": "AppImage", "arch": ["x64"] },
       { "target": "deb", "arch": ["x64"] },
