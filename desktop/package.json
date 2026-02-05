@@ -1,8 +1,13 @@
 {
   "name": "aria-desktop",
   "private": true,
-  "version": "0.5.0",
-  "description": "ARIA Protocol Desktop Application",
+  "version": "0.5.1",
+  "description": "ARIA Protocol Desktop App - Decentralized AI Inference",
+  "homepage": "https://github.com/spmfrance-cloud/aria-protocol",
+  "author": {
+    "name": "SPM FRANCE SARL",
+    "email": "contact@spmfrance.com"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
