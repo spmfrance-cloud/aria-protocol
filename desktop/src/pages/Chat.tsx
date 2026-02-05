@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MessageSquare, Menu, X, Wifi } from "lucide-react";
@@ -9,6 +9,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
 import { ChatStats } from "@/components/chat/ChatStats";
 import { useChat } from "@/hooks/useChat";
+import { useBackend } from "@/hooks/useBackend";
 import { cn } from "@/lib/utils";
 
 const container = {
@@ -40,8 +41,17 @@ export default function Chat() {
     switchConversation,
     stopGeneration,
   } = useChat();
+  const { available } = useBackend();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Wrap sendMessage to pass backend availability
+  const handleSendMessage = useCallback(
+    (content: string) => {
+      sendMessage(content, available);
+    },
+    [sendMessage, available]
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +79,22 @@ export default function Chat() {
           <Badge variant="success">
             <Wifi size={12} />
             Local
+          </Badge>
+          {/* Connection status badge */}
+          <Badge
+            variant={available ? "success" : "outline"}
+            className={cn(
+              "text-xs gap-1 px-2 py-0.5",
+              available
+                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                : "bg-zinc-700/50 text-zinc-400 border-zinc-600/30"
+            )}
+          >
+            <div className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              available ? "bg-emerald-400 animate-pulse" : "bg-zinc-500"
+            )} />
+            {available ? t("chat.liveMode") : t("chat.mockMode")}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -217,7 +243,7 @@ export default function Chat() {
 
           {/* Input */}
           <ChatInput
-            onSend={sendMessage}
+            onSend={handleSendMessage}
             onStop={stopGeneration}
             isGenerating={isGenerating}
             selectedModel={selectedModel}
