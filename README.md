@@ -221,6 +221,7 @@ Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.i
 | [Protocol Spec](docs/protocol-spec.md) | WebSocket protocol specification |
 | [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
 | [Benchmarks](benchmarks/README.md) | Performance methodology and results |
+| [Roadmap](docs/ROADMAP.md) | Full roadmap v2.1 (62 tasks, 9 versions) |
 | [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
 
 ---
@@ -251,6 +252,8 @@ aria-protocol/
 ├── tests/                 # Test suite
 ├── examples/              # Demo and integration examples
 ├── docs/                  # Documentation
+│   └── ROADMAP.md         # Full roadmap v2.1
+├── CHANGELOG.md           # Version history (Keep a Changelog)
 └── pyproject.toml         # Package configuration
 ```
 
@@ -305,35 +308,21 @@ make test-cov
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
+
+> **[📋 Full Roadmap v2.1 →](docs/ROADMAP.md)** — 9 versions, 62 tasks, from v0.5.2 to v1.1.0+
 
 | Version | Name | Focus | Status |
 |---------|------|-------|--------|
-| v0.1.0 | Genesis | Whitepaper + reference implementation | ✅ Complete |
-| v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
-| v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
-| v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
-| v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
-| v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | ✅ Complete |
-| v0.5.2 | Subprocess Backend | Multi-backend inference, comparative benchmarks | ✅ Complete |
-| v0.6.0 | Testnet Alpha | Public bootstrap nodes, 50+ community nodes | ⬜ Planned |
-| v0.7.0 | Reputation | Node reliability scoring, anti-Sybil | ⬜ Planned |
-| v0.8.0 | Mobile | iOS/Android nodes with on-device inference | ⬜ Planned |
-| v1.0.0 | Mainnet | Production network, token economics, DAO | ⬜ Planned |
-
-### Current Focus: v0.6.0 Testnet Alpha
-
-- [ ] Public bootstrap node infrastructure
-- [ ] Node discovery and NAT traversal
-- [ ] Community node onboarding (target: 50+ nodes)
-- [ ] Network health monitoring dashboard
-
-### v0.5.2 Highlights
-
-- [x] Subprocess backend (llama-cli integration)
-- [x] Comparative benchmarks across 3 backends
-- [x] 176 tests passing with full backend isolation
-- [x] 120.25 tok/s on 0.7B model (subprocess, 8 threads)
+| v0.1→v0.5.2 | Genesis → Desktop | Whitepaper, P2P, CLI, API, BitNet, Benchmarks, Desktop App | ✅ Complete |
+| v0.5.5 | Housekeeping | Repo update, desktop↔backend integration, model validation | 🔥 Next |
+| v0.6.0 | Testnet Alpha | Bootstrap nodes, Falcon3/Edge models, hardened P2P, 50+ nodes | ⬜ Planned |
+| v0.7.0 | Smart Layer | Reputation, Smart Router, frontier API overlay | ⬜ Planned |
+| v0.7.5 | R&D + Docs | PT-BitNet, Whitepaper v2, site redesign | ⬜ Planned |
+| v0.8.0 | Collective Intelligence | Consensus Inference, RAG, ARIA Code, vision | ⬜ Planned |
+| v0.9.0 | ARIA-LM + Ecosystem | Community fine-tune, MCP, browser agent | ⬜ Planned |
+| v1.0.0 | Mainnet | $ARIA token, DAO, staking, audit | ⬜ Planned |
+| v1.1.0+ | Beyond | Mobile, Computer Use, MoE+1-bit, SDK | 🔮 Vision |
 
 ---
 
