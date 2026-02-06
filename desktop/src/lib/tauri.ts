@@ -63,6 +63,22 @@ export interface StartNodeResult {
   models_available: number;
 }
 
+export interface EnergySavings {
+  energy_saved_kwh: number;
+  reduction_percent: number;
+  co2_saved_kg: number;
+  cost_saved_usd: number;
+}
+
+export interface EnergyStats {
+  total_inferences: number;
+  total_tokens_generated: number;
+  total_energy_kwh: number;
+  avg_energy_per_token_mj: number;
+  session_uptime_seconds: number;
+  savings: EnergySavings;
+}
+
 // ── Tauri Detection ────────────────────────────────────────────────
 
 /**
@@ -148,8 +164,36 @@ export async function stopNode(): Promise<string> {
 export async function getModels(): Promise<ModelInfo[]> {
   const invoke = await getTauriInvoke();
   if (invoke) {
-    return invoke('get_models') as Promise<ModelInfo[]>;
+    try {
+      return await invoke('get_models') as Promise<ModelInfo[]>;
+    } catch (e) {
+      console.warn('[tauri] get_models failed, trying HTTP fallback:', e);
+    }
   }
+
+  // HTTP fallback — try the Python API server directly
+  try {
+    const response = await fetch('http://127.0.0.1:3000/v1/models');
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.data) {
+        return data.data.map((m: Record<string, unknown>) => {
+          const meta = m.meta as Record<string, unknown> | undefined;
+          return {
+            name: (meta?.display_name as string) || (m.id as string),
+            params: (meta?.params as string) || '?',
+            size: `${(meta?.params as string) || '?'} params`,
+            downloaded: (m.ready as boolean) || false,
+            description: `${m.id} — 1-bit quantization`,
+          };
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('[tauri] HTTP fallback for models also failed:', e);
+  }
+
+  // Last resort — static defaults
   return [
     { name: 'BitNet-b1.58-large', params: '0.7B', size: '400 MB', downloaded: false, description: 'Fast, lightweight model for quick responses' },
     { name: 'BitNet-b1.58-2B-4T', params: '2.4B', size: '1.3 GB', downloaded: false, description: 'Best balance of speed and quality' },
@@ -193,4 +237,41 @@ export async function getBackendInfo(): Promise<BackendInfo> {
     llama_cli_found: false,
     models_found: 0,
   };
+}
+
+const DEFAULT_ENERGY: EnergyStats = {
+  total_inferences: 0,
+  total_tokens_generated: 0,
+  total_energy_kwh: 0,
+  avg_energy_per_token_mj: 0,
+  session_uptime_seconds: 0,
+  savings: {
+    energy_saved_kwh: 0,
+    reduction_percent: 0,
+    co2_saved_kg: 0,
+    cost_saved_usd: 0,
+  },
+};
+
+export async function getEnergyStats(): Promise<EnergyStats> {
+  const invoke = await getTauriInvoke();
+  if (invoke) {
+    try {
+      return await invoke('get_energy_stats') as Promise<EnergyStats>;
+    } catch (e) {
+      console.warn('[tauri] get_energy_stats failed, trying HTTP:', e);
+    }
+  }
+
+  // HTTP fallback
+  try {
+    const response = await fetch('http://127.0.0.1:3000/v1/energy');
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn('[tauri] HTTP energy fallback failed:', e);
+  }
+
+  return DEFAULT_ENERGY;
 }
