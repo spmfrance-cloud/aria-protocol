@@ -306,6 +306,7 @@ class BitNetSubprocess:
                 cmd,
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
                 timeout=timeout_seconds,
                 cwd=str(self.exe_path.parent),  # DLLs are in the same dir
             )
@@ -543,8 +544,8 @@ async def run_inference(
             start_time = time.time()
             try:
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=120,
-                    cwd=str(backend.exe_path.parent),
+                    cmd, capture_output=True, text=True, encoding='utf-8',
+                    timeout=120, cwd=str(backend.exe_path.parent),
                 )
                 elapsed_ms = (time.time() - start_time) * 1000
                 output_text = result.stdout.strip()

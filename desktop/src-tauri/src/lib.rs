@@ -67,6 +67,24 @@ pub struct BackendInfo {
     pub models_found: usize,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnergySavings {
+    pub energy_saved_kwh: f64,
+    pub reduction_percent: f64,
+    pub co2_saved_kg: f64,
+    pub cost_saved_usd: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnergyStats {
+    pub total_inferences: u64,
+    pub total_tokens_generated: u64,
+    pub total_energy_kwh: f64,
+    pub avg_energy_per_token_mj: f64,
+    pub session_uptime_seconds: f64,
+    pub savings: EnergySavings,
+}
+
 // ── State ──────────────────────────────────────────────────────────
 
 pub struct AriaState {
@@ -486,58 +504,83 @@ fn kill_python_process(state: &State<'_, AriaState>) -> Result<(), String> {
 #[tauri::command]
 async fn get_models(state: State<'_, AriaState>) -> Result<Vec<ModelInfo>, String> {
     let running = *state.node_running.lock().map_err(|e| e.to_string())?;
-    if !running {
-        return Err(
-            "Backend is not running. Start the node first.".to_string(),
-        );
-    }
 
-    let api_base = state.api_base.lock().map_err(|e| e.to_string())?.clone();
-    let client = reqwest::Client::new();
+    // If the node is running, try the API first
+    if running {
+        let api_base = state.api_base.lock().map_err(|e| e.to_string())?.clone();
+        let client = reqwest::Client::new();
 
-    match client
-        .get(format!("{}/v1/models", api_base))
-        .timeout(std::time::Duration::from_secs(5))
-        .send()
-        .await
-    {
-        Ok(resp) => {
-            let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+        match client
+            .get(format!("{}/v1/models", api_base))
+            .timeout(std::time::Duration::from_secs(5))
+            .send()
+            .await
+        {
+            Ok(resp) if resp.status().is_success() => {
+                if let Ok(body) = resp.json::<serde_json::Value>().await {
+                    let models = body["data"]
+                        .as_array()
+                        .map(|arr| {
+                            arr.iter()
+                                .map(|m| {
+                                    let id = m["id"].as_str().unwrap_or("unknown");
+                                    let meta = &m["meta"];
+                                    let display = meta["display_name"]
+                                        .as_str()
+                                        .unwrap_or(id);
+                                    let params = meta["params"].as_str().unwrap_or("?");
+                                    let ready = m["ready"].as_bool().unwrap_or(false);
 
-            // Parse the OpenAI-compatible response: { "object": "list", "data": [...] }
-            let models = body["data"]
-                .as_array()
-                .map(|arr| {
-                    arr.iter()
-                        .map(|m| {
-                            let id = m["id"].as_str().unwrap_or("unknown");
-                            let meta = &m["meta"];
-                            let display = meta["display_name"]
-                                .as_str()
-                                .unwrap_or(id);
-                            let params = meta["params"].as_str().unwrap_or("?");
-                            let ready = m["ready"].as_bool().unwrap_or(false);
-
-                            ModelInfo {
-                                name: display.to_string(),
-                                params: params.to_string(),
-                                size: format!("{} params", params),
-                                downloaded: ready,
-                                description: format!(
-                                    "{} — {} quantization",
-                                    id,
-                                    meta["quantization"].as_str().unwrap_or("1.58-bit")
-                                ),
-                            }
+                                    ModelInfo {
+                                        name: display.to_string(),
+                                        params: params.to_string(),
+                                        size: format!("{} params", params),
+                                        downloaded: ready,
+                                        description: format!(
+                                            "{} — {} quantization",
+                                            id,
+                                            meta["quantization"].as_str().unwrap_or("1.58-bit")
+                                        ),
+                                    }
+                                })
+                                .collect()
                         })
-                        .collect()
-                })
-                .unwrap_or_else(|| default_models());
+                        .unwrap_or_else(|| default_models());
 
-            Ok(models)
+                    return Ok(models);
+                }
+            }
+            _ => {
+                eprintln!("[get_models] API unavailable, falling back to filesystem check");
+            }
         }
-        Err(e) => Err(format!("Failed to fetch models: {}. Is the backend running?", e)),
     }
+
+    // Fallback: check filesystem for downloaded models
+    let models_dir = dirs::home_dir()
+        .unwrap_or_default()
+        .join(".aria")
+        .join("models");
+
+    let model_defs = vec![
+        ("BitNet-b1.58-large", "0.7B", "400 MB", "bitnet_b1_58-large/ggml-model-i2_s.gguf"),
+        ("BitNet-b1.58-2B-4T", "2.4B", "1.3 GB", "BitNet-b1.58-2B-4T/ggml-model-i2_s.gguf"),
+        ("Llama3-8B-1.58", "8.0B", "4.2 GB", "Llama3-8B-1.58-100B-tokens/ggml-model-i2_s.gguf"),
+    ];
+
+    Ok(model_defs
+        .iter()
+        .map(|(name, params, size, path)| {
+            let downloaded = models_dir.join(path).exists();
+            ModelInfo {
+                name: name.to_string(),
+                params: params.to_string(),
+                size: size.to_string(),
+                downloaded,
+                description: format!("{} — 1.58-bit quantization", name),
+            }
+        })
+        .collect())
 }
 
 #[tauri::command]
@@ -571,6 +614,72 @@ async fn download_model(
             })
         }
         Err(e) => Err(format!("Failed to start download: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn get_energy_stats(state: State<'_, AriaState>) -> Result<EnergyStats, String> {
+    let running = *state.node_running.lock().map_err(|e| e.to_string())?;
+    if !running {
+        return Ok(EnergyStats {
+            total_inferences: 0,
+            total_tokens_generated: 0,
+            total_energy_kwh: 0.0,
+            avg_energy_per_token_mj: 0.0,
+            session_uptime_seconds: 0.0,
+            savings: EnergySavings {
+                energy_saved_kwh: 0.0,
+                reduction_percent: 0.0,
+                co2_saved_kg: 0.0,
+                cost_saved_usd: 0.0,
+            },
+        });
+    }
+
+    let api_base = state.api_base.lock().map_err(|e| e.to_string())?.clone();
+    let client = reqwest::Client::new();
+
+    match client
+        .get(format!("{}/v1/energy", api_base))
+        .timeout(std::time::Duration::from_secs(5))
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => {
+            let body: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+            Ok(EnergyStats {
+                total_inferences: body["total_inferences"].as_u64().unwrap_or(0),
+                total_tokens_generated: body["total_tokens_generated"].as_u64().unwrap_or(0),
+                total_energy_kwh: body["total_energy_kwh"].as_f64().unwrap_or(0.0),
+                avg_energy_per_token_mj: body["avg_energy_per_token_mj"].as_f64().unwrap_or(0.0),
+                session_uptime_seconds: body["session_uptime_seconds"].as_f64().unwrap_or(0.0),
+                savings: EnergySavings {
+                    energy_saved_kwh: body["savings"]["vs_gpu"]["energy_saved_kwh"]
+                        .as_f64()
+                        .unwrap_or(0.0),
+                    reduction_percent: body["savings"]["vs_gpu"]["reduction_percent"]
+                        .as_f64()
+                        .unwrap_or(0.0),
+                    co2_saved_kg: body["savings"]["co2_saved_kg"].as_f64().unwrap_or(0.0),
+                    cost_saved_usd: body["savings"]["cost_saved_usd"]
+                        .as_f64()
+                        .unwrap_or(0.0),
+                },
+            })
+        }
+        _ => Ok(EnergyStats {
+            total_inferences: 0,
+            total_tokens_generated: 0,
+            total_energy_kwh: 0.0,
+            avg_energy_per_token_mj: 0.0,
+            session_uptime_seconds: 0.0,
+            savings: EnergySavings {
+                energy_saved_kwh: 0.0,
+                reduction_percent: 0.0,
+                co2_saved_kg: 0.0,
+                cost_saved_usd: 0.0,
+            },
+        }),
     }
 }
 
@@ -647,6 +756,7 @@ pub fn run() {
             stop_node,
             get_models,
             download_model,
+            get_energy_stats,
             send_inference,
         ])
         .on_window_event(|window, event| {

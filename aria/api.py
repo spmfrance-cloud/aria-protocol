@@ -78,11 +78,22 @@ class ARIAOpenAIServer:
         self._models_cache: List[Dict] = []
         self._models_cache_time: float = 0
 
+        # Energy tracking — accumulates real stats from inference calls
+        self.energy_stats: Dict[str, Any] = {
+            "total_inferences": 0,
+            "total_tokens_generated": 0,
+            "total_energy_mj": 0.0,
+            "total_energy_kwh": 0.0,
+            "session_start": time.time(),
+            "history": [],  # List of {timestamp, energy_mj, tokens, model}
+        }
+
     def _setup_routes(self):
         """Setup HTTP routes."""
         self.app.router.add_post("/v1/chat/completions", self._handle_chat_completions)
         self.app.router.add_get("/v1/models", self._handle_list_models)
         self.app.router.add_get("/v1/status", self._handle_status)
+        self.app.router.add_get("/v1/energy", self._handle_energy)
         self.app.router.add_get("/health", self._handle_health)
         # Also support /v1/health for consistency
         self.app.router.add_get("/v1/health", self._handle_health)
@@ -110,6 +121,7 @@ class ARIAOpenAIServer:
         print(f"           POST /v1/chat/completions")
         print(f"           GET  /v1/models")
         print(f"           GET  /v1/status")
+        print(f"           GET  /v1/energy")
         print(f"           GET  /health")
 
     async def stop(self):
@@ -285,6 +297,24 @@ class ARIAOpenAIServer:
             "system_fingerprint": f"aria_{self.node_port}",
             "backend": backend_used,
         }
+
+        # Accumulate energy stats from this inference
+        if tokens_generated > 0:
+            self.energy_stats["total_inferences"] += 1
+            self.energy_stats["total_tokens_generated"] += tokens_generated
+            self.energy_stats["total_energy_mj"] += energy_mj
+            self.energy_stats["total_energy_kwh"] = (
+                self.energy_stats["total_energy_mj"] / 3_600_000
+            )
+            self.energy_stats["history"].append({
+                "timestamp": time.time(),
+                "energy_mj": energy_mj,
+                "tokens": tokens_generated,
+                "model": model,
+            })
+            # Keep only the last 1000 history entries
+            if len(self.energy_stats["history"]) > 1000:
+                self.energy_stats["history"] = self.energy_stats["history"][-1000:]
 
         response = web.json_response(openai_response)
         return self._add_cors_headers(response)
@@ -476,6 +506,83 @@ class ARIAOpenAIServer:
                 }
             },
         ]
+
+    async def _handle_energy(self, request: web.Request) -> web.Response:
+        """
+        Handle GET /v1/energy.
+
+        Returns real energy consumption and savings statistics accumulated
+        from inference requests during this session.
+        """
+        try:
+            uptime_seconds = time.time() - self.energy_stats["session_start"]
+
+            total_tokens = self.energy_stats["total_tokens_generated"]
+            aria_energy_mj = self.energy_stats["total_energy_mj"]
+
+            # Comparison baselines (mJ per token)
+            gpu_mj_per_token = 5625   # RTX 4090 baseline
+            cloud_mj_per_token = 7000  # Cloud API baseline
+
+            gpu_energy_mj = total_tokens * gpu_mj_per_token
+            cloud_energy_mj = total_tokens * cloud_mj_per_token
+
+            # Savings calculations
+            gpu_saved_mj = gpu_energy_mj - aria_energy_mj
+            cloud_saved_mj = cloud_energy_mj - aria_energy_mj
+
+            gpu_saved_kwh = gpu_saved_mj / 3_600_000
+            cloud_saved_kwh = cloud_saved_mj / 3_600_000
+
+            # CO2 saved (grid average: ~0.5 kg CO2/kWh)
+            co2_saved_kg = gpu_saved_kwh * 0.5
+
+            # Cost saved vs cloud API pricing (~$0.015 per 1K tokens for GPT-4)
+            cloud_cost = total_tokens * 0.000015
+            aria_cost = total_tokens * 0.000002
+            cost_saved_usd = cloud_cost - aria_cost
+
+            gpu_reduction = (
+                ((gpu_energy_mj - aria_energy_mj) / gpu_energy_mj * 100)
+                if gpu_energy_mj > 0 else 0
+            )
+
+            response_data = {
+                "session_uptime_seconds": uptime_seconds,
+                "total_inferences": self.energy_stats["total_inferences"],
+                "total_tokens_generated": total_tokens,
+                "total_energy_mj": aria_energy_mj,
+                "total_energy_kwh": self.energy_stats["total_energy_kwh"],
+                "avg_energy_per_token_mj": (
+                    (aria_energy_mj / total_tokens) if total_tokens > 0 else 0
+                ),
+                "savings": {
+                    "vs_gpu": {
+                        "energy_saved_mj": gpu_saved_mj,
+                        "energy_saved_kwh": gpu_saved_kwh,
+                        "reduction_percent": gpu_reduction,
+                    },
+                    "vs_cloud": {
+                        "energy_saved_mj": cloud_saved_mj,
+                        "energy_saved_kwh": cloud_saved_kwh,
+                        "reduction_percent": (
+                            ((cloud_energy_mj - aria_energy_mj) / cloud_energy_mj * 100)
+                            if cloud_energy_mj > 0 else 0
+                        ),
+                    },
+                    "co2_saved_kg": co2_saved_kg,
+                    "cost_saved_usd": cost_saved_usd,
+                },
+                "recent_history": self.energy_stats["history"][-50:],
+            }
+
+            response = web.json_response(response_data)
+            return self._add_cors_headers(response)
+
+        except Exception as e:
+            logger.warning(f"Error in energy endpoint: {e}")
+            response = web.json_response({"error": str(e)}, status=500)
+            return self._add_cors_headers(response)
 
     async def _handle_status(self, request: web.Request) -> web.Response:
         """
