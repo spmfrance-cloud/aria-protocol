@@ -31,10 +31,20 @@ export interface ModelState {
   eta: string;
 }
 
+/**
+ * Normalize a model identifier for fuzzy matching.
+ * Strips dots, dashes, underscores and lowercases so that
+ * "bitnet-b1.58-large" and "BitNet-b158-large" both become "bitnetb158large".
+ */
+function normalizeModelId(id: string): string {
+  return id.toLowerCase().replace(/[.\-_\s]/g, "");
+}
+
 // Default model definitions with full metadata
+// IDs use dots to match the backend naming convention (bitnet-b1.58-large)
 const DEFAULT_MODELS: ModelInfo[] = [
   {
-    id: "bitnet-b158-large",
+    id: "bitnet-b1.58-large",
     name: "BitNet-b1.58-large",
     params: "0.7B",
     size: "400 MB",
@@ -54,7 +64,7 @@ const DEFAULT_MODELS: ModelInfo[] = [
     },
   },
   {
-    id: "bitnet-b158-2b-4t",
+    id: "bitnet-b1.58-2b-4t",
     name: "BitNet-b1.58-2B-4T",
     params: "2.4B",
     size: "1.3 GB",
@@ -75,7 +85,7 @@ const DEFAULT_MODELS: ModelInfo[] = [
     recommended: true,
   },
   {
-    id: "llama3-8b-158",
+    id: "llama3-8b-1.58",
     name: "Llama3-8B-1.58",
     params: "8B",
     size: "4.2 GB",
@@ -116,12 +126,12 @@ export function useModels() {
         const updatedStates: Record<string, ModelState> = {};
 
         for (const bm of backendModels) {
-          // Find matching default model
+          // Find matching default model using normalized IDs
+          const bmNorm = normalizeModelId(bm.name);
           const matchId = DEFAULT_MODELS.find(
             (m) =>
-              m.name.toLowerCase() === bm.name.toLowerCase() ||
-              m.id.toLowerCase().replace(/-/g, "") ===
-                bm.name.toLowerCase().replace(/-/g, "").replace(/\./g, "")
+              normalizeModelId(m.name) === bmNorm ||
+              normalizeModelId(m.id) === bmNorm
           )?.id;
 
           if (matchId && bm.downloaded) {
@@ -137,11 +147,11 @@ export function useModels() {
         // Also update model sizes from backend if available
         setModels((prev) =>
           prev.map((m) => {
+            const mNorm = normalizeModelId(m.id);
             const bm = backendModels.find(
               (b) =>
-                b.name.toLowerCase() === m.name.toLowerCase() ||
-                m.id.toLowerCase().replace(/-/g, "") ===
-                  b.name.toLowerCase().replace(/-/g, "").replace(/\./g, "")
+                normalizeModelId(b.name) === mNorm ||
+                normalizeModelId(b.name) === normalizeModelId(m.name)
             );
             if (bm) {
               return {

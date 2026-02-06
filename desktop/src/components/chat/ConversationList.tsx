@@ -101,10 +101,15 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   layout
                   exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                 >
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleSelect(conv.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") handleSelect(conv.id);
+                    }}
                     className={cn(
-                      "group w-full text-left rounded-lg",
+                      "group w-full text-left rounded-lg cursor-pointer",
                       "px-3 py-2.5",
                       "transition-all duration-150",
                       isActive
@@ -167,7 +172,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         </motion.button>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 </motion.div>
               );
             })}
