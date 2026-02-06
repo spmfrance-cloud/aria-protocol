@@ -13,9 +13,12 @@ Advantages:
 MIT License - Anthony MURGO, 2026
 """
 
+import asyncio
 import logging
+import os
 import platform
 import re
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -112,18 +115,39 @@ class BitNetSubprocess:
             )
 
     def _find_executable(self, explicit_path: Optional[str] = None) -> Optional[Path]:
-        """Find llama-cli executable."""
+        """Find llama-cli executable.
+
+        Search order:
+        1. Explicit path passed as argument
+        2. ARIA_LLAMA_CLI_PATH environment variable
+        3. Standard search directories (DEFAULT_BITNET_PATHS)
+        4. System PATH via shutil.which
+        """
         exe_name = "llama-cli.exe" if platform.system() == "Windows" else "llama-cli"
 
+        # 1. Explicit argument
         if explicit_path:
             p = Path(explicit_path)
             if p.exists():
                 return p
 
+        # 2. Environment variable
+        env_path = os.environ.get("ARIA_LLAMA_CLI_PATH")
+        if env_path:
+            p = Path(env_path)
+            if p.exists():
+                return p
+
+        # 3. Standard directories
         for search_dir in DEFAULT_BITNET_PATHS:
             candidate = search_dir / exe_name
             if candidate.exists():
                 return candidate
+
+        # 4. System PATH
+        which_result = shutil.which(exe_name)
+        if which_result:
+            return Path(which_result)
 
         return None
 
@@ -441,3 +465,195 @@ class BitNetSubprocess:
             f"BitNetSubprocess(status={status}, exe={self.exe_path}, "
             f"threads={self.threads})"
         )
+
+
+# =========================================================================
+# Module-level async convenience functions
+# =========================================================================
+
+# Lazy-initialized default backend instance
+_default_backend: Optional[BitNetSubprocess] = None
+
+
+def _get_default_backend() -> BitNetSubprocess:
+    """Get or create the default backend singleton."""
+    global _default_backend
+    if _default_backend is None:
+        _default_backend = BitNetSubprocess()
+    return _default_backend
+
+
+async def run_inference(
+    model_path: str,
+    prompt: str,
+    max_tokens: int = 256,
+    threads: int = 8,
+    temperature: float = 0.7,
+    llama_cli_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Run inference via llama-cli subprocess (async wrapper).
+
+    This is a module-level convenience function that wraps
+    BitNetSubprocess.run_inference in asyncio.to_thread.
+
+    Args:
+        model_path: Path to the GGUF model file, or a model ID
+                    that can be resolved by the backend.
+        prompt: Input text prompt.
+        max_tokens: Maximum tokens to generate.
+        threads: Number of CPU threads to use.
+        temperature: Sampling temperature.
+        llama_cli_path: Explicit path to llama-cli executable.
+
+    Returns:
+        Dict with keys: text, tokens_generated, tokens_per_second,
+        energy_mj, model, backend.
+    """
+    backend = BitNetSubprocess(
+        exe_path=llama_cli_path,
+        threads=threads,
+    ) if llama_cli_path else _get_default_backend()
+
+    # Determine if model_path is a file path or a model ID
+    model_id = model_path
+    if Path(model_path).suffix == ".gguf" and Path(model_path).exists():
+        # Direct GGUF path: need to override model resolution
+        # Use the sync method in a thread
+        def _run():
+            if not backend.is_available:
+                return {
+                    "text": "",
+                    "tokens_generated": 0,
+                    "tokens_per_second": 0.0,
+                    "energy_mj": 0.0,
+                    "model": model_path,
+                    "backend": "unavailable",
+                    "error": "llama-cli not found",
+                }
+            cmd = [
+                str(backend.exe_path),
+                "-m", model_path,
+                "-p", prompt,
+                "-n", str(max_tokens),
+                "--threads", str(threads),
+                "--temp", str(temperature),
+                "--repeat-penalty", "1.1",
+            ]
+            start_time = time.time()
+            try:
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=120,
+                    cwd=str(backend.exe_path.parent),
+                )
+                elapsed_ms = (time.time() - start_time) * 1000
+                output_text = result.stdout.strip()
+                if output_text.startswith(" " + prompt):
+                    output_text = output_text[len(" " + prompt):].strip()
+                elif output_text.startswith(prompt):
+                    output_text = output_text[len(prompt):].strip()
+                stats = backend._parse_perf_stats(result.stderr or "")
+                tps = stats.get("eval_tokens_per_second", 0)
+                tg = stats.get("eval_tokens", max_tokens)
+                energy_mj = 45 * (threads / 24) * (elapsed_ms / 1000) * 1000
+                return {
+                    "text": output_text,
+                    "tokens_generated": tg,
+                    "tokens_per_second": round(tps, 2),
+                    "energy_mj": round(energy_mj, 2),
+                    "model": model_path,
+                    "backend": "native",
+                }
+            except Exception as e:
+                return {
+                    "text": "",
+                    "tokens_generated": 0,
+                    "tokens_per_second": 0.0,
+                    "energy_mj": 0.0,
+                    "model": model_path,
+                    "backend": "native",
+                    "error": str(e),
+                }
+        return await asyncio.to_thread(_run)
+
+    # Model ID path: use standard backend resolution
+    def _run_by_id():
+        result = backend.run_inference(
+            prompt=prompt,
+            model_id=model_id,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        return {
+            "text": result.get("output", ""),
+            "tokens_generated": result.get("tokens_generated", 0),
+            "tokens_per_second": result.get("tokens_per_second", 0.0),
+            "energy_mj": result.get("energy_estimate_mj", 0.0),
+            "model": result.get("model", model_id),
+            "backend": "native" if not result.get("error") else "unavailable",
+            **({"error": result["error"]} if result.get("error") else {}),
+        }
+
+    return await asyncio.to_thread(_run_by_id)
+
+
+async def check_backend_status() -> Dict[str, Any]:
+    """
+    Check the status of the native subprocess backend.
+
+    Returns:
+        Dict with keys: available, llama_cli_path, models, backend.
+    """
+    backend = _get_default_backend()
+    models = backend.list_available_models()
+
+    return {
+        "available": backend.is_available,
+        "llama_cli_path": str(backend.exe_path) if backend.exe_path else None,
+        "models": models,
+        "backend": "native" if backend.is_available else "unavailable",
+    }
+
+
+def list_available_models() -> List[Dict[str, Any]]:
+    """
+    List GGUF models available locally (sync convenience function).
+
+    Scans ~/.aria/models/ and other standard locations for .gguf files.
+
+    Returns:
+        List of dicts with model info.
+    """
+    backend = _get_default_backend()
+    return backend.list_available_models()
+
+
+def scan_gguf_models(models_dir: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Scan a directory for any .gguf model files.
+
+    Unlike list_available_models which only finds known model IDs,
+    this scans for ALL .gguf files in the directory tree.
+
+    Args:
+        models_dir: Directory to scan. Defaults to ~/.aria/models/.
+
+    Returns:
+        List of dicts with name, path, size_gb for each .gguf file found.
+    """
+    search_dir = Path(models_dir) if models_dir else Path.home() / ".aria" / "models"
+    if not search_dir.exists():
+        return []
+
+    results = []
+    for gguf_file in search_dir.rglob("*.gguf"):
+        size_gb = round(gguf_file.stat().st_size / (1024**3), 2)
+        # Derive a display name from the parent directory
+        model_name = gguf_file.parent.name
+        results.append({
+            "name": model_name,
+            "path": str(gguf_file),
+            "size_gb": size_gb,
+        })
+
+    return results

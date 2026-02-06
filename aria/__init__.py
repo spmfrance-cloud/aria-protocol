@@ -17,4 +17,5 @@ from aria.proof import ProofOfUsefulWork, ProofOfSobriety
 from aria.api import ARIAOpenAIServer
 from aria.dashboard import ARIADashboard
 from aria.bitnet_native import BitNetNative
+from aria.bitnet_subprocess import BitNetSubprocess
 from aria.model_manager import ModelManager

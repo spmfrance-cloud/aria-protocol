@@ -9,12 +9,22 @@ MIT License - Anthony MURGO, 2026
 
 import asyncio
 import json
+import logging
 import time
 import uuid
 from typing import Optional, Dict, List, Any
 
 from aiohttp import web
 import websockets
+
+from aria.bitnet_subprocess import (
+    run_inference,
+    check_backend_status,
+    list_available_models,
+    BitNetSubprocess,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class ARIAOpenAIServer:
@@ -72,6 +82,7 @@ class ARIAOpenAIServer:
         """Setup HTTP routes."""
         self.app.router.add_post("/v1/chat/completions", self._handle_chat_completions)
         self.app.router.add_get("/v1/models", self._handle_list_models)
+        self.app.router.add_get("/v1/status", self._handle_status)
         self.app.router.add_get("/health", self._handle_health)
         # Also support /v1/health for consistency
         self.app.router.add_get("/v1/health", self._handle_health)
@@ -98,6 +109,7 @@ class ARIAOpenAIServer:
         print(f"[ARIA API] Endpoints:")
         print(f"           POST /v1/chat/completions")
         print(f"           GET  /v1/models")
+        print(f"           GET  /v1/status")
         print(f"           GET  /health")
 
     async def stop(self):
@@ -149,6 +161,9 @@ class ARIAOpenAIServer:
         Handle POST /v1/chat/completions.
 
         OpenAI-compatible chat completions endpoint.
+
+        Tries native inference via llama-cli first, then falls back
+        to the ARIA node WebSocket for distributed inference.
         """
         try:
             body = await request.json()
@@ -176,35 +191,69 @@ class ARIAOpenAIServer:
         # Convert messages to query string
         query = self._messages_to_query(messages)
 
-        # Send inference request to ARIA node
-        result = await self._send_to_node("inference_request", {
-            "query": query,
-            "model_id": model,
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-        })
+        # --- Try native subprocess inference first ---
+        output_text = ""
+        tokens_generated = 0
+        tokens_per_second = 0.0
+        energy_mj = 0.0
+        backend_used = "simulation"
 
-        if not result or "error" in result:
-            error_msg = result.get("error", "Unknown error") if result else "No response from node"
-            response = web.json_response(
-                {"error": {"message": error_msg, "type": "api_error"}},
-                status=503
-            )
-            return self._add_cors_headers(response)
+        try:
+            status = await check_backend_status()
+            if status["available"]:
+                result = await run_inference(
+                    model_path=model,
+                    prompt=query,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+                if not result.get("error"):
+                    output_text = result.get("text", "")
+                    tokens_generated = result.get("tokens_generated", 0)
+                    tokens_per_second = result.get("tokens_per_second", 0.0)
+                    energy_mj = result.get("energy_mj", 0.0)
+                    backend_used = "native"
+                else:
+                    logger.info(
+                        f"Subprocess inference failed: {result.get('error')}. "
+                        f"Falling back to node."
+                    )
+        except Exception as e:
+            logger.info(f"Subprocess backend error: {e}. Falling back to node.")
+
+        # --- Fallback to ARIA node WebSocket ---
+        if not output_text:
+            node_result = await self._send_to_node("inference_request", {
+                "query": query,
+                "model_id": model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            })
+
+            if not node_result or "error" in node_result:
+                error_msg = (
+                    node_result.get("error", "Unknown error")
+                    if node_result else "No response from node"
+                )
+                response = web.json_response(
+                    {"error": {"message": error_msg, "type": "api_error"}},
+                    status=503
+                )
+                return self._add_cors_headers(response)
+
+            data = node_result.get("data", {})
+            if not data:
+                data = node_result.get("result", {})
+            output_text = data.get("output", "")
+            tokens_generated = data.get("tokens_generated", data.get("tokens", 0))
+            backend_used = "node"
 
         # Handle streaming response
         if stream:
-            return await self._stream_response(request, result, model)
-
-        # Format as OpenAI response
-        # The network handler returns {"status": "completed", "result": {...}}
-        # where result contains the inference output from the node
-        data = result.get("data", {})
-        if not data:
-            # Try legacy format: result directly contains the data
-            data = result.get("result", {})
-        output_text = data.get("output", "")
-        tokens_generated = data.get("tokens_generated", data.get("tokens", 0))
+            fake_result = {
+                "data": {"output": output_text}
+            }
+            return await self._stream_response(request, fake_result, model)
 
         # Estimate prompt tokens (rough approximation)
         prompt_tokens = len(query.split()) * 2
@@ -229,9 +278,12 @@ class ARIAOpenAIServer:
             "usage": {
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": tokens_generated,
-                "total_tokens": prompt_tokens + tokens_generated
+                "total_tokens": prompt_tokens + tokens_generated,
+                "tokens_per_second": tokens_per_second,
+                "energy_mj": energy_mj,
             },
-            "system_fingerprint": f"aria_{self.node_port}"
+            "system_fingerprint": f"aria_{self.node_port}",
+            "backend": backend_used,
         }
 
         response = web.json_response(openai_response)
@@ -322,28 +374,21 @@ class ARIAOpenAIServer:
         Handle GET /v1/models.
 
         Returns list of available models in OpenAI format.
+        Detects locally installed GGUF models and marks them as ready.
         """
         try:
-            # Try to get models from node
-            result = await self._send_to_node("get_stats", {})
+            # Get locally available GGUF models
+            local_models = list_available_models()
+            local_ids = {m["id"] for m in local_models}
 
+            created_time = int(time.time())
             models = []
-            if result and not result.get("error"):
-                # Handle both response formats: {"data": {...}} and {"result": {...}}
-                data = result.get("data", {})
-                if not data:
-                    data = result.get("result", {})
-                engine = data.get("engine", {})
 
-                # Get loaded models from engine stats
-                loaded_models = engine.get("loaded_models", 0)
-                if loaded_models > 0:
-                    # Add all supported BitNet models
-                    models = self._get_default_models()
-
-            # Always include default models list
-            if not models:
-                models = self._get_default_models()
+            # Add all default models, marking local ones as ready
+            for default_model in self._get_default_models():
+                model_id = default_model["id"]
+                default_model["ready"] = model_id in local_ids
+                models.append(default_model)
 
             response = web.json_response({
                 "object": "list",
@@ -353,6 +398,7 @@ class ARIAOpenAIServer:
 
         except Exception as e:
             # On any error, return default models list (don't return 500)
+            logger.warning(f"Error listing models: {e}")
             models = self._get_default_models()
             response = web.json_response({
                 "object": "list",
@@ -373,6 +419,7 @@ class ARIAOpenAIServer:
                 "object": "model",
                 "created": created_time,
                 "owned_by": "aria-protocol",
+                "ready": False,
                 "permission": [],
                 "root": "bitnet-b1.58-large",
                 "parent": None,
@@ -387,6 +434,7 @@ class ARIAOpenAIServer:
                 "object": "model",
                 "created": created_time,
                 "owned_by": "aria-protocol",
+                "ready": False,
                 "permission": [],
                 "root": "bitnet-b1.58-2b-4t",
                 "parent": None,
@@ -401,6 +449,7 @@ class ARIAOpenAIServer:
                 "object": "model",
                 "created": created_time,
                 "owned_by": "aria-protocol",
+                "ready": False,
                 "permission": [],
                 "root": "llama3-8b-1.58",
                 "parent": None,
@@ -415,6 +464,7 @@ class ARIAOpenAIServer:
                 "object": "model",
                 "created": created_time,
                 "owned_by": "aria-protocol",
+                "ready": False,
                 "permission": [],
                 "root": "aria-2b-1bit",
                 "parent": None,
@@ -426,6 +476,39 @@ class ARIAOpenAIServer:
                 }
             },
         ]
+
+    async def _handle_status(self, request: web.Request) -> web.Response:
+        """
+        Handle GET /v1/status.
+
+        Returns backend status including whether native inference is available.
+        """
+        try:
+            status = await check_backend_status()
+            models_count = len(status.get("models", []))
+            backend = "native" if status["available"] else "simulation"
+
+            status_response = {
+                "backend": backend,
+                "llama_cli_available": status["available"],
+                "llama_cli_path": status.get("llama_cli_path"),
+                "models_count": models_count,
+                "version": "0.5.5",
+            }
+
+            response = web.json_response(status_response)
+            return self._add_cors_headers(response)
+
+        except Exception as e:
+            logger.warning(f"Error checking status: {e}")
+            response = web.json_response({
+                "backend": "simulation",
+                "llama_cli_available": False,
+                "llama_cli_path": None,
+                "models_count": 0,
+                "version": "0.5.5",
+            })
+            return self._add_cors_headers(response)
 
     async def _handle_health(self, request: web.Request) -> web.Response:
         """
