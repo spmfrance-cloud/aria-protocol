@@ -1,12 +1,20 @@
 import { useState, useCallback, useRef } from "react";
+import { sendInference, getNodeStatus, isTauri } from "@/lib/tauri";
 import { getMockResponse, generateTitle } from "@/lib/mockResponses";
-import { detectLanguage } from "@/lib/detectLanguage";
+
+export interface MessageMetadata {
+  tokens_per_second?: number;
+  energy_mj?: number;
+  model?: string;
+  backend?: string;
+}
 
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   timestamp: number;
+  metadata?: MessageMetadata;
 }
 
 export interface Conversation {
@@ -21,6 +29,8 @@ export interface GenerationStats {
   tokensGenerated: number;
   tokensPerSecond: number;
   elapsedMs: number;
+  energyMj: number;
+  backend: string;
 }
 
 function createId(): string {
@@ -37,7 +47,7 @@ export function useChat() {
           id: "welcome-msg",
           role: "assistant",
           content:
-            "Welcome to **ARIA Protocol's** local AI assistant! I'm running entirely on your device using BitNet inference.\n\nTry asking me about:\n- The ARIA Protocol and decentralized AI\n- BitNet model benchmarks and performance\n- Energy efficiency of 1-bit LLMs\n- Or anything else you'd like to chat about!",
+            "Welcome to **ARIA Protocol's** local inference engine! Running entirely on your device using BitNet.\n\nTry asking me about:\n- The ARIA Protocol and decentralized AI\n- BitNet model benchmarks and performance\n- Energy efficiency of 1-bit LLMs\n- Or anything else you'd like to chat about!",
           timestamp: Date.now() - 60000,
         },
       ],
@@ -53,6 +63,8 @@ export function useChat() {
     tokensGenerated: 0,
     tokensPerSecond: 0,
     elapsedMs: 0,
+    energyMj: 0,
+    backend: "",
   });
   const [selectedModel, setSelectedModel] = useState("BitNet-b1.58-2B-4T");
 
@@ -106,10 +118,10 @@ export function useChat() {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, backendAvailable: boolean = false) => {
+    async (content: string) => {
       if (isGenerating) return;
 
-      let convId = activeConversationId;
+      const convId = activeConversationId;
 
       const userMsg: Message = {
         id: createId(),
@@ -132,31 +144,113 @@ export function useChat() {
         })
       );
 
-      // Start generation
       setIsGenerating(true);
       abortRef.current = false;
 
-      let fullResponse: string;
-      let realStats: { tokensPerSecond: number; tokensGenerated: number } | null = null;
-
-      // Try real backend first if available
-      if (backendAvailable && window.ariaElectron?.sendInference) {
+      // Check if backend is running (Tauri mode)
+      let backendRunning = false;
+      if (isTauri()) {
         try {
-          const lang = detectLanguage(content);
-          const result = await window.ariaElectron.sendInference(content, selectedModel, lang);
-          fullResponse = result.text || 'No response from backend.';
-          realStats = {
-            tokensPerSecond: result.tokens_per_second || 0,
-            tokensGenerated: result.tokens_generated || Math.floor(fullResponse.length / 4),
-          };
-        } catch (err) {
-          console.warn('[ARIA Chat] Backend inference failed, falling back to mock:', err);
-          fullResponse = getMockResponse(content);
+          const status = await getNodeStatus();
+          backendRunning = status.running;
+        } catch {
+          backendRunning = false;
         }
-      } else {
-        fullResponse = getMockResponse(content);
       }
 
+      if (isTauri() && !backendRunning) {
+        // Backend not running — show system error, no mock fallback
+        const errorMsg: Message = {
+          id: createId(),
+          role: "system",
+          content:
+            "ARIA backend is not running. Click **Start Node** on the Dashboard to begin.",
+          timestamp: Date.now(),
+        };
+
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== convId) return c;
+            return {
+              ...c,
+              messages: [...c.messages, errorMsg],
+              updatedAt: Date.now(),
+            };
+          })
+        );
+        setIsGenerating(false);
+        return;
+      }
+
+      if (isTauri() && backendRunning) {
+        // ── REAL INFERENCE via Tauri backend ──
+        try {
+          const startTime = Date.now();
+          const result = await sendInference(content, selectedModel);
+          const elapsed = Date.now() - startTime;
+
+          const assistantMsg: Message = {
+            id: createId(),
+            role: "assistant",
+            content: result.text || "No response from backend.",
+            timestamp: Date.now(),
+            metadata: {
+              tokens_per_second: result.tokens_per_second,
+              energy_mj: result.energy_mj,
+              model: result.model,
+              backend: result.backend ?? "native",
+            },
+          };
+
+          setGenerationStats({
+            tokensGenerated: Math.ceil(
+              result.tokens_per_second * (elapsed / 1000)
+            ),
+            tokensPerSecond: result.tokens_per_second,
+            elapsedMs: elapsed,
+            energyMj: result.energy_mj,
+            backend: result.backend ?? "native",
+          });
+
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.id !== convId) return c;
+              return {
+                ...c,
+                messages: [...c.messages, assistantMsg],
+                updatedAt: Date.now(),
+              };
+            })
+          );
+
+          setIsGenerating(false);
+          return;
+        } catch (err) {
+          // Inference failed — show error, no mock fallback
+          const errorMsg: Message = {
+            id: createId(),
+            role: "system",
+            content: `Inference error: ${err}. Check that a model is loaded.`,
+            timestamp: Date.now(),
+          };
+
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.id !== convId) return c;
+              return {
+                ...c,
+                messages: [...c.messages, errorMsg],
+                updatedAt: Date.now(),
+              };
+            })
+          );
+          setIsGenerating(false);
+          return;
+        }
+      }
+
+      // ── MOCK MODE (Web dev / non-Tauri) ──
+      const fullResponse = getMockResponse(content);
       const assistantMsgId = createId();
 
       // Add empty assistant message
@@ -169,9 +263,10 @@ export function useChat() {
               ...c.messages,
               {
                 id: assistantMsgId,
-                role: "assistant",
+                role: "assistant" as const,
                 content: "",
                 timestamp: Date.now(),
+                metadata: { backend: "mock" },
               },
             ],
             updatedAt: Date.now(),
@@ -179,14 +274,12 @@ export function useChat() {
         })
       );
 
-      // Typewriter effect — character by character
+      // Typewriter effect for mock mode
       let charIndex = 0;
       const totalChars = fullResponse.length;
       const duration = 2000 + Math.random() * 2000;
       const charInterval = duration / totalChars;
-
       const statsStart = Date.now();
-      let tokenCount = 0;
 
       await new Promise<void>((resolve) => {
         intervalRef.current = setInterval(() => {
@@ -198,31 +291,19 @@ export function useChat() {
 
           const charsToAdd = Math.max(1, Math.floor(Math.random() * 3) + 1);
           charIndex = Math.min(charIndex + charsToAdd, totalChars);
-
           const currentText = fullResponse.slice(0, charIndex);
+          const tokenCount = Math.floor(charIndex / 4);
+          const elapsedMs = Date.now() - statsStart;
+          const tokPerSec =
+            elapsedMs > 0 ? (tokenCount / elapsedMs) * 1000 : 0;
 
-          // Use real stats if we have them, otherwise approximate
-          if (realStats) {
-            tokenCount = Math.floor(
-              (charIndex / totalChars) * realStats.tokensGenerated
-            );
-            const elapsedMs = Date.now() - statsStart;
-            setGenerationStats({
-              tokensGenerated: tokenCount,
-              tokensPerSecond: realStats.tokensPerSecond,
-              elapsedMs,
-            });
-          } else {
-            tokenCount = Math.floor(charIndex / 4);
-            const elapsedMs = Date.now() - statsStart;
-            const tokPerSec =
-              elapsedMs > 0 ? (tokenCount / elapsedMs) * 1000 : 0;
-            setGenerationStats({
-              tokensGenerated: tokenCount,
-              tokensPerSecond: Math.round(tokPerSec * 10) / 10,
-              elapsedMs,
-            });
-          }
+          setGenerationStats({
+            tokensGenerated: tokenCount,
+            tokensPerSecond: Math.round(tokPerSec * 10) / 10,
+            elapsedMs,
+            energyMj: 0,
+            backend: "mock",
+          });
 
           setConversations((prev) =>
             prev.map((c) => {

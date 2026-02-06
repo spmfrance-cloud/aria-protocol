@@ -14,6 +14,7 @@ export interface NodeStatus {
   version: string;
   backend: string;
   model: string | null;
+  llama_cli_available?: boolean;
 }
 
 export interface ModelInfo {
@@ -29,6 +30,7 @@ export interface InferenceResponse {
   tokens_per_second: number;
   model: string;
   energy_mj: number;
+  backend?: string;
 }
 
 export interface DownloadProgress {
@@ -41,6 +43,24 @@ export interface SystemInfo {
   os: string;
   arch: string;
   version: string;
+}
+
+export interface BackendInfo {
+  python_found: boolean;
+  python_path: string;
+  python_version: string;
+  aria_installed: boolean;
+  aria_version: string;
+  llama_cli_found: boolean;
+  models_found: number;
+}
+
+export interface StartNodeResult {
+  status: string;
+  backend: string;
+  port: number;
+  pid: number;
+  models_available: number;
 }
 
 // ── Tauri Detection ────────────────────────────────────────────────
@@ -75,7 +95,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   return {
     os: navigator.platform,
     arch: 'unknown',
-    version: '0.5.0',
+    version: '0.5.2',
   };
 }
 
@@ -84,7 +104,7 @@ export async function getAppVersion(): Promise<string> {
   if (invoke) {
     return invoke('get_app_version') as Promise<string>;
   }
-  return '0.5.0';
+  return '0.5.2';
 }
 
 export async function getNodeStatus(): Promise<NodeStatus> {
@@ -96,18 +116,25 @@ export async function getNodeStatus(): Promise<NodeStatus> {
     running: false,
     peer_count: 0,
     uptime_seconds: 0,
-    version: '0.5.0',
+    version: '0.5.2',
     backend: 'mock',
     model: null,
+    llama_cli_available: false,
   };
 }
 
-export async function startNode(): Promise<string> {
+export async function startNode(): Promise<StartNodeResult> {
   const invoke = await getTauriInvoke();
   if (invoke) {
-    return invoke('start_node') as Promise<string>;
+    return invoke('start_node') as Promise<StartNodeResult>;
   }
-  return 'Mock: Node started (dev mode)';
+  return {
+    status: 'mock',
+    backend: 'mock',
+    port: 3000,
+    pid: 0,
+    models_available: 0,
+  };
 }
 
 export async function stopNode(): Promise<string> {
@@ -145,8 +172,25 @@ export async function sendInference(prompt: string, model: string): Promise<Infe
   }
   return {
     text: `[Dev mode] Mock response for: "${prompt}"`,
-    tokens_per_second: 42.0,
+    tokens_per_second: 0,
     model,
-    energy_mj: 2.4,
+    energy_mj: 0,
+    backend: 'mock',
+  };
+}
+
+export async function getBackendInfo(): Promise<BackendInfo> {
+  const invoke = await getTauriInvoke();
+  if (invoke) {
+    return invoke('get_backend_info') as Promise<BackendInfo>;
+  }
+  return {
+    python_found: false,
+    python_path: '',
+    python_version: '',
+    aria_installed: false,
+    aria_version: '',
+    llama_cli_found: false,
+    models_found: 0,
   };
 }

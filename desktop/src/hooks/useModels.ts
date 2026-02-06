@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { getModels as fetchModels } from "@/lib/tauri";
 
 export type ModelStatus = "available" | "downloading" | "installed";
 
@@ -30,7 +31,8 @@ export interface ModelState {
   eta: string;
 }
 
-const MODELS: ModelInfo[] = [
+// Default model definitions with full metadata
+const DEFAULT_MODELS: ModelInfo[] = [
   {
     id: "bitnet-b158-large",
     name: "BitNet-b1.58-large",
@@ -95,8 +97,75 @@ const MODELS: ModelInfo[] = [
 ];
 
 export function useModels() {
+  const [models, setModels] = useState<ModelInfo[]>(DEFAULT_MODELS);
   const [modelStates, setModelStates] = useState<Record<string, ModelState>>({});
   const intervalsRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+
+  // On mount, fetch real models from backend and mark downloaded ones
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadModels() {
+      try {
+        const backendModels = await fetchModels();
+
+        if (cancelled) return;
+
+        // Map backend models to update the "downloaded" status
+        // The backend returns: { name, params, size, downloaded, description }
+        const updatedStates: Record<string, ModelState> = {};
+
+        for (const bm of backendModels) {
+          // Find matching default model
+          const matchId = DEFAULT_MODELS.find(
+            (m) =>
+              m.name.toLowerCase() === bm.name.toLowerCase() ||
+              m.id.toLowerCase().replace(/-/g, "") ===
+                bm.name.toLowerCase().replace(/-/g, "").replace(/\./g, "")
+          )?.id;
+
+          if (matchId && bm.downloaded) {
+            updatedStates[matchId] = {
+              status: "installed",
+              progress: 100,
+              speed: "",
+              eta: "",
+            };
+          }
+        }
+
+        // Also update model sizes from backend if available
+        setModels((prev) =>
+          prev.map((m) => {
+            const bm = backendModels.find(
+              (b) =>
+                b.name.toLowerCase() === m.name.toLowerCase() ||
+                m.id.toLowerCase().replace(/-/g, "") ===
+                  b.name.toLowerCase().replace(/-/g, "").replace(/\./g, "")
+            );
+            if (bm) {
+              return {
+                ...m,
+                size: bm.size || m.size,
+                downloaded: bm.downloaded,
+              } as ModelInfo;
+            }
+            return m;
+          })
+        );
+
+        setModelStates((prev) => ({ ...prev, ...updatedStates }));
+      } catch {
+        // Fall back to defaults on error
+      }
+    }
+
+    loadModels();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const getModelState = useCallback(
     (modelId: string): ModelState => {
@@ -113,10 +182,10 @@ export function useModels() {
   );
 
   const getInstalledModels = useCallback(() => {
-    return MODELS.filter(
+    return models.filter(
       (m) => modelStates[m.id]?.status === "installed"
     );
-  }, [modelStates]);
+  }, [models, modelStates]);
 
   const downloadModel = useCallback((modelId: string) => {
     // Clear any existing interval for this model
@@ -207,7 +276,7 @@ export function useModels() {
   }, []);
 
   return {
-    models: MODELS,
+    models,
     modelStates,
     getModelState,
     getInstalledModels,
