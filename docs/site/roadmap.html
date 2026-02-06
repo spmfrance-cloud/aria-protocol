@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Protocol - Roadmap v2.1</title>
+    <meta name="description" content="ARIA Protocol Roadmap v2.1 — 9 versions, 62 tasks, from testnet to mainnet. Full interactive roadmap.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F310;</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           ARIA Protocol - Roadmap v2.1 Styles
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #0f0f2a;
+            --bg-card: rgba(15, 15, 42, 0.6);
+            --bg-glass: rgba(15, 15, 42, 0.4);
+            --border: rgba(148, 163, 184, 0.12);
+            --border-hover: rgba(148, 163, 184, 0.25);
+            --text-primary: #d1d5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-gradient: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6, #06b6d4);
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+            --max-width: 1200px;
+            --radius: 8px;
+            --radius-lg: 16px;
+            /* Version colors */
+            --c-done: #10b981;
+            --c-next: #f59e0b;
+            --c-blue: #3b82f6;
+            --c-indigo: #6366f1;
+            --c-violet: #8b5cf6;
+            --c-pink: #ec4899;
+            --c-red: #ef4444;
+            --c-teal: #14b8a6;
+            /* Type badge colors */
+            --t-code: #60a5fa;
+            --t-doc: #fbbf24;
+            --t-web: #f472b6;
+            --t-infra: #34d399;
+            --t-rd: #a78bfa;
+            --t-design: #2dd4bf;
+            --t-com: #fb923c;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: #a5b4fc;
+        }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* --- Navigation --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-family: var(--font-mono);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.1em;
+        }
+
+        .nav-logo:hover {
+            color: #a78bfa;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a.active {
+            color: #a78bfa;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            color: #fff;
+        }
+
+        /* --- Hero --- */
+        .hero {
+            position: relative;
+            padding: 140px 0 80px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--c-done);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--text-secondary);
+            max-width: 560px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        .hero-stat .value {
+            font-family: var(--font-mono);
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-stat .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        /* --- Changelog --- */
+        .changelog {
+            padding: 60px 0;
+        }
+
+        .changelog-card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .changelog-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .changelog-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .changelog-header .arrow {
+            color: var(--text-muted);
+            transition: transform 0.3s;
+            font-size: 0.875rem;
+        }
+
+        details[open] .changelog-header .arrow {
+            transform: rotate(180deg);
+        }
+
+        .changelog-body {
+            padding: 24px 28px;
+        }
+
+        .changelog-section {
+            margin-bottom: 20px;
+        }
+
+        .changelog-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .changelog-section h3 {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-critical {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-important {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-minor {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .changelog-item {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.7;
+            padding-left: 16px;
+            border-left: 2px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .changelog-item strong {
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+        }
+
+        /* --- Timeline --- */
+        .timeline {
+            padding: 80px 0;
+        }
+
+        .timeline-title {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 48px;
+        }
+
+        .version-block {
+            margin-bottom: 32px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .version-block:hover {
+            border-color: var(--border-hover);
+        }
+
+        .version-header {
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .version-tag {
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .version-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .version-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-complete {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--c-done);
+        }
+
+        .status-next {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--c-next);
+        }
+
+        .status-planned {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+
+        .status-vision {
+            background: rgba(20, 184, 166, 0.15);
+            color: var(--c-teal);
+        }
+
+        .version-desc {
+            padding: 0 28px 4px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .version-milestones {
+            padding: 12px 28px 20px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .version-milestones ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .version-milestones li::before {
+            content: '>';
+            font-family: var(--font-mono);
+            color: var(--c-done);
+            margin-right: 8px;
+        }
+
+        /* Task tables inside details/summary */
+        .version-tasks {
+            border-top: 1px solid var(--border);
+        }
+
+        .version-tasks summary {
+            padding: 14px 28px;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            user-select: none;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .version-tasks summary:hover {
+            color: var(--text-secondary);
+        }
+
+        .version-tasks summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .version-tasks summary::before {
+            content: '>';
+            font-family: var(--font-mono);
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .version-tasks[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .task-table-wrap {
+            padding: 0 28px 24px;
+            overflow-x: auto;
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8125rem;
+        }
+
+        .task-table thead {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .task-table th {
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .task-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .task-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .task-table tbody tr:hover {
+            background: rgba(139, 92, 246, 0.04);
+        }
+
+        .task-table td:first-child {
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            width: 36px;
+        }
+
+        .task-table td:nth-child(2) {
+            font-weight: 500;
+            color: var(--text-primary);
+            min-width: 200px;
+        }
+
+        .task-table td:nth-child(4) {
+            min-width: 280px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .task-table td:nth-child(5) {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 160px;
+        }
+
+        /* Type badges */
+        .type-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .type-code { background: rgba(96, 165, 250, 0.15); color: var(--t-code); }
+        .type-doc { background: rgba(251, 191, 36, 0.15); color: var(--t-doc); }
+        .type-web { background: rgba(244, 114, 182, 0.15); color: var(--t-web); }
+        .type-infra { background: rgba(52, 211, 153, 0.15); color: var(--t-infra); }
+        .type-rd { background: rgba(167, 139, 250, 0.15); color: var(--t-rd); }
+        .type-design { background: rgba(45, 212, 191, 0.15); color: var(--t-design); }
+        .type-com { background: rgba(251, 146, 60, 0.15); color: var(--t-com); }
+
+        /* Status badges in tasks */
+        .task-badge {
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .task-new { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+        .task-v21 { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .task-moved { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+
+        /* --- Summary --- */
+        .summary {
+            padding: 80px 0;
+        }
+
+        .summary-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .summary-card {
+            text-align: center;
+            padding: 28px 16px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        .summary-card .num {
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .summary-card .desc {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+        }
+
+        .footer p + p {
+            margin-top: 4px;
+        }
+
+        .footer a {
+            color: var(--text-secondary);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1024px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 12px;
+            }
+
+            .nav-links a:not(.btn):not(.active) {
+                display: none;
+            }
+
+            .hero {
+                padding: 120px 0 60px;
+            }
+
+            .hero-stats {
+                gap: 12px;
+            }
+
+            .hero-stat {
+                padding: 12px 16px;
+            }
+
+            .hero-stat .value {
+                font-size: 1.35rem;
+            }
+
+            .version-header {
+                padding: 18px 20px;
+            }
+
+            .version-desc,
+            .version-milestones {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .version-tasks summary {
+                padding: 12px 20px;
+            }
+
+            .task-table-wrap {
+                padding: 0 12px 20px;
+            }
+
+            .task-table td:nth-child(4),
+            .task-table td:nth-child(5) {
+                display: none;
+            }
+
+            .task-table th:nth-child(4),
+            .task-table th:nth-child(5) {
+                display: none;
+            }
+
+            .changelog-body {
+                padding: 16px 20px;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-stat {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .version-name {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-logo">ARIA</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="roadmap.html" class="active">Roadmap</a>
+                <a href="https://github.com/spmfrance-cloud/aria-protocol" target="_blank" rel="noopener" class="btn">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                v0.5.2 current
+            </div>
+            <h1>ARIA Protocol &mdash; <span class="gradient-text">Roadmap v2.1</span></h1>
+            <p class="hero-subtitle">From testnet to mainnet. 9 versions charting the path from proof-of-concept to a fully decentralized AI inference network.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="value">9</span>
+                    <span class="label">Versions</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="value">62</span>
+                    <span class="label">Tasks</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="value">44</span>
+                    <span class="label">New Tasks</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="value">7</span>
+                    <span class="label">v2.1 Fixes</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Changelog v2 → v2.1 -->
+    <section class="changelog">
+        <div class="container">
+            <details class="changelog-card">
+                <summary class="changelog-header">
+                    <h2>Changelog v2 &rarr; v2.1 &mdash; 7 Corrections</h2>
+                    <span class="arrow">&#x25BC;</span>
+                </summary>
+                <div class="changelog-body">
+                    <div class="changelog-section">
+                        <h3><span class="badge-critical">CRITICAL</span></h3>
+                        <div class="changelog-item"><strong>v0.5.5 #8</strong> &mdash; Added &ldquo;Finalize desktop&harr;backend integration&rdquo;. Desktop app still uses mock responses. Absolute prerequisite before testnet.</div>
+                        <div class="changelog-item"><strong>v0.6.0 #10</strong> &mdash; Added &ldquo;P2P network robustness&rdquo;. NAT traversal, reconnection, production-grade DHT. Without this, 50 nodes can&rsquo;t find each other.</div>
+                    </div>
+                    <div class="changelog-section">
+                        <h3><span class="badge-important">IMPORTANT</span></h3>
+                        <div class="changelog-item"><strong>v0.5.5 #9</strong> &mdash; Added &ldquo;Validate Falcon3/Edge model catalog&rdquo;. Verify actual GGUF availability before planning v0.6.0.</div>
+                        <div class="changelog-item"><strong>v0.7.0 &rarr; v0.7.0 + v0.7.5</strong> &mdash; Split into 2 versions. v0.7.0 = network (Reputation + Router). v0.7.5 = R&amp;D + Docs (PT-BitNet, WP v2, Site v2).</div>
+                        <div class="changelog-item"><strong>v0.9.0 #1</strong> &mdash; ARIA-LM requalified: LoRA fine-tune of existing model (not training from scratch). Full training &rarr; v1.1.0+.</div>
+                    </div>
+                    <div class="changelog-section">
+                        <h3><span class="badge-minor">MINOR</span></h3>
+                        <div class="changelog-item"><strong>v0.5.5 #1</strong> &mdash; Version confirmed at v0.5.2. README badge, pyproject.toml, and GitHub release to sync.</div>
+                        <div class="changelog-item"><strong>v1.0.0 #7</strong> &mdash; &ldquo;Computer Use (Level 2+3)&rdquo; moved to v1.1.0+. Mainnet must be 100% focused on token/DAO/audit.</div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="timeline">
+        <div class="container">
+            <h2 class="timeline-title">Version Timeline</h2>
+
+            <!-- v0.1 → v0.5.2 — Done -->
+            <div class="version-block" style="border-left: 3px solid var(--c-done);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--c-done);">v0.1 &rarr; v0.5.2</span>
+                    <span class="version-name">Genesis &rarr; Desktop</span>
+                    <span class="version-status status-complete">Complete</span>
+                </div>
+                <p class="version-desc">Whitepaper, P2P, CLI, API, Dashboard, BitNet, Benchmarks, Desktop App</p>
+                <div class="version-milestones">
+                    <ul>
+                        <li><strong>v0.1.0 Genesis</strong> &mdash; Whitepaper published, reference implementation</li>
+                        <li><strong>v0.2.0 Full Stack</strong> &mdash; P2P WebSocket + TLS, CLI, API, Dashboard, BitNet engine</li>
+                        <li><strong>v0.2.5 Hardening</strong> &mdash; Threat model, protocol spec, TLS support</li>
+                        <li><strong>v0.3.0 Benchmarks</strong> &mdash; Performance validation (89.65 t/s on 0.7B)</li>
+                        <li><strong>v0.4.0 Native BitNet</strong> &mdash; Python ctypes bindings to bitnet.cpp</li>
+                        <li><strong>v0.5.0 Desktop App</strong> &mdash; Tauri 2.0 + Electron, 12 languages, system tray</li>
+                        <li><strong>v0.5.2 Subprocess Backend</strong> &mdash; Multi-backend inference, 176 tests, 120.25 t/s</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- v0.5.5 — Next -->
+            <div class="version-block" style="border-left: 3px solid var(--c-next);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.5.5</span>
+                    <span class="version-name">Housekeeping &amp; Foundations</span>
+                    <span class="version-status status-next">Next</span>
+                </div>
+                <p class="version-desc">Repo update, backend integration, model validation, website, docs &mdash; 9 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 9 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Update README.md</td><td><span class="type-badge type-doc">Doc</span></td><td>Fix version badge &rarr; v0.5.2, sync pyproject.toml and GitHub release. Add bitnet_subprocess.py to structure, update roadmap to v2.</td><td>README.md, pyproject.toml</td></tr>
+                                <tr><td>2</td><td>Create dedicated ROADMAP.md <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete roadmap v2.1 extracted from README. Detailed per version with status, description, deliverables.</td><td>docs/ROADMAP.md</td></tr>
+                                <tr><td>3</td><td>Create CHANGELOG.md <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Retroactive changelog from v0.1.0 to v0.5.2. Keep a Changelog format. Complete history of 65+ commits.</td><td>CHANGELOG.md</td></tr>
+                                <tr><td>4</td><td>Redesign website</td><td><span class="type-badge type-web">Web</span></td><td>Update from v0.3.0 &rarr; v0.5.2. Add Desktop App section, download link, models, visual roadmap.</td><td>index.html (GitHub Pages)</td></tr>
+                                <tr><td>5</td><td>Update architecture.md</td><td><span class="type-badge type-doc">Doc</span></td><td>Add planned Layer 4 (Intelligence) and Layer 5 (Economics). Mark as &ldquo;Planned&rdquo;.</td><td>docs/architecture.md</td></tr>
+                                <tr><td>6</td><td>Start Whitepaper v2 (outline) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Structured outline of WP v2: extended architecture, Consensus Inference, ARIA-LM, $ARIA tokenomics, agentic vision.</td><td>docs/whitepaper-v2-outline.md</td></tr>
+                                <tr><td>7</td><td>Prepare testnet communication <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-com">Com</span></td><td>Draft posts: Show HN, r/LocalLLaMA, r/decentralization, Twitter thread. Publication calendar.</td><td>docs/PUBLICATION_POSTS.md</td></tr>
+                                <tr><td>8</td><td>Finalize desktop&harr;backend integration <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>Fix /v1/models 500 error, native subprocess llama-cli, Live/Mock badge, end-to-end test. Prerequisite for v0.6.0.</td><td>aria/api.py, desktop/src/hooks/useChat.ts</td></tr>
+                                <tr><td>9</td><td>Validate Falcon3/Edge catalog <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Verify GGUF availability on HuggingFace and bitnet.cpp. Test compatibility. Plan B if unavailable.</td><td>docs/models.md (draft)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v0.6.0 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-next);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.6.0</span>
+                    <span class="version-name">Testnet Alpha &mdash; Expanded Models + Robust P2P</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">Bootstrap nodes, expanded catalog, hardened P2P, 50+ community nodes &mdash; 10 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 10 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Integrate Falcon3 1.58-bit <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Add models validated in v0.5.5 #9. GGUF files, bitnet.cpp compatible. Catalog of 3-9 models.</td><td>aria/model_manager.py, tests/</td></tr>
+                                <tr><td>2</td><td>Integrate Falcon-Edge <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Add Falcon-Edge 1B and 3B (natively BitNet). Support community fine-tuning via onebitllms.</td><td>aria/model_manager.py, docs/models.md</td></tr>
+                                <tr><td>3</td><td>Update bitnet.cpp <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Integrate ELUT parallel kernels (Jan 2026). +1.15-2.1x additional CPU speedup.</td><td>aria/bitnet_native.py, docs/getting-started.md</td></tr>
+                                <tr><td>4</td><td>Public bootstrap nodes</td><td><span class="type-badge type-infra">Infra</span></td><td>Deploy 3-5 bootstrap nodes (lightweight VPS) for peer discovery. Uptime monitoring.</td><td>aria/network.py, config/</td></tr>
+                                <tr><td>5</td><td>Testnet tokens (mock) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Test tokens with no real value to validate reward mechanics. Dashboard counters.</td><td>aria/node.py, aria/ledger.py, desktop/</td></tr>
+                                <tr><td>6</td><td>Desktop App: new model catalog</td><td><span class="type-badge type-code">Code</span></td><td>Update Model Manager with validated models. Download UI, benchmarks per model.</td><td>desktop/src/pages/Models*</td></tr>
+                                <tr><td>7</td><td>New benchmarks</td><td><span class="type-badge type-code">Code</span></td><td>Benchmark newly integrated models. Publish results. Update website and README.</td><td>benchmarks/, docs/, README.md</td></tr>
+                                <tr><td>8</td><td>Models documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Create docs/models.md: complete catalog, benchmarks per model, selection guide.</td><td>docs/models.md</td></tr>
+                                <tr><td>9</td><td>Testnet launch campaign</td><td><span class="type-badge type-com">Com</span></td><td>Show HN, r/LocalLLaMA, Twitter thread. Angle: &ldquo;1-bit models, CPU-only, P2P, join the testnet.&rdquo;</td><td>docs/PUBLICATION_POSTS.md</td></tr>
+                                <tr><td>10</td><td>P2P network robustness <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>NAT traversal (STUN/TURN), auto reconnection, production-grade Kademlia DHT, firewall handling. Backbone of testnet.</td><td>aria/network.py, aria/nat.py (new), tests/</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v0.7.0 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-blue);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(59, 130, 246, 0.15); color: var(--c-blue);">v0.7.0</span>
+                    <span class="version-name">Smart Layer &mdash; Reputation + Intelligence</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">Reputation system, Smart Router, frontier API overlay, intelligent chat &mdash; 6 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 6 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Reputation system</td><td><span class="type-badge type-code">Code</span></td><td>Node reliability score (uptime, quality, energy). Anti-Sybil: IP + hardware fingerprint. Published on ledger.</td><td>aria/reputation.py (new), aria/proof.py</td></tr>
+                                <tr><td>2</td><td>Smart Router <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: local 1-bit by default &rarr; frontier API escalation. Per-response confidence score.</td><td>aria/router.py (new), aria/node.py</td></tr>
+                                <tr><td>3</td><td>Frontier API overlay <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>User API key management (Claude, GPT, Grok, Gemini, Mistral). Local encryption. Cost counter.</td><td>aria/api_bridge.py (new), desktop/src/pages/Settings*</td></tr>
+                                <tr><td>4</td><td>Intelligent Desktop chat <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Chat redesign: Smart Router, &ldquo;local&rdquo; vs &ldquo;API&rdquo; indicator, contextual conversation, local history.</td><td>desktop/src/pages/Chat*</td></tr>
+                                <tr><td>5</td><td>Airdrop snapshot <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-infra">Infra</span></td><td>Snapshot of testnet contributions: uptime, inferences, energy. Base for 10% $ARIA airdrop.</td><td>aria/ledger.py, scripts/</td></tr>
+                                <tr><td>6</td><td>New features documentation</td><td><span class="type-badge type-doc">Doc</span></td><td>Create: smart-router.md, api-bridge.md, reputation.md. Update threat-model.md.</td><td>docs/*.md</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v0.7.5 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-indigo);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--c-indigo);">v0.7.5</span>
+                    <span class="version-name">R&amp;D + Documentation &mdash; Whitepaper v2 &amp; Vision</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">PT-BitNet prototype, Accessibility Tree, Whitepaper v2, site v2 &mdash; 4 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 4 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>PT-BitNet prototype <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Ternarize Qwen3-14B (28 GB &rarr; ~3 GB). Benchmark quality vs full precision. Validate distribution across 3-4 nodes.</td><td>aria/model_manager.py, benchmarks/</td></tr>
+                                <tr><td>2</td><td>Accessibility Tree (Computer Use L1) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Read OS accessibility tree (UI Automation / AT-SPI) via Tauri/Rust. Convert to text for LLM.</td><td>desktop/src-tauri/src/accessibility.rs (new)</td></tr>
+                                <tr><td>3</td><td>Write Whitepaper v2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: 5-layer architecture, Consensus Inference, ARIA-LM, tokenomics, competitor comparison.</td><td>ARIA_Whitepaper_v2.pdf, docs/</td></tr>
+                                <tr><td>4</td><td>Website redesign v2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-web">Web</span></td><td>New landing page: &ldquo;local Claude Desktop&rdquo; pitch, ARIA-LM section, tokenomics, visual roadmap. Multi-page.</td><td>GitHub Pages (complete redesign)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v0.8.0 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-violet);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(139, 92, 246, 0.15); color: var(--c-violet);">v0.8.0</span>
+                    <span class="version-name">Collective Intelligence &mdash; Consensus Inference + Agentic App</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">Consensus Inference, RAG, ARIA Code, vision pipeline &mdash; 8 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 8 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Consensus Inference Protocol <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Full implementation: parallel brainstorm, iterative deliberation (1-3 rounds), consensus + synthesis. Provenance on ledger.</td><td>aria/consensus.py (new), aria/node.py</td></tr>
+                                <tr><td>2</td><td>Consensus UI parameters <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Desktop: agent count (3/5/7), rounds (1-3), Speed/Quality mode, energy budget. Real-time debate visualization.</td><td>desktop/src/pages/Chat*, desktop/src/components/</td></tr>
+                                <tr><td>3</td><td>Local RAG <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Local document indexing (PDF, TXT, MD, DOCX). Local embedding via candle/Rust. 100% local.</td><td>aria/rag.py (new), desktop/src-tauri/src/indexer.rs</td></tr>
+                                <tr><td>4</td><td>ARIA Code (local sandbox) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Coding assistant: read/write/execute in isolated sandbox (Docker or venv). Auto error iteration. Free &amp; unlimited.</td><td>aria/code_sandbox.py (new), desktop/src/pages/Code*</td></tr>
+                                <tr><td>5</td><td>Local vision pipeline (Level 2) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>OCR (Tesseract/PaddleOCR) + UI detection (OmniParser/Florence-2) + structured text for LLM. &lt;1 GB total.</td><td>aria/vision/ (new directory)</td></tr>
+                                <tr><td>6</td><td>Distillation API &rarr; training <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Pipeline: prompt &rarr; frontier API &rarr; response &rarr; local gradient computation &rarr; network aggregation. Only gradient leaves node.</td><td>aria/distillation.py (new), aria/api_bridge.py</td></tr>
+                                <tr><td>7</td><td>Consensus Inference documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete spec: protocol, messages, scoring, provenance, parameters. Update protocol-spec.md.</td><td>docs/consensus-inference.md (new)</td></tr>
+                                <tr><td>8</td><td>WP v2 publication + posts</td><td><span class="type-badge type-com">Com</span></td><td>Publish WP v2 (arXiv if possible). Posts: Consensus Inference demo on HN, r/MachineLearning.</td><td>ARIA_Whitepaper_v2.pdf, docs/PUBLICATION_POSTS.md</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v0.9.0 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-pink);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(236, 72, 153, 0.15); color: var(--c-pink);">v0.9.0</span>
+                    <span class="version-name">ARIA-LM v0 + Ecosystem &mdash; Community Fine-tune + MCP</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">Community LoRA fine-tune, MCP client, browser agent, mobile R&amp;D &mdash; 8 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 8 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>ARIA-LM v0 &mdash; Community LoRA fine-tune <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>LoRA/QLoRA fine-tune of existing 1-bit model with Consensus Inference responses + community data. Not training from scratch.</td><td>aria/training/ (new), aria/aria_lm.py (new)</td></tr>
+                                <tr><td>2</td><td>Feedback &rarr; fine-tune pipeline <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>User feedback (thumbs up/down) &rarr; local dataset &rarr; periodic fine-tune. Data never leaves node.</td><td>aria/feedback.py (new), aria/training/</td></tr>
+                                <tr><td>3</td><td>Specialized ARIA-LM variants <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Base (generalist), Code (programming), Chat (conversation). Directed by specialized distillation data.</td><td>aria/aria_lm.py, aria/model_manager.py</td></tr>
+                                <tr><td>4</td><td>MCP client (Model Context Protocol) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>MCP protocol client. Compatible with all existing MCP servers (GitHub, Slack, Drive, DB, etc.).</td><td>aria/mcp_client.py (new), desktop/src-tauri/</td></tr>
+                                <tr><td>5</td><td>Piloted browser (ARIA Browse) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Integrated WebView or Playwright headless driven by LLM. Web search, form filling, data extraction.</td><td>desktop/src/pages/Browse* (new), aria/browser.py</td></tr>
+                                <tr><td>6</td><td>Consensus &rarr; ARIA-LM synergy <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Best Consensus Inference responses auto-feed ARIA-LM fine-tuning. Self-improving loop.</td><td>aria/consensus.py, aria/training/</td></tr>
+                                <tr><td>7</td><td>Mobile (design &amp; prototype)</td><td><span class="type-badge type-design">Design</span></td><td>Mobile UI/UX design. React Native or Tauri Mobile prototype. On-device inference (1B-3B). R&amp;D only.</td><td>mobile/ (new directory)</td></tr>
+                                <tr><td>8</td><td>ARIA-LM + MCP documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Create: aria-lm.md, mcp-integration.md, browser-agent.md. Update architecture.md.</td><td>docs/*.md</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v1.0.0 — Planned -->
+            <div class="version-block" style="border-left: 3px solid var(--c-red);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(239, 68, 68, 0.15); color: var(--c-red);">v1.0.0</span>
+                    <span class="version-name">Mainnet &mdash; $ARIA Token + DAO + Production</span>
+                    <span class="version-status status-planned">Planned</span>
+                </div>
+                <p class="version-desc">$ARIA token, DAO, staking, audit, launch &mdash; 9 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 9 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>$ARIA Token &mdash; Smart contract <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Deploy on Base/Arbitrum (L2). Fixed supply 1B. 2% burn. Distribution: 50% mining / 20% DAO / 15% team / 10% testnet / 5% eco.</td><td>contracts/ (new), aria/token.py (new)</td></tr>
+                                <tr><td>2</td><td>Hybrid blockchain &mdash; Bridge ledger &rarr; L2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Internal ARIA ledger (fast, free) + periodic L2 settlement (liquidity/exchanges). Lightning Network model.</td><td>aria/ledger.py, aria/bridge.py (new)</td></tr>
+                                <tr><td>3</td><td>Multi-tier rewards <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Dynamic pricing. 6 tiers: inference (1x), consensus (3-5x), training (10x), distillation (15-20x), feedback (0.1x), hosting (passive).</td><td>aria/economics.py (new), aria/node.py</td></tr>
+                                <tr><td>4</td><td>DAO &amp; governance <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Quadratic voting. On-chain proposals. DAO treasury (200M $ARIA). Voting interface in desktop app.</td><td>contracts/governance/, desktop/src/pages/DAO*</td></tr>
+                                <tr><td>5</td><td>Early adopter airdrop <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-infra">Infra</span></td><td>Distribution of 100M $ARIA to testnet adopters, proportional to v0.7.0 snapshot. Claim via desktop app.</td><td>contracts/, desktop/</td></tr>
+                                <tr><td>6</td><td>Staking + slashing <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Mandatory staking for validators. Slashing for cheating (data poisoning, fake energy). Integrated with reputation.</td><td>contracts/, aria/reputation.py</td></tr>
+                                <tr><td>7</td><td>Tokenomics documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>docs/tokenomics.md: supply, distribution, mechanisms, rewards, burn, staking, DAO.</td><td>docs/tokenomics.md (new)</td></tr>
+                                <tr><td>8</td><td>Security audit</td><td><span class="type-badge type-infra">Infra</span></td><td>Smart contract audit by third-party. P2P network audit. Bug bounty program.</td><td>docs/threat-model.md, docs/audit-report.md</td></tr>
+                                <tr><td>9</td><td>Launch + communication</td><td><span class="type-badge type-com">Com</span></td><td>Mainnet campaign: HN, Reddit, Twitter, LinkedIn, Product Hunt. DEX listings. Press kit, demo video.</td><td>docs/PUBLICATION_POSTS.md, press-kit/</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+            <!-- v1.1.0+ — Vision -->
+            <div class="version-block" style="border-left: 3px solid var(--c-teal);">
+                <div class="version-header">
+                    <span class="version-tag" style="background: rgba(20, 184, 166, 0.15); color: var(--c-teal);">v1.1.0+</span>
+                    <span class="version-name">Beyond &mdash; Long-term Vision</span>
+                    <span class="version-status status-vision">Vision</span>
+                </div>
+                <p class="version-desc">Mobile, Computer Use, MoE+1-bit, full ARIA-LM training, SDK &mdash; 7 tasks</p>
+                <details class="version-tasks">
+                    <summary>View 7 tasks</summary>
+                    <div class="task-table-wrap">
+                        <table class="task-table">
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Mobile app iOS/Android</td><td><span class="type-badge type-code">Code</span></td><td>Full mobile release. On-device inference (1B-3B). Lightweight mobile node. Network contribution from phone.</td><td>mobile/</td></tr>
+                                <tr><td>2</td><td>Full Computer Use (Level 2+3) <span class="task-badge task-moved">MOVED</span></td><td><span class="type-badge type-code">Code</span></td><td>Full local vision pipeline + frontier routing for complex tasks. Mouse/keyboard control via enigo (Rust). Moved from v1.0.0.</td><td>desktop/src-tauri/src/computer_use.rs</td></tr>
+                                <tr><td>3</td><td>ARIA-LM vN &mdash; Distillation + Federated Learning <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>3B training by multi-teacher distillation + federated RLHF (Flower) + Consensus data. When community and resources allow.</td><td>aria/training/, aria/federated.py (new)</td></tr>
+                                <tr><td>4</td><td>MoE + 1-bit R&amp;D <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>100B+ total model, 5-10B active/token, ~1 GB memory. Frontier-class distributed on laptops.</td><td>research/ (new)</td></tr>
+                                <tr><td>5</td><td>Native 1-bit VLM <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Ternarize small VLM (Moondream, Florence-2) via PT-BitNet. Native vision in LLM.</td><td>aria/vision/</td></tr>
+                                <tr><td>6</td><td>Third-party developer SDK <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>SDK for developers to build apps on ARIA network. Stable API, documentation, examples, templates.</td><td>sdk/ (new), docs/developer-guide.md</td></tr>
+                                <tr><td>7</td><td>ARIA-LM Convergence <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Continuous loop: distillation + federated RLHF + Consensus data. Versions snapshotted on ledger. Autonomous community model.</td><td>aria/training/</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+        <div class="container">
+            <h2 class="summary-title">At a Glance</h2>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="num">9</div>
+                    <div class="desc">Planned Versions</div>
+                </div>
+                <div class="summary-card">
+                    <div class="num">62</div>
+                    <div class="desc">Identified Tasks</div>
+                </div>
+                <div class="summary-card">
+                    <div class="num">44</div>
+                    <div class="desc">New Tasks (vs v1)</div>
+                </div>
+                <div class="summary-card">
+                    <div class="num">7</div>
+                    <div class="desc">v2.1 Corrections</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p><strong>ARIA Protocol</strong> &mdash; Autonomous Responsible Intelligence Architecture</p>
+            <p>Anthony MURGO &middot; MIT License &middot; Updated February 2026</p>
+        </div>
+    </footer>
+</body>
+</html>
