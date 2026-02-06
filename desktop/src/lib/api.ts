@@ -14,10 +14,20 @@ import type {
   InferenceResponse,
   DownloadProgress,
   SystemInfo,
+  BackendInfo,
+  StartNodeResult,
 } from './tauri';
 
 // Re-export types
-export type { NodeStatus, ModelInfo, InferenceResponse, DownloadProgress, SystemInfo };
+export type {
+  NodeStatus,
+  ModelInfo,
+  InferenceResponse,
+  DownloadProgress,
+  SystemInfo,
+  BackendInfo,
+  StartNodeResult,
+};
 
 // ── Runtime Detection ──────────────────────────────────────────────
 
@@ -69,9 +79,9 @@ export async function getNodeStatus(): Promise<NodeStatus> {
   return tauri.getNodeStatus();
 }
 
-export async function startNode(): Promise<string> {
+export async function startNode(): Promise<StartNodeResult> {
   const electron = getElectronAPI();
-  if (electron) return electron.startNode();
+  if (electron) return electron.startNode() as unknown as Promise<StartNodeResult>;
   return tauri.startNode();
 }
 
@@ -97,6 +107,10 @@ export async function sendInference(prompt: string, model: string): Promise<Infe
   const electron = getElectronAPI();
   if (electron) return electron.sendInference(prompt, model);
   return tauri.sendInference(prompt, model);
+}
+
+export async function getBackendInfo(): Promise<BackendInfo> {
+  return tauri.getBackendInfo();
 }
 
 /**
