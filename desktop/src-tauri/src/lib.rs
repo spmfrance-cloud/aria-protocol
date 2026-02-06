@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{Manager, State};
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -654,7 +654,7 @@ pub fn run() {
                 // Kill the Python subprocess when the app window is destroyed
                 let app = window.app_handle();
                 if let Some(state) = app.try_state::<AriaState>() {
-                    let mut proc_lock = state.python_process.lock().unwrap_or_else(|e| e.into_inner());
+                    let mut proc_lock = state.python_process.lock().unwrap_or_else(|e: std::sync::PoisonError<_>| e.into_inner());
                     if let Some(ref mut child) = *proc_lock {
                         let _ = child.kill();
                         let _ = child.wait();
