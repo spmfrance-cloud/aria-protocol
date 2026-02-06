@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Power, Square } from "lucide-react";
+import { Power, Square, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
+import { useBackend } from "@/hooks/useBackend";
+import { startNode, stopNode } from "@/lib/tauri";
 
 interface NodeStatusProps {
   className?: string;
@@ -16,27 +18,44 @@ function formatUptime(seconds: number): string {
 }
 
 export const NodeStatus: React.FC<NodeStatusProps> = ({ className }) => {
-  const [online, setOnline] = useState(true);
-  const [uptime, setUptime] = useState(3742);
+  const { nodeRunning, uptime, backend, refresh } = useBackend();
+  const [displayUptime, setDisplayUptime] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Keep local uptime ticking when backend is running
+  useEffect(() => {
+    setDisplayUptime(uptime);
+  }, [uptime]);
 
   useEffect(() => {
-    if (!online) return;
-
+    if (!nodeRunning) return;
     const interval = setInterval(() => {
-      setUptime((prev) => prev + 1);
+      setDisplayUptime((prev) => prev + 1);
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [online]);
+  }, [nodeRunning]);
 
-  const handleToggle = () => {
-    if (online) {
-      setOnline(false);
-    } else {
-      setOnline(true);
-      setUptime(0);
+  const handleToggle = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (nodeRunning) {
+        await stopNode();
+      } else {
+        await startNode();
+      }
+      // Wait briefly then refresh status
+      setTimeout(() => {
+        refresh();
+        setIsLoading(false);
+      }, 1000);
+    } catch (err) {
+      setError(String(err));
+      setIsLoading(false);
     }
-  };
+  }, [nodeRunning, refresh]);
 
   return (
     <motion.div
@@ -48,7 +67,7 @@ export const NodeStatus: React.FC<NodeStatusProps> = ({ className }) => {
         "bg-surface/80 backdrop-blur-md",
         "border border-border/50",
         "transition-all duration-200",
-        online
+        nodeRunning
           ? "hover:border-success/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
           : "hover:border-error/30 hover:shadow-[0_0_20px_rgba(239,68,68,0.08)]",
         className
@@ -63,40 +82,58 @@ export const NodeStatus: React.FC<NodeStatusProps> = ({ className }) => {
             <div
               className={cn(
                 "w-2.5 h-2.5 rounded-full",
-                online ? "bg-success" : "bg-error"
+                nodeRunning ? "bg-success" : "bg-error"
               )}
             />
-            {online && (
+            {nodeRunning && (
               <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-success animate-ping opacity-40" />
             )}
           </div>
           <span
             className={cn(
               "text-xs font-semibold",
-              online ? "text-success" : "text-error"
+              nodeRunning ? "text-success" : "text-error"
             )}
           >
-            {online ? "Online" : "Offline"}
+            {nodeRunning ? "Online" : "Offline"}
           </span>
         </div>
       </div>
 
       {/* Uptime */}
-      <div className="mb-4">
+      <div className="mb-2">
         <p className="text-xs text-text-secondary/70 mb-1">Uptime</p>
         <p className="text-xl font-mono font-bold text-text-primary">
-          {formatUptime(uptime)}
+          {nodeRunning ? formatUptime(displayUptime) : "--:--:--"}
         </p>
       </div>
 
+      {/* Backend type */}
+      {nodeRunning && (
+        <p className="text-[10px] text-text-secondary/50 mb-3">
+          Backend: {backend}
+        </p>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <p className="text-[10px] text-error mb-2 line-clamp-2">{error}</p>
+      )}
+
       {/* Toggle button */}
       <Button
-        variant={online ? "danger" : "primary"}
+        variant={nodeRunning ? "danger" : "primary"}
         size="sm"
         className="w-full"
         onClick={handleToggle}
+        disabled={isLoading}
       >
-        {online ? (
+        {isLoading ? (
+          <>
+            <Loader2 size={14} className="animate-spin" />
+            {nodeRunning ? "Stopping..." : "Starting..."}
+          </>
+        ) : nodeRunning ? (
           <>
             <Square size={14} /> Stop Node
           </>

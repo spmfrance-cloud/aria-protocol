@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { User, AlertCircle, Zap, Battery, Brain } from "lucide-react";
 import type { Message } from "@/hooks/useChat";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -201,10 +201,10 @@ function renderMarkdown(text: string): React.ReactNode[] {
     }
 
     // List items
-    if (line.match(/^[-•] /)) {
+    if (line.match(/^[-\u2022] /)) {
       elements.push(
         <div key={`li-${i}`} className="flex items-start gap-2 py-0.5 pl-1">
-          <span className="text-primary mt-1.5 text-[6px]">●</span>
+          <span className="text-primary mt-1.5 text-[6px]">{'\u25CF'}</span>
           <span className="text-sm leading-relaxed">
             {processInline(line.slice(2), `li-${i}`)}
           </span>
@@ -247,6 +247,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const [showTime, setShowTime] = useState(false);
   const isUser = message.role === "user";
+  const isSystem = message.role === "system";
 
   const timeAgo = useMemo(
     () =>
@@ -258,6 +259,26 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     () => (isUser ? null : renderMarkdown(message.content)),
     [message.content, isUser]
   );
+
+  // System messages — warnings and errors
+  if (isSystem) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-start gap-3 px-4 py-3"
+      >
+        <div className="w-8 h-8 rounded-lg bg-warning/20 border border-warning/30 flex items-center justify-center flex-shrink-0">
+          <AlertCircle size={16} className="text-warning" />
+        </div>
+        <div className="max-w-[75%] rounded-2xl px-4 py-3 bg-warning/10 border border-warning/20 rounded-tl-sm">
+          <div className="space-y-0.5">{renderMarkdown(message.content)}</div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const meta = message.metadata;
 
   return (
     <motion.div
@@ -319,6 +340,30 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           )}
         </div>
 
+        {/* Inference metadata — shown below assistant messages with real data */}
+        {!isUser && meta && meta.backend && meta.backend !== "mock" && (
+          <div className="flex items-center gap-3 mt-1.5 px-1 text-[10px] text-text-secondary/60">
+            {meta.tokens_per_second != null && meta.tokens_per_second > 0 && (
+              <span className="flex items-center gap-1">
+                <Zap size={10} className="text-accent/70" />
+                {meta.tokens_per_second.toFixed(1)} tok/s
+              </span>
+            )}
+            {meta.energy_mj != null && meta.energy_mj > 0 && (
+              <span className="flex items-center gap-1">
+                <Battery size={10} className="text-success/70" />
+                {meta.energy_mj.toFixed(1)} mJ
+              </span>
+            )}
+            {meta.model && (
+              <span className="flex items-center gap-1">
+                <Brain size={10} className="text-primary/70" />
+                {meta.model}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Timestamp */}
         <motion.div
           initial={false}
@@ -326,7 +371,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           transition={{ duration: 0.15 }}
           className={cn(
             "absolute -bottom-5 text-[10px] text-text-secondary/50 whitespace-nowrap",
-            isUser ? "right-0" : "left-0"
+            isUser ? "right-0" : "left-0",
+            meta && meta.backend && meta.backend !== "mock" ? "-bottom-10" : "-bottom-5"
           )}
         >
           {timeAgo}

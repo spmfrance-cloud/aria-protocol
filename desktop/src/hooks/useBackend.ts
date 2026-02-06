@@ -1,91 +1,106 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getNodeStatus, isTauri } from '@/lib/tauri';
 
-export type BackendMode = 'live' | 'mock';
+export type BackendMode = 'live' | 'mock' | 'offline';
 
 export interface BackendStatus {
   mode: BackendMode;
   available: boolean;
   checking: boolean;
-  nodeStatus: string; // 'healthy' | 'degraded' | 'unreachable' | 'unknown'
+  nodeRunning: boolean;
+  backend: string;           // 'native' | 'simulation' | 'mock' | 'none'
+  modelsCount: number;
+  uptime: number;
+  llamaCliAvailable: boolean;
+  pythonVersion: string;
   lastChecked: number;
-}
-
-declare global {
-  interface Window {
-    ariaElectron?: {
-      getSystemInfo: () => Promise<any>;
-      getAppVersion: () => Promise<string>;
-      getNodeStatus: () => Promise<any>;
-      startNode: () => Promise<string>;
-      stopNode: () => Promise<string>;
-      getModels: () => Promise<any>;
-      downloadModel: (name: string) => Promise<any>;
-      sendInference: (prompt: string, model: string, language?: string) => Promise<any>;
-      checkBackendStatus: () => Promise<{
-        available: boolean;
-        status?: string;
-        node?: any;
-        reason?: string;
-      }>;
-      onNodeStatus: (callback: (status: any) => void) => () => void;
-      platform: string;
-    };
-  }
 }
 
 const CHECK_INTERVAL = 10000; // Check every 10 seconds
 
 export function useBackend() {
   const [status, setStatus] = useState<BackendStatus>({
-    mode: 'mock',
+    mode: 'offline',
     available: false,
     checking: true,
-    nodeStatus: 'unknown',
+    nodeRunning: false,
+    backend: 'none',
+    modelsCount: 0,
+    uptime: 0,
+    llamaCliAvailable: false,
+    pythonVersion: '',
     lastChecked: 0,
   });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const checkBackend = useCallback(async () => {
-    if (!window.ariaElectron?.checkBackendStatus) {
-      setStatus((prev) => ({
-        ...prev,
-        mode: 'mock',
-        available: false,
-        checking: false,
-        nodeStatus: 'no-electron',
-      }));
-      return;
-    }
-
     setStatus((prev) => ({ ...prev, checking: true }));
 
     try {
-      const result = await window.ariaElectron.checkBackendStatus();
-      setStatus({
-        mode: result.available ? 'live' : 'mock',
-        available: result.available,
-        checking: false,
-        nodeStatus: result.available ? (result.status || 'healthy') : (result.reason || 'unreachable'),
-        lastChecked: Date.now(),
-      });
+      const nodeStatus = await getNodeStatus();
+
+      if (nodeStatus.running) {
+        // Backend is running — determine mode
+        setStatus({
+          mode: 'live',
+          available: true,
+          checking: false,
+          nodeRunning: true,
+          backend: nodeStatus.backend,
+          modelsCount: 0,
+          uptime: nodeStatus.uptime_seconds,
+          llamaCliAvailable: nodeStatus.llama_cli_available ?? false,
+          pythonVersion: '',
+          lastChecked: Date.now(),
+        });
+      } else if (!isTauri()) {
+        // Not in Tauri — always mock mode
+        setStatus({
+          mode: 'mock',
+          available: false,
+          checking: false,
+          nodeRunning: false,
+          backend: 'mock',
+          modelsCount: 0,
+          uptime: 0,
+          llamaCliAvailable: false,
+          pythonVersion: '',
+          lastChecked: Date.now(),
+        });
+      } else {
+        // In Tauri but node not running
+        setStatus({
+          mode: 'offline',
+          available: false,
+          checking: false,
+          nodeRunning: false,
+          backend: 'none',
+          modelsCount: 0,
+          uptime: 0,
+          llamaCliAvailable: false,
+          pythonVersion: '',
+          lastChecked: Date.now(),
+        });
+      }
     } catch {
       setStatus({
-        mode: 'mock',
+        mode: isTauri() ? 'offline' : 'mock',
         available: false,
         checking: false,
-        nodeStatus: 'error',
+        nodeRunning: false,
+        backend: 'none',
+        modelsCount: 0,
+        uptime: 0,
+        llamaCliAvailable: false,
+        pythonVersion: '',
         lastChecked: Date.now(),
       });
     }
   }, []);
 
   useEffect(() => {
-    // Check immediately on mount
     checkBackend();
-
-    // Then check periodically
     intervalRef.current = setInterval(checkBackend, CHECK_INTERVAL);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };

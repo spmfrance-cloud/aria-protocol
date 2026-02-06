@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BackendBadge } from "@/components/dashboard/BackendBadge";
 
 const navItems = [
   { path: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
@@ -151,8 +152,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
         </motion.button>
       </div>
 
-      {/* Version */}
-      <div className="px-4 py-3 border-t border-border/50">
+      {/* Backend badge + Version */}
+      <div className="px-2 py-3 border-t border-border/50 space-y-2">
+        <div className="flex justify-center">
+          <BackendBadge compact={collapsed} />
+        </div>
         <AnimatePresence>
           {!collapsed ? (
             <motion.p
@@ -161,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               exit={{ opacity: 0 }}
               className="text-xs text-text-secondary/50 text-center"
             >
-              ARIA Protocol v0.5.0
+              ARIA Protocol v0.5.2
             </motion.p>
           ) : (
             <motion.p
