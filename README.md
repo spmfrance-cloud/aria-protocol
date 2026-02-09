@@ -1,10 +1,11 @@
 # ARIA Protocol
 
-![Version](https://img.shields.io/badge/version-0.5.2-blue.svg)
-![Python](https://img.shields.io/badge/python-3.10+-green.svg)
-![License](https://img.shields.io/badge/license-MIT-orange.svg)
-![Tests](https://img.shields.io/badge/tests-176%20passing-brightgreen.svg)
-![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue.svg)
+[![Version](https://img.shields.io/badge/version-0.5.5-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.10+-green.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-orange.svg)]()
+[![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)]()
+[![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue.svg)]()
+[![Desktop](https://img.shields.io/badge/desktop-Windows%20%7C%20macOS%20%7C%20Linux-purple.svg)]()
 
 **Autonomous Responsible Intelligence Architecture**
 
@@ -18,6 +19,7 @@ ARIA is an open protocol that enables distributed AI inference across consumer d
 - **Runs on any CPU** (no expensive hardware required)
 - **Fully transparent** with immutable inference records
 - **Consent-based** - no resource used without permission
+* **Extensible model ecosystem** — 8+ organizations producing 1-bit models independently (Microsoft, TII, MBZUAI, ETH Zurich, HuggingFace...)
 
 ---
 
@@ -83,6 +85,22 @@ print(response.choices[0].message.content)
 | **Subprocess Backend** | llama-cli process-based inference | ✅ Complete |
 | **Model Manager** | Auto-download models from HuggingFace | ✅ Complete |
 
+### Coming in v0.6.0+
+
+| Feature | Description | Target |
+|---------|-------------|--------|
+| **Kademlia DHT** | Decentralized peer discovery replacing bootstrap servers | v0.6.0 |
+| **NAT Traversal** | STUN/TURN for nodes behind routers | v0.6.0 |
+| **Falcon3 1.58-bit** | 1B–10B instruction-tuned models from TII | v0.6.0 |
+| **Falcon-Edge** | Natively-trained 1-bit models (outperforms Microsoft BitNet) | v0.6.0 |
+| **Desktop ↔ Backend Bridge** | Live inference from desktop app via Python backend | v0.6.0 |
+| **Consensus Inference** | Multi-agent orchestrated inference across network nodes | v0.7.0 |
+| **KV-Cache NVMe Paging** | Extended context (500K+ tokens) via SSD offloading | v0.7.0–v0.8.0 |
+| **Conversation Memory** | Persistent 3-tier memory across chat sessions | v0.7.0 |
+| **Knowledge Network** | Distributed RAG via P2P embedding sharing | v0.8.0 |
+| **ARIA-LM** | Community-evolving language model via SAPO + LoRA merging | v0.9.0 |
+| **$ARIA Token** | Proof of Useful Work token economics + DAO governance | v1.0.0 |
+
 ---
 
 ## Benchmarks
@@ -113,6 +131,19 @@ Key findings:
 - **Parallel inference**: 3 concurrent streams yield only +11% throughput → validates P2P architecture
 - **Context length**: Stable performance (-7% degradation from 32 to 1024 tokens)
 
+**Note:** Throughput figures are *generation speed* (decode), not prefill. This is what the user perceives during inference.
+
+### Total Cost of Ownership (3 years, 10M tokens/day)
+
+| Solution | Hardware | Running Costs | Total (3y) | vs ARIA |
+|----------|----------|---------------|------------|---------|
+| Cloud APIs (frontier) | $0 | $164,250 | $164,250 | 2,161x |
+| Llama API | $0 | $32,850 | $32,850 | 432x |
+| RTX 4090 (local) | $2,000 | $6,533 | $8,533 | 112x |
+| **ARIA Protocol (CPU)** | **$0** | **$76** | **$76** | **1x** |
+
+*Assumptions: existing CPU hardware, electricity at $0.25/kWh.*
+
 All benchmarks are reproducible:
 ```bash
 pip install -e .
@@ -132,12 +163,13 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ARIA PROTOCOL v0.5.2                       │
+│                      ARIA PROTOCOL v0.5.5                       │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
 │  ├── OpenAI-compatible API (aiohttp)                            │
 │  ├── Real-time Web Dashboard                                    │
-│  └── Command-Line Interface                                     │
+│  ├── Command-Line Interface                                     │
+│  └── Desktop App (Tauri 2.0 + Electron)                         │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 2: CONSENSUS                                             │
 │  ├── Provenance Ledger (blockchain)                             │
@@ -146,7 +178,7 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 │  └── Consent Contracts                                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 1: COMPUTE                                               │
-│  ├── P2P Network (WebSocket)                                    │
+│  ├── P2P Network (WebSocket → Kademlia DHT in v0.6.0)          │
 │  ├── Native BitNet Engine (ctypes → bitnet.cpp)                 │
 │  ├── Subprocess Backend (llama-cli → bitnet.cpp)                │
 │  ├── Simulation Backend (protocol testing)                      │
@@ -188,12 +220,15 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 ## Why ARIA?
 
 | Problem | ARIA's Solution |
-|---------|-----------------|
+|---------|----------------|
 | AI requires expensive GPUs | 1-bit models run efficiently on any CPU |
 | Data centers waste energy | Distributed across existing consumer devices |
 | Users have no control | Explicit consent for every resource used |
 | AI outputs are untraceable | Blockchain provenance ledger |
 | Crypto mining wastes energy | Mining IS inference (Proof of Useful Work) |
+| Models depend on one provider | 8+ organizations produce independent 1-bit models |
+| Context windows are limited by RAM | KV-Cache NVMe paging targets 500K+ tokens on 8GB laptops |
+| Single model has blind spots | Consensus Inference: multiple models collaborate for higher quality |
 
 ### The Numbers
 
@@ -205,138 +240,44 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 
 ---
 
-## Website
+## Supported Models
 
-Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.io/aria-protocol/) for benchmarks and documentation.
+### Currently validated
 
----
+| Model | Params | Throughput | Format | Source |
+|-------|--------|------------|--------|--------|
+| BitNet-b1.58-large | 0.7B | 89.65 t/s | GGUF | Microsoft Research |
+| BitNet-b1.58-2B-4T | 2.4B | 36.94 t/s | GGUF | Microsoft Research |
+| Llama3-8B-1.58 | 8.0B | 15.03 t/s | GGUF | Microsoft Research |
 
-## Documentation
+### Coming in v0.6.0
 
-| Document | Description |
-|----------|-------------|
-| [Getting Started](docs/getting-started.md) | Installation and quick start guide |
-| [Architecture](docs/architecture.md) | System design and component details |
-| [API Reference](docs/api-reference.md) | OpenAI-compatible API documentation |
-| [Protocol Spec](docs/protocol-spec.md) | WebSocket protocol specification |
-| [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
-| [Benchmarks](benchmarks/README.md) | Performance methodology and results |
-| [Roadmap](docs/ROADMAP.md) | Full roadmap v2.1 (62 tasks, 9 versions) |
-| [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
+| Model | Params | Format | Source | Notes |
+|-------|--------|--------|--------|-------|
+| Falcon3-1B-Instruct-1.58bit | 1B | GGUF | TII (Abu Dhabi) | Ready to integrate |
+| Falcon3-3B-Instruct-1.58bit | 3B | GGUF | TII (Abu Dhabi) | Ready to integrate |
+| Falcon3-7B-Instruct-1.58bit | 7B | GGUF | TII (Abu Dhabi) | Ready to integrate |
+| Falcon3-10B-Instruct-1.58bit | 10B | GGUF | TII (Abu Dhabi) | Most capable planned model |
+| Falcon-Edge 1B/3B | 1–3B | Native 1-bit | TII (Abu Dhabi) | Outperforms Microsoft BitNet (53.17% vs 51.54%) |
 
----
+### Future (v0.7.0+)
 
-## Project Structure
+Any model can be converted to 1-bit format via PT-BitNet/PTQTP post-training ternarization. Demonstrated on LLaMA3.x, Qwen3, Qwen2.5 from 0.6B to 70B with 82.4% mathematical reasoning retention.
 
-```
-aria-protocol/
-├── aria/                  # Python backend
-│   ├── __init__.py        # Package exports
-│   ├── node.py            # Core ARIA node
-│   ├── network.py         # P2P WebSocket networking
-│   ├── inference.py       # 1-bit inference engine
-│   ├── bitnet_native.py   # Native bitnet.cpp bindings (ctypes)
-│   ├── bitnet_subprocess.py # Subprocess backend (llama-cli)
-│   ├── model_manager.py   # Model download & cache management
-│   ├── ledger.py          # Provenance blockchain
-│   ├── proof.py           # PoUW & Proof of Sobriety
-│   ├── consent.py         # Consent contracts
-│   ├── cli.py             # Command-line interface
-│   ├── api.py             # OpenAI-compatible API
-│   └── dashboard.py       # Real-time web dashboard
-├── desktop/               # Desktop app (Tauri + Electron)
-│   ├── src-tauri/         # Tauri/Rust backend
-│   ├── electron/          # Electron alternative
-│   ├── src/               # React frontend (shared)
-│   └── package.json       # Node.js dependencies
-├── tests/                 # Test suite
-├── examples/              # Demo and integration examples
-├── docs/                  # Documentation
-│   └── ROADMAP.md         # Full roadmap v2.1
-├── CHANGELOG.md           # Version history (Keep a Changelog)
-└── pyproject.toml         # Package configuration
-```
+### 1-Bit Ecosystem
 
----
+The 1-bit model ecosystem is diversifying rapidly. At least 8 independent organizations are producing 1-bit models and tools:
 
-## Contributing
-
-We welcome contributions! Here's how to get started:
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/spmfrance-cloud/aria-protocol.git
-cd aria-protocol
-
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-make test
-
-# Run tests with coverage
-make test-cov
-```
-
-### Guidelines
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Write tests** for your changes
-4. **Ensure** all tests pass (`make test`)
-5. **Commit** with clear messages
-6. **Push** to your branch
-7. **Open** a Pull Request
-
-### Code Style
-
-- Follow PEP 8 guidelines
-- Add type hints to all functions
-- Write docstrings for public APIs
-- Keep functions focused and small
-
-### Areas to Contribute
-
-- **bitnet.cpp integration** - Connect real 1-bit inference kernels
-- **Mobile support** - React Native or native iOS/Android apps
-- **Additional models** - Support for more 1-bit architectures
-- **Performance** - Optimize networking and inference
-- **Documentation** - Improve guides and examples
-- **Testing** - Expand test coverage
-
----
-
-## 🗺️ Roadmap
-
-> **[📋 Full Roadmap v2.1 →](docs/ROADMAP.md)** — 9 versions, 62 tasks, from v0.5.2 to v1.1.0+
-
-| Version | Name | Focus | Status |
-|---------|------|-------|--------|
-| v0.1→v0.5.2 | Genesis → Desktop | Whitepaper, P2P, CLI, API, BitNet, Benchmarks, Desktop App | ✅ Complete |
-| v0.5.5 | Housekeeping | Repo update, desktop↔backend integration, model validation | 🔥 Next |
-| v0.6.0 | Testnet Alpha | Bootstrap nodes, Falcon3/Edge models, hardened P2P, 50+ nodes | ⬜ Planned |
-| v0.7.0 | Smart Layer | Reputation, Smart Router, frontier API overlay | ⬜ Planned |
-| v0.7.5 | R&D + Docs | PT-BitNet, Whitepaper v2, site redesign | ⬜ Planned |
-| v0.8.0 | Collective Intelligence | Consensus Inference, RAG, ARIA Code, vision | ⬜ Planned |
-| v0.9.0 | ARIA-LM + Ecosystem | Community fine-tune, MCP, browser agent | ⬜ Planned |
-| v1.0.0 | Mainnet | $ARIA token, DAO, staking, audit | ⬜ Planned |
-| v1.1.0+ | Beyond | Mobile, Computer Use, MoE+1-bit, SDK | 🔮 Vision |
-
----
-
-## Native BitNet Integration
-
-ARIA supports native Python bindings for bitnet.cpp via ctypes, alongside a subprocess backend using llama-cli.
-
-### Supported Models
-
-| Model | Params | HuggingFace Repo |
-|-------|--------|------------------|
-| BitNet-b1.58-large | 0.7B | `microsoft/bitnet-b1.58-large` |
-| BitNet-b1.58-2B-4T | 2.4B | `microsoft/bitnet-b1.58-2B-4T` |
-| Llama3-8B-1.58 | 8.0B | `microsoft/Llama3-8B-1.58-100B-tokens` |
+| Organization | Contribution | License |
+|-------------|-------------|---------|
+| Microsoft Research | BitNet b1.58, bitnet.cpp | MIT |
+| TII (Abu Dhabi) | Falcon-Edge, Falcon3 1.58-bit, onebitllms toolkit | Apache 2.0 |
+| MBZUAI + CMU | FBI-LLM: first fully binarized 7B LLM | Open |
+| ETH Zurich + Beihang | BiLLM: PTQ 1-bit (ICML 2024) | Open |
+| Harbin Institute | OneBit: extreme quantization (NeurIPS 2024) | Open |
+| STBLLM | Structured binary quantization (ICLR 2025) | Open |
+| HuggingFace | Native BitNet in transformers + Nanotron | Apache 2.0 |
+| PT-BitNet / PTQTP | Post-training ternarization for any model | Open |
 
 ### Model Download
 
@@ -403,6 +344,170 @@ ARIA auto-detects the library from `~/.aria/lib/`, `/usr/local/lib/`, or the cur
 
 ---
 
+## Website
+
+Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.io/aria-protocol/) for benchmarks and documentation.
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Getting Started](docs/getting-started.md) | Installation and quick start guide |
+| [Architecture](docs/architecture.md) | System design and component details |
+| [API Reference](docs/api-reference.md) | OpenAI-compatible API documentation |
+| [Protocol Spec](docs/protocol-spec.md) | WebSocket protocol specification |
+| [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
+| [Benchmarks](benchmarks/README.md) | Performance methodology and results |
+| [Roadmap](docs/ROADMAP.md) | Full roadmap v3.0 (62 tasks, 9 versions) |
+| [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
+
+---
+
+## Project Structure
+
+```
+aria-protocol/
+├── aria/                  # Python backend
+│   ├── __init__.py        # Package exports
+│   ├── node.py            # Core ARIA node
+│   ├── network.py         # P2P WebSocket networking
+│   ├── inference.py       # 1-bit inference engine
+│   ├── bitnet_native.py   # Native bitnet.cpp bindings (ctypes)
+│   ├── bitnet_subprocess.py # Subprocess backend (llama-cli)
+│   ├── model_manager.py   # Model download & cache management
+│   ├── ledger.py          # Provenance blockchain
+│   ├── proof.py           # PoUW & Proof of Sobriety
+│   ├── consent.py         # Consent contracts
+│   ├── cli.py             # Command-line interface
+│   ├── api.py             # OpenAI-compatible API
+│   └── dashboard.py       # Real-time web dashboard
+├── desktop/               # Desktop app (Tauri + Electron)
+│   ├── src-tauri/         # Tauri/Rust backend
+│   ├── electron/          # Electron alternative
+│   ├── src/               # React frontend (shared)
+│   └── package.json       # Node.js dependencies
+├── tests/                 # Test suite
+├── examples/              # Demo and integration examples
+├── docs/                  # Documentation
+│   └── ROADMAP.md         # Full roadmap v3.0
+├── CHANGELOG.md           # Version history (Keep a Changelog)
+└── pyproject.toml         # Package configuration
+```
+
+---
+
+## Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/spmfrance-cloud/aria-protocol.git
+cd aria-protocol
+
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+make test
+
+# Run tests with coverage
+make test-cov
+```
+
+### Guidelines
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Write tests** for your changes
+4. **Ensure** all tests pass (`make test`)
+5. **Commit** with clear messages
+6. **Push** to your branch
+7. **Open** a Pull Request
+
+### Code Style
+
+- Follow PEP 8 guidelines
+- Add type hints to all functions
+- Write docstrings for public APIs
+- Keep functions focused and small
+
+### Areas to Contribute
+
+- **Falcon3/Edge integration** — Add TII's 1-bit models to the model catalog
+- **KV-Cache NVMe** — Prototype SSD-based context extension
+- **Consensus Inference** — Multi-agent orchestration protocols
+- **Mobile support** - React Native or native iOS/Android apps
+- **Additional models** - Support for more 1-bit architectures
+- **Performance** - Optimize networking and inference
+- **Documentation** - Improve guides and examples
+- **Testing** - Expand test coverage
+
+---
+
+## Research Foundations
+
+ARIA's architecture is grounded in peer-reviewed research:
+
+| Area | Key Finding | Source |
+|------|------------|--------|
+| 1-bit inference | Ternary weights achieve ~10-15% quality loss vs FP16, sufficient for 95% of use cases | Ma et al., arXiv:2402.17764 (2024) |
+| Multi-agent quality | 7B models with orchestrated debate reach 92.85% accuracy | SLM-MATRIX, Nature npj (2025) |
+| Orchestration protocol | Confidence-based routing outperforms naive debate (avoids groupthink) | SLM-MUX, arXiv:2510.05077 (2025) |
+| KV-Cache on SSD | Sparse attention (0.5% of keys cover 90% of attention weight) enables SSD offloading | SpeCache, ICML 2025 |
+| KV-Cache quantization | 2-bit KV-cache with <2% accuracy loss enables 1M tokens on single GPU | KIVI, ICML 2024 |
+| Distributed RL | Decentralized experience sharing: +94% reward on consumer hardware | SAPO/RLSwarm, Gensyn (2025) |
+| Embedding privacy | Projection-based defense reduces inversion from >95% to <5% | Eguard (2024) |
+| P2P latency | Modern hybrid DHT+delegated routing achieves <100ms lookups | IPNI + Kademlia + QUIC |
+
+*1-bit = the MP3 of AI. Lossy compression that's good enough for 95% of use cases.*
+
+---
+
+## Roadmap
+
+| Version | Name | Focus | Status |
+|---------|------|-------|--------|
+| v0.1.0 | Genesis | Whitepaper + reference implementation | ✅ Complete |
+| v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
+| v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
+| v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
+| v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
+| v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | ✅ Complete |
+| v0.5.1 | Build Fix | Desktop build corrections | ✅ Complete |
+| v0.5.2 | Subprocess | llama-cli bridge for live inference | ✅ Complete |
+| v0.5.5 | Housekeeping | CI/CD, cleanup, Falcon3 integration prep | 🔄 In Progress |
+| v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, desktop bridge, Falcon3/Edge models | ⬜ Next |
+| v0.7.0 | Smart Layer | Consensus Inference, Conversation Memory, reputation system | ⬜ Planned |
+| v0.7.5 | R&D + Docs | Whitepaper v2, PT-BitNet R&D, KV-Cache NVMe prototype | ⬜ Planned |
+| v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens), Knowledge Network P2P | ⬜ Planned |
+| v0.9.0 | ARIA-LM | Community-evolving model via SAPO + LoRA merging | ⬜ Planned |
+| v1.0.0 | Mainnet | $ARIA token, DAO governance, production deployment | ⬜ Planned |
+
+### Current Focus: v0.5.5 Housekeeping & Foundations
+
+- CI/CD workflow fixes across Windows, macOS, Linux
+- Code cleanup and test stabilization
+- Preparing Falcon3 1.58-bit model integration
+- Documentation updates reflecting February 2026 research validation
+
+### Next: v0.6.0 Testnet Alpha
+
+The version that makes ARIA a real distributed network:
+- **Kademlia DHT** for decentralized peer discovery
+- **NAT traversal** (STUN/TURN) for nodes behind routers
+- **Desktop ↔ Backend bridge** with live inference metrics
+- **Falcon3 1.58-bit** (1B–10B) and **Falcon-Edge** model integration
+- **Decentralized bootstrap** — no central server dependency
+
+See the [full interactive roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+
+---
+
 ## Running Tests
 
 ```bash
@@ -442,11 +547,11 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Microsoft BitNet](https://github.com/microsoft/BitNet) - 1-bit LLM research
-- [bitnet.cpp](https://github.com/microsoft/bitnet.cpp) - Efficient 1-bit inference
+* [Microsoft BitNet](https://github.com/microsoft/BitNet) — 1-bit LLM research and bitnet.cpp
+* [TII Falcon](https://huggingface.co/tiiuae) — Falcon-Edge and Falcon3 1.58-bit models
+* [Gensyn](https://www.gensyn.ai/) — SAPO/RLSwarm decentralized training research
+* [libp2p](https://libp2p.io/) — P2P networking stack inspiration
 
 ---
 
-<p align="center">
-  <i>"The era of centralized AI infrastructure need not be permanent."</i>
-</p>
+*"The era of centralized AI infrastructure need not be permanent."*
