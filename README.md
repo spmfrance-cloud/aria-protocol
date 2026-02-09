@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-0.5.5-blue.svg)]()
 [![Python](https://img.shields.io/badge/python-3.10+-green.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-orange.svg)]()
-[![Tests](https://img.shields.io/badge/tests-102%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-196%20passing-brightgreen.svg)]()
 [![Benchmarks](https://img.shields.io/badge/benchmarks-reproducible-blue.svg)]()
 [![Desktop](https://img.shields.io/badge/desktop-Windows%20%7C%20macOS%20%7C%20Linux-purple.svg)]()
 
@@ -163,13 +163,13 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ARIA PROTOCOL v0.5.5                       │
+│                    ARIA PROTOCOL v0.5.2+                         │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
-│  ├── OpenAI-compatible API (aiohttp)                            │
-│  ├── Real-time Web Dashboard                                    │
-│  ├── Command-Line Interface                                     │
-│  └── Desktop App (Tauri 2.0 + Electron)                         │
+│  ├── OpenAI-compatible API (aiohttp, streaming)                 │
+│  ├── Desktop App (Tauri 2.0 / Electron, React 18)               │
+│  ├── Real-time Web Dashboard (WebSocket)                        │
+│  └── Command-Line Interface                                     │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 2: CONSENSUS                                             │
 │  ├── Provenance Ledger (blockchain)                             │
@@ -178,12 +178,10 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 │  └── Consent Contracts                                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 1: COMPUTE                                               │
-│  ├── P2P Network (WebSocket → Kademlia DHT in v0.6.0)          │
-│  ├── Native BitNet Engine (ctypes → bitnet.cpp)                 │
-│  ├── Subprocess Backend (llama-cli → bitnet.cpp)                │
-│  ├── Simulation Backend (protocol testing)                      │
+│  ├── P2P Network (WebSocket + Kademlia DHT planned v0.6.0)      │
+│  ├── Inference Engine (subprocess/native/simulation backends)    │
 │  ├── Model Manager (HuggingFace auto-download)                  │
-│  ├── Model Sharding & Distribution                              │
+│  ├── Model Sharding & Pipeline Parallelism                      │
 │  └── Consent-based Routing                                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -196,22 +194,19 @@ See [Architecture Documentation](docs/architecture.md) for detailed diagrams and
 
 ARIA Desktop provides a graphical interface for non-developers to run and manage ARIA nodes.
 
-| Platform | Architecture | Download |
-|----------|-------------|----------|
-| Windows 10+ | x64 | [Download .exe](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
-| macOS 11+ | Intel | [Download .dmg](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
-| macOS 11+ | Apple Silicon | [Download .dmg](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
-| Ubuntu 20.04+ | x64 | [Download .AppImage](https://github.com/spmfrance-cloud/aria-protocol/releases/latest) |
+**[Download Latest Release](https://github.com/spmfrance-cloud/aria-protocol/releases/latest)** — Windows, macOS (Intel + Apple Silicon), Linux
 
 Built with **Tauri 2.0** (primary, ~15 MB) and **Electron** (alternative, ~150 MB).
 
 Features:
-- One-click node setup and management
-- Local AI chat with BitNet models
-- Energy consumption tracking and savings dashboard
-- Model download and management
-- 12-language interface support
-- System tray integration
+
+* One-click node setup and management
+* Local AI chat with BitNet models
+* Energy consumption tracking and savings dashboard
+* Model download and management from HuggingFace
+* 12-language interface support (EN, FR, ES, DE, PT, IT, JA, KO, ZH, RU, AR, HI)
+* Premium dark mode design with glassmorphism effects
+* System tray integration
 
 See [desktop/README.md](desktop/README.md) for build instructions and development guide.
 
@@ -293,27 +288,21 @@ aria model download BitNet-b1.58-2B-4T
 
 ### Backend Modes
 
-ARIA supports 3 inference backends:
-
-| Backend | Description | Requirements |
-|---------|-------------|--------------|
-| `native` | Python ctypes bindings to bitnet.cpp shared library | Compiled `libbitnet.so`/`.dll` |
-| `subprocess` | Spawns `llama-cli` from bitnet.cpp as a child process | bitnet.cpp build with `llama-cli` binary |
-| `simulation` | Simulated inference for protocol development and testing | None |
-
 ```bash
-# Auto-detect: use native bitnet.cpp if available, else simulation
+# Auto-detect best available backend
 aria node start --backend auto
 
-# Force native mode (requires compiled bitnet.cpp shared library)
-aria node start --backend native
-
-# Force subprocess mode (requires llama-cli binary from bitnet.cpp)
+# Subprocess mode: direct llama-cli bridge (recommended with compiled bitnet.cpp)
 aria node start --backend subprocess
 
-# Force simulation mode (no native library needed)
+# Native mode: Python ctypes bindings to bitnet.cpp shared library
+aria node start --backend native
+
+# Simulation mode: no native library needed (for development/testing)
 aria node start --backend simulation
 ```
+
+The **subprocess backend** (v0.5.2+) bridges directly to `llama-cli` from bitnet.cpp, providing real inference with live metrics and proper lifecycle management. This is the recommended approach when bitnet.cpp is compiled on the system.
 
 ### Compiling bitnet.cpp
 
@@ -398,6 +387,20 @@ aria-protocol/
 
 ---
 
+## What's Next
+
+ARIA is evolving from a local inference protocol to a fully distributed network. Key innovations in development:
+
+* **Testnet Alpha (v0.6.0)** — Kademlia DHT, NAT traversal, decentralized bootstrap
+* **Consensus Inference (v0.7.0)** — Multi-agent orchestrated debate for frontier-quality answers from small models. Research shows 7B models with orchestration reach 92.85% accuracy (Nature 2025, SLM-MATRIX)
+* **KV-Cache NVMe Paging (v0.8.0)** — 500K+ token contexts on 8GB RAM laptops via intelligent SSD offloading
+* **ARIA-LM (v0.9.0)** — A community-evolving language model improved via distributed reasoning (SAPO) and LoRA merging, without GPU requirements
+* **$ARIA Token & DAO (v1.0.0)** — Proof of Useful Work tokenomics where mining equals inference
+
+See the [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+
+---
+
 ## Contributing
 
 We welcome contributions! Here's how to get started:
@@ -471,40 +474,30 @@ ARIA's architecture is grounded in peer-reviewed research:
 ## Roadmap
 
 | Version | Name | Focus | Status |
-|---------|------|-------|--------|
+|---------|----------------|------------------------------------------|-------------|
 | v0.1.0 | Genesis | Whitepaper + reference implementation | ✅ Complete |
 | v0.2.0 | Full Stack | P2P networking, CLI, API, Dashboard, BitNet | ✅ Complete |
 | v0.2.5 | Hardening | Threat model, Protocol spec, TLS support | ✅ Complete |
 | v0.3.0 | Benchmarks | Real-world performance validation | ✅ Complete |
 | v0.4.0 | Native BitNet | Direct bitnet.cpp integration in Python | ✅ Complete |
 | v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | ✅ Complete |
-| v0.5.1 | Build Fix | Desktop build corrections | ✅ Complete |
-| v0.5.2 | Subprocess | llama-cli bridge for live inference | ✅ Complete |
-| v0.5.5 | Housekeeping | CI/CD, cleanup, Falcon3 integration prep | 🔄 In Progress |
-| v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, desktop bridge, Falcon3/Edge models | ⬜ Next |
-| v0.7.0 | Smart Layer | Consensus Inference, Conversation Memory, reputation system | ⬜ Planned |
-| v0.7.5 | R&D + Docs | Whitepaper v2, PT-BitNet R&D, KV-Cache NVMe prototype | ⬜ Planned |
-| v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens), Knowledge Network P2P | ⬜ Planned |
-| v0.9.0 | ARIA-LM | Community-evolving model via SAPO + LoRA merging | ⬜ Planned |
-| v1.0.0 | Mainnet | $ARIA token, DAO governance, production deployment | ⬜ Planned |
+| v0.5.1 | Build Fix | Desktop build corrections, CI/CD | ✅ Complete |
+| v0.5.2 | Subprocess | llama-cli bridge, real inference pipeline | ✅ Complete |
+| v0.5.5 | Housekeeping | Code quality, foundations, documentation | 🔄 In Progress |
+| v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, bootstrap nodes | ⬜ Planned |
+| v0.7.0 | Smart Layer | Consensus Inference, Memory, Knowledge Network | ⬜ Planned |
+| v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens on 8GB) | ⬜ Planned |
+| v0.9.0 | ARIA-LM | Community-evolving model (SAPO + LoRA merging) | ⬜ Planned |
+| v1.0.0 | Mainnet | Production network, $ARIA token, DAO governance | ⬜ Planned |
 
 ### Current Focus: v0.5.5 Housekeeping & Foundations
 
-- CI/CD workflow fixes across Windows, macOS, Linux
-- Code cleanup and test stabilization
-- Preparing Falcon3 1.58-bit model integration
-- Documentation updates reflecting February 2026 research validation
+* Code quality improvements and technical debt reduction
+* CI/CD pipeline stabilization across all platforms
+* Documentation alignment with current architecture
+* Preparation for v0.6.0 Testnet Alpha
 
-### Next: v0.6.0 Testnet Alpha
-
-The version that makes ARIA a real distributed network:
-- **Kademlia DHT** for decentralized peer discovery
-- **NAT traversal** (STUN/TURN) for nodes behind routers
-- **Desktop ↔ Backend bridge** with live inference metrics
-- **Falcon3 1.58-bit** (1B–10B) and **Falcon-Edge** model integration
-- **Decentralized bootstrap** — no central server dependency
-
-See the [full interactive roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+See [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
 
 ---
 
