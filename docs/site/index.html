@@ -35,7 +35,7 @@
   / ___ \|  _ < | | / ___ \
  /_/   \_\_| \_\___/_/   \_\
             </pre>
-            <p class="hero-version">v0.5.2</p>
+            <p class="hero-version">v0.5.5</p>
             <h1 class="hero-title">Decentralized AI Inference<br><span class="text-gradient">for Everyone</span></h1>
             <p class="hero-subtitle">
                 A peer-to-peer protocol for efficient, ethical, and decentralized AI inference.
@@ -108,6 +108,18 @@
                     <div class="card-metric">P2P</div>
                     <p class="card-desc">WebSocket-based peer-to-peer networking with pipeline parallelism. No central server, no single point of failure. Your data stays yours.</p>
                 </div>
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Extensible Ecosystem</h3>
+                    <div class="card-metric">8+ orgs</div>
+                    <p class="card-desc">At least 8 independent organizations produce 1-bit models. No single vendor dependency. Falcon-Edge outperforms Microsoft BitNet (53.17% vs 51.54%).</p>
+                </div>
             </div>
         </div>
     </section>
@@ -159,7 +171,7 @@
                 </table>
             </div>
             <p class="table-note">*Energy is estimated via CPU-time x TDP. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
-            <p class="table-note" style="margin-top: 8px; color: #8b949e;">Coming soon: Falcon3 1.58-bit (1B&ndash;10B), Falcon-Edge, PT-BitNet conversions</p>
+            <p class="table-note" style="margin-top: 8px; color: #8b949e;">Coming soon: Falcon3 1.58-bit (1B&ndash;10B), Falcon-Edge (outperforms Microsoft BitNet), PT-BitNet conversions</p>
 
             <!-- Cost Comparison -->
             <h3 class="subsection-title">3-Year Total Cost of Ownership</h3>
@@ -176,7 +188,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>GPT-4o / Claude 3.5</td>
+                            <td>Cloud APIs (frontier)</td>
                             <td>$0</td>
                             <td>$164,250</td>
                             <td>$164,250</td>
@@ -232,6 +244,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Research-backed findings -->
+            <div class="findings" style="margin-top: 32px;">
+                <div class="finding">
+                    <span class="finding-icon">&#x1F9E0;</span>
+                    <div>
+                        <strong>Consensus Inference</strong>
+                        <p>Multiple 7B models with orchestrated debate reach 92.85% accuracy (Nature 2025, SLM-MATRIX).</p>
+                    </div>
+                </div>
+                <div class="finding">
+                    <span class="finding-icon">&#x1F4BE;</span>
+                    <div>
+                        <strong>Extended Context</strong>
+                        <p>KV-Cache NVMe paging targets 500K+ tokens on 8GB RAM via sparse attention + 2-bit quantization.</p>
+                    </div>
+                </div>
+                <div class="finding">
+                    <span class="finding-icon">&#x1F310;</span>
+                    <div>
+                        <strong>1-Bit Ecosystem</strong>
+                        <p>8+ independent organizations. Falcon-Edge outperforms Microsoft BitNet: 53.17% vs 51.54% avg benchmark.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -247,6 +284,7 @@
                         <span>OpenAI-Compatible API</span>
                         <span>Web Dashboard</span>
                         <span>CLI Interface</span>
+                        <span>Desktop App (Tauri 2.0 + Electron)</span>
                     </div>
                 </div>
                 <div class="arch-layer">
@@ -261,7 +299,7 @@
                 <div class="arch-layer">
                     <div class="arch-label">Layer 1: Compute</div>
                     <div class="arch-items">
-                        <span>P2P Network</span>
+                        <span>P2P Network (&rarr; Kademlia DHT in v0.6.0)</span>
                         <span>1-bit Inference Engine</span>
                         <span>Model Sharding</span>
                         <span>Consent-based Routing</span>
@@ -356,6 +394,8 @@
                 </div>
             </div>
 
+            <p style="text-align: center; color: #94a3b8; margin-top: 24px; margin-bottom: 24px;"><strong>Coming in v0.6.0+:</strong> Infinite Context Mode, Conversation Memory Manager, Consensus Inference Panel, Knowledge Network Browser</p>
+
             <div class="desktop-actions">
                 <a href="https://github.com/spmfrance-cloud/aria-protocol/releases/latest" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -398,8 +438,8 @@
     <!-- Roadmap -->
     <section id="roadmap" class="roadmap">
         <div class="container">
-            <h2 class="section-title">Roadmap v2.1</h2>
-            <p class="section-subtitle">9 versions &middot; 62 tasks &middot; From testnet to mainnet</p>
+            <h2 class="section-title">Roadmap v3.0</h2>
+            <p class="section-subtitle">62 Tasks &middot; 9 Versions &middot; From testnet to mainnet</p>
 
             <div class="roadmap-timeline">
                 <div class="roadmap-track">
@@ -431,7 +471,7 @@
                     <div class="roadmap-item planned">
                         <span class="roadmap-dot"></span>
                         <span class="roadmap-label">v0.8.0</span>
-                        <span class="roadmap-name">Collective Intel</span>
+                        <span class="roadmap-name">Extended Context</span>
                     </div>
                     <div class="roadmap-item planned">
                         <span class="roadmap-dot"></span>
@@ -513,7 +553,7 @@
                     </div>
                     <div class="footer-col">
                         <h4>Resources</h4>
-                        <a href="roadmap.html">Roadmap v2.1</a>
+                        <a href="roadmap.html">Roadmap v3.0</a>
                         <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/architecture.md" target="_blank" rel="noopener">Architecture</a>
                         <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">Benchmarks</a>
                         <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/protocol-spec.md" target="_blank" rel="noopener">Protocol Spec</a>
