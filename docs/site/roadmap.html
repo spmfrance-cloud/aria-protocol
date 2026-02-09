@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIA Protocol - Roadmap v2.1</title>
-    <meta name="description" content="ARIA Protocol Roadmap v2.1 — 9 versions, 62 tasks, from testnet to mainnet. Full interactive roadmap.">
+    <title>ARIA Protocol - Roadmap v3.0</title>
+    <meta name="description" content="ARIA Protocol Roadmap v3.0 — 9 versions, 62 tasks, from testnet to mainnet. Full interactive roadmap.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F310;</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ============================================
-           ARIA Protocol - Roadmap v2.1 Styles
+           ARIA Protocol - Roadmap v3.0 Styles
            ============================================ */
         *, *::before, *::after {
             margin: 0;
@@ -209,7 +209,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--c-done);
+            background: var(--c-next);
             animation: pulse 2s infinite;
         }
 
@@ -276,115 +276,6 @@
             margin-top: 2px;
         }
 
-        /* --- Changelog --- */
-        .changelog {
-            padding: 60px 0;
-        }
-
-        .changelog-card {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-        }
-
-        .changelog-header {
-            padding: 20px 28px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            user-select: none;
-        }
-
-        .changelog-header h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .changelog-header .arrow {
-            color: var(--text-muted);
-            transition: transform 0.3s;
-            font-size: 0.875rem;
-        }
-
-        details[open] .changelog-header .arrow {
-            transform: rotate(180deg);
-        }
-
-        .changelog-body {
-            padding: 24px 28px;
-        }
-
-        .changelog-section {
-            margin-bottom: 20px;
-        }
-
-        .changelog-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .changelog-section h3 {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .badge-critical {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .badge-important {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .badge-minor {
-            background: rgba(148, 163, 184, 0.15);
-            color: #94a3b8;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-
-        .changelog-item {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.7;
-            padding-left: 16px;
-            border-left: 2px solid var(--border);
-            margin-bottom: 8px;
-        }
-
-        .changelog-item strong {
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            font-size: 0.8125rem;
-        }
-
         /* --- Timeline --- */
         .timeline {
             padding: 80px 0;
@@ -449,9 +340,14 @@
             color: var(--c-done);
         }
 
-        .status-next {
+        .status-progress {
             background: rgba(245, 158, 11, 0.15);
             color: var(--c-next);
+        }
+
+        .status-next {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--c-blue);
         }
 
         .status-planned {
@@ -588,13 +484,6 @@
             line-height: 1.5;
         }
 
-        .task-table td:nth-child(5) {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            min-width: 160px;
-        }
-
         /* Type badges */
         .type-badge {
             font-size: 0.6875rem;
@@ -612,21 +501,6 @@
         .type-design { background: rgba(45, 212, 191, 0.15); color: var(--t-design); }
         .type-com { background: rgba(251, 146, 60, 0.15); color: var(--t-com); }
 
-        /* Status badges in tasks */
-        .task-badge {
-            font-family: var(--font-mono);
-            font-size: 0.625rem;
-            font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 3px;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-
-        .task-new { background: rgba(52, 211, 153, 0.15); color: #34d399; }
-        .task-v21 { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
-        .task-moved { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
-
         /* --- Summary --- */
         .summary {
             padding: 80px 0;
@@ -641,9 +515,9 @@
 
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
         }
 
@@ -696,7 +570,7 @@
         /* --- Responsive --- */
         @media (max-width: 1024px) {
             .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -743,22 +617,16 @@
                 padding: 0 12px 20px;
             }
 
-            .task-table td:nth-child(4),
-            .task-table td:nth-child(5) {
+            .task-table td:nth-child(4) {
                 display: none;
             }
 
-            .task-table th:nth-child(4),
-            .task-table th:nth-child(5) {
+            .task-table th:nth-child(4) {
                 display: none;
-            }
-
-            .changelog-body {
-                padding: 16px 20px;
             }
 
             .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
                 gap: 12px;
             }
         }
@@ -802,9 +670,9 @@
         <div class="container">
             <div class="hero-badge">
                 <span class="dot"></span>
-                v0.5.2 current
+                v0.5.5 in progress
             </div>
-            <h1>ARIA Protocol &mdash; <span class="gradient-text">Roadmap v2.1</span></h1>
+            <h1>ARIA Protocol &mdash; <span class="gradient-text">Roadmap v3.0</span></h1>
             <p class="hero-subtitle">From testnet to mainnet. 9 versions charting the path from proof-of-concept to a fully decentralized AI inference network.</p>
             <div class="hero-stats">
                 <div class="hero-stat">
@@ -816,44 +684,10 @@
                     <span class="label">Tasks</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="value">44</span>
-                    <span class="label">New Tasks</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="value">7</span>
-                    <span class="label">v2.1 Fixes</span>
+                    <span class="value">v0.5.5</span>
+                    <span class="label">Current</span>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Changelog v2 → v2.1 -->
-    <section class="changelog">
-        <div class="container">
-            <details class="changelog-card">
-                <summary class="changelog-header">
-                    <h2>Changelog v2 &rarr; v2.1 &mdash; 7 Corrections</h2>
-                    <span class="arrow">&#x25BC;</span>
-                </summary>
-                <div class="changelog-body">
-                    <div class="changelog-section">
-                        <h3><span class="badge-critical">CRITICAL</span></h3>
-                        <div class="changelog-item"><strong>v0.5.5 #8</strong> &mdash; Added &ldquo;Finalize desktop&harr;backend integration&rdquo;. Desktop app still uses mock responses. Absolute prerequisite before testnet.</div>
-                        <div class="changelog-item"><strong>v0.6.0 #10</strong> &mdash; Added &ldquo;P2P network robustness&rdquo;. NAT traversal, reconnection, production-grade DHT. Without this, 50 nodes can&rsquo;t find each other.</div>
-                    </div>
-                    <div class="changelog-section">
-                        <h3><span class="badge-important">IMPORTANT</span></h3>
-                        <div class="changelog-item"><strong>v0.5.5 #9</strong> &mdash; Added &ldquo;Validate Falcon3/Edge model catalog&rdquo;. Verify actual GGUF availability before planning v0.6.0.</div>
-                        <div class="changelog-item"><strong>v0.7.0 &rarr; v0.7.0 + v0.7.5</strong> &mdash; Split into 2 versions. v0.7.0 = network (Reputation + Router). v0.7.5 = R&amp;D + Docs (PT-BitNet, WP v2, Site v2).</div>
-                        <div class="changelog-item"><strong>v0.9.0 #1</strong> &mdash; ARIA-LM requalified: LoRA fine-tune of existing model (not training from scratch). Full training &rarr; v1.1.0+.</div>
-                    </div>
-                    <div class="changelog-section">
-                        <h3><span class="badge-minor">MINOR</span></h3>
-                        <div class="changelog-item"><strong>v0.5.5 #1</strong> &mdash; Version confirmed at v0.5.2. README badge, pyproject.toml, and GitHub release to sync.</div>
-                        <div class="changelog-item"><strong>v1.0.0 #7</strong> &mdash; &ldquo;Computer Use (Level 2+3)&rdquo; moved to v1.1.0+. Mainnet must be 100% focused on token/DAO/audit.</div>
-                    </div>
-                </div>
-            </details>
         </div>
     </section>
 
@@ -862,7 +696,7 @@
         <div class="container">
             <h2 class="timeline-title">Version Timeline</h2>
 
-            <!-- v0.1 → v0.5.2 — Done -->
+            <!-- v0.1 -> v0.5.2 — Done -->
             <div class="version-block" style="border-left: 3px solid var(--c-done);">
                 <div class="version-header">
                     <span class="version-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--c-done);">v0.1 &rarr; v0.5.2</span>
@@ -878,64 +712,62 @@
                         <li><strong>v0.3.0 Benchmarks</strong> &mdash; Performance validation (89.65 t/s on 0.7B)</li>
                         <li><strong>v0.4.0 Native BitNet</strong> &mdash; Python ctypes bindings to bitnet.cpp</li>
                         <li><strong>v0.5.0 Desktop App</strong> &mdash; Tauri 2.0 + Electron, 12 languages, system tray</li>
-                        <li><strong>v0.5.2 Subprocess Backend</strong> &mdash; Multi-backend inference, 176 tests, 120.25 t/s</li>
+                        <li><strong>v0.5.1 Build Fix</strong> &mdash; Desktop build corrections</li>
+                        <li><strong>v0.5.2 Subprocess Backend</strong> &mdash; llama-cli bridge, multi-backend inference, CI/CD cross-platform builds</li>
                     </ul>
                 </div>
             </div>
 
-            <!-- v0.5.5 — Next -->
+            <!-- v0.5.5 — In Progress -->
             <div class="version-block" style="border-left: 3px solid var(--c-next);">
                 <div class="version-header">
                     <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.5.5</span>
                     <span class="version-name">Housekeeping &amp; Foundations</span>
-                    <span class="version-status status-next">Next</span>
+                    <span class="version-status status-progress">In Progress</span>
                 </div>
-                <p class="version-desc">Repo update, backend integration, model validation, website, docs &mdash; 9 tasks</p>
+                <p class="version-desc">CI/CD fixes, cleanup, test stabilization, Falcon3 prep, documentation &mdash; 6 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 9 tasks</summary>
+                    <summary>View 6 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>Update README.md</td><td><span class="type-badge type-doc">Doc</span></td><td>Fix version badge &rarr; v0.5.2, sync pyproject.toml and GitHub release. Add bitnet_subprocess.py to structure, update roadmap to v2.</td><td>README.md, pyproject.toml</td></tr>
-                                <tr><td>2</td><td>Create dedicated ROADMAP.md <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete roadmap v2.1 extracted from README. Detailed per version with status, description, deliverables.</td><td>docs/ROADMAP.md</td></tr>
-                                <tr><td>3</td><td>Create CHANGELOG.md <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Retroactive changelog from v0.1.0 to v0.5.2. Keep a Changelog format. Complete history of 65+ commits.</td><td>CHANGELOG.md</td></tr>
-                                <tr><td>4</td><td>Redesign website</td><td><span class="type-badge type-web">Web</span></td><td>Update from v0.3.0 &rarr; v0.5.2. Add Desktop App section, download link, models, visual roadmap.</td><td>index.html (GitHub Pages)</td></tr>
-                                <tr><td>5</td><td>Update architecture.md</td><td><span class="type-badge type-doc">Doc</span></td><td>Add planned Layer 4 (Intelligence) and Layer 5 (Economics). Mark as &ldquo;Planned&rdquo;.</td><td>docs/architecture.md</td></tr>
-                                <tr><td>6</td><td>Start Whitepaper v2 (outline) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Structured outline of WP v2: extended architecture, Consensus Inference, ARIA-LM, $ARIA tokenomics, agentic vision.</td><td>docs/whitepaper-v2-outline.md</td></tr>
-                                <tr><td>7</td><td>Prepare testnet communication <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-com">Com</span></td><td>Draft posts: Show HN, r/LocalLLaMA, r/decentralization, Twitter thread. Publication calendar.</td><td>docs/PUBLICATION_POSTS.md</td></tr>
-                                <tr><td>8</td><td>Finalize desktop&harr;backend integration <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>Fix /v1/models 500 error, native subprocess llama-cli, Live/Mock badge, end-to-end test. Prerequisite for v0.6.0.</td><td>aria/api.py, desktop/src/hooks/useChat.ts</td></tr>
-                                <tr><td>9</td><td>Validate Falcon3/Edge catalog <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Verify GGUF availability on HuggingFace and bitnet.cpp. Test compatibility. Plan B if unavailable.</td><td>docs/models.md (draft)</td></tr>
+                                <tr><td>1</td><td>Fix CI/CD workflows across all platforms</td><td><span class="type-badge type-infra">Infra</span></td><td>Resolve build failures on Windows, macOS, Linux. Cross-platform test matrix.</td></tr>
+                                <tr><td>2</td><td>Code cleanup and linting</td><td><span class="type-badge type-code">Code</span></td><td>Remove dead code, fix lint warnings, standardize imports.</td></tr>
+                                <tr><td>3</td><td>Test stabilization (102 tests passing)</td><td><span class="type-badge type-code">Code</span></td><td>Fix flaky tests, ensure deterministic results, improve coverage.</td></tr>
+                                <tr><td>4</td><td>Prepare Falcon3 1.58-bit integration</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Verify GGUF availability, test bitnet.cpp compatibility, plan integration.</td></tr>
+                                <tr><td>5</td><td>Documentation update (post-brainstorming Feb 2026)</td><td><span class="type-badge type-doc">Doc</span></td><td>Update README, roadmap, GitHub Pages with research-validated content.</td></tr>
+                                <tr><td>6</td><td>GitHub Release v0.5.5</td><td><span class="type-badge type-infra">Infra</span></td><td>Tag release, update version badges, sync pyproject.toml.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </details>
             </div>
 
-            <!-- v0.6.0 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-next);">
+            <!-- v0.6.0 — Next -->
+            <div class="version-block" style="border-left: 3px solid var(--c-blue);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.6.0</span>
-                    <span class="version-name">Testnet Alpha &mdash; Expanded Models + Robust P2P</span>
-                    <span class="version-status status-planned">Planned</span>
+                    <span class="version-tag" style="background: rgba(59, 130, 246, 0.15); color: var(--c-blue);">v0.6.0</span>
+                    <span class="version-name">Testnet Alpha</span>
+                    <span class="version-status status-next">Next</span>
                 </div>
-                <p class="version-desc">Bootstrap nodes, expanded catalog, hardened P2P, 50+ community nodes &mdash; 10 tasks</p>
+                <p class="version-desc">Kademlia DHT, NAT traversal, desktop bridge, Falcon3/Edge models, 50+ community nodes &mdash; 10 tasks</p>
                 <details class="version-tasks">
                     <summary>View 10 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>Integrate Falcon3 1.58-bit <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Add models validated in v0.5.5 #9. GGUF files, bitnet.cpp compatible. Catalog of 3-9 models.</td><td>aria/model_manager.py, tests/</td></tr>
-                                <tr><td>2</td><td>Integrate Falcon-Edge <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Add Falcon-Edge 1B and 3B (natively BitNet). Support community fine-tuning via onebitllms.</td><td>aria/model_manager.py, docs/models.md</td></tr>
-                                <tr><td>3</td><td>Update bitnet.cpp <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Integrate ELUT parallel kernels (Jan 2026). +1.15-2.1x additional CPU speedup.</td><td>aria/bitnet_native.py, docs/getting-started.md</td></tr>
-                                <tr><td>4</td><td>Public bootstrap nodes</td><td><span class="type-badge type-infra">Infra</span></td><td>Deploy 3-5 bootstrap nodes (lightweight VPS) for peer discovery. Uptime monitoring.</td><td>aria/network.py, config/</td></tr>
-                                <tr><td>5</td><td>Testnet tokens (mock) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Test tokens with no real value to validate reward mechanics. Dashboard counters.</td><td>aria/node.py, aria/ledger.py, desktop/</td></tr>
-                                <tr><td>6</td><td>Desktop App: new model catalog</td><td><span class="type-badge type-code">Code</span></td><td>Update Model Manager with validated models. Download UI, benchmarks per model.</td><td>desktop/src/pages/Models*</td></tr>
-                                <tr><td>7</td><td>New benchmarks</td><td><span class="type-badge type-code">Code</span></td><td>Benchmark newly integrated models. Publish results. Update website and README.</td><td>benchmarks/, docs/, README.md</td></tr>
-                                <tr><td>8</td><td>Models documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Create docs/models.md: complete catalog, benchmarks per model, selection guide.</td><td>docs/models.md</td></tr>
-                                <tr><td>9</td><td>Testnet launch campaign</td><td><span class="type-badge type-com">Com</span></td><td>Show HN, r/LocalLLaMA, Twitter thread. Angle: &ldquo;1-bit models, CPU-only, P2P, join the testnet.&rdquo;</td><td>docs/PUBLICATION_POSTS.md</td></tr>
-                                <tr><td>10</td><td>P2P network robustness <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>NAT traversal (STUN/TURN), auto reconnection, production-grade Kademlia DHT, firewall handling. Backbone of testnet.</td><td>aria/network.py, aria/nat.py (new), tests/</td></tr>
+                                <tr><td>7</td><td>Kademlia DHT peer discovery</td><td><span class="type-badge type-code">Code</span></td><td>Replace bootstrap servers with decentralized peer discovery via Kademlia DHT.</td></tr>
+                                <tr><td>8</td><td>NAT traversal (STUN/TURN)</td><td><span class="type-badge type-code">Code</span></td><td>Enable nodes behind routers to participate. STUN for discovery, TURN for relay.</td></tr>
+                                <tr><td>9</td><td>Decentralized bootstrap mechanism</td><td><span class="type-badge type-infra">Infra</span></td><td>No central server dependency. Seed nodes + DHT for full decentralization.</td></tr>
+                                <tr><td>10</td><td>Desktop &harr; Python backend bridge (live inference)</td><td><span class="type-badge type-code">Code</span></td><td>Real-time bidirectional communication between desktop app and Python backend. Live inference metrics.</td></tr>
+                                <tr><td>11</td><td>Real-time P2P network visualization</td><td><span class="type-badge type-web">Web</span></td><td>Visual node map in desktop app showing connected peers, latency, throughput.</td></tr>
+                                <tr><td>12</td><td>Integrate Falcon3 1.58-bit models (1B, 3B, 7B, 10B)</td><td><span class="type-badge type-code">Code</span></td><td>Add TII instruction-tuned models. GGUF format, bitnet.cpp compatible.</td></tr>
+                                <tr><td>13</td><td>Integrate Falcon-Edge (1B, 3B) + benchmark vs Microsoft BitNet</td><td><span class="type-badge type-code">Code</span></td><td>Natively-trained 1-bit models from TII. Benchmark: 53.17% vs 51.54% avg.</td></tr>
+                                <tr><td>14</td><td>Update bitnet.cpp to January 2026 parallel kernels</td><td><span class="type-badge type-code">Code</span></td><td>Integrate ELUT parallel kernels for +1.15&ndash;2.1x additional CPU speedup.</td></tr>
+                                <tr><td>15</td><td>Settings persistence + consent management</td><td><span class="type-badge type-code">Code</span></td><td>Save user preferences, consent settings, and node configuration across sessions.</td></tr>
+                                <tr><td>16</td><td>Public testnet with 50+ community nodes target</td><td><span class="type-badge type-com">Com</span></td><td>Launch campaign: Show HN, r/LocalLLaMA. Target 50+ active nodes.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -943,25 +775,29 @@
             </div>
 
             <!-- v0.7.0 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-blue);">
+            <div class="version-block" style="border-left: 3px solid var(--c-indigo);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(59, 130, 246, 0.15); color: var(--c-blue);">v0.7.0</span>
-                    <span class="version-name">Smart Layer &mdash; Reputation + Intelligence</span>
+                    <span class="version-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--c-indigo);">v0.7.0</span>
+                    <span class="version-name">Smart Layer</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">Reputation system, Smart Router, frontier API overlay, intelligent chat &mdash; 6 tasks</p>
+                <p class="version-desc">Consensus Inference, Conversation Memory, reputation system, SAPO prototype &mdash; 10 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 6 tasks</summary>
+                    <summary>View 10 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>Reputation system</td><td><span class="type-badge type-code">Code</span></td><td>Node reliability score (uptime, quality, energy). Anti-Sybil: IP + hardware fingerprint. Published on ledger.</td><td>aria/reputation.py (new), aria/proof.py</td></tr>
-                                <tr><td>2</td><td>Smart Router <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: local 1-bit by default &rarr; frontier API escalation. Per-response confidence score.</td><td>aria/router.py (new), aria/node.py</td></tr>
-                                <tr><td>3</td><td>Frontier API overlay <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>User API key management (Claude, GPT, Grok, Gemini, Mistral). Local encryption. Cost counter.</td><td>aria/api_bridge.py (new), desktop/src/pages/Settings*</td></tr>
-                                <tr><td>4</td><td>Intelligent Desktop chat <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Chat redesign: Smart Router, &ldquo;local&rdquo; vs &ldquo;API&rdquo; indicator, contextual conversation, local history.</td><td>desktop/src/pages/Chat*</td></tr>
-                                <tr><td>5</td><td>Airdrop snapshot <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-infra">Infra</span></td><td>Snapshot of testnet contributions: uptime, inferences, energy. Base for 10% $ARIA airdrop.</td><td>aria/ledger.py, scripts/</td></tr>
-                                <tr><td>6</td><td>New features documentation</td><td><span class="type-badge type-doc">Doc</span></td><td>Create: smart-router.md, api-bridge.md, reputation.md. Update threat-model.md.</td><td>docs/*.md</td></tr>
+                                <tr><td>17</td><td>Consensus Inference: confidence-based routing (SLM-MUX style)</td><td><span class="type-badge type-code">Code</span></td><td>Route queries based on model confidence scores. Avoids groupthink via orchestrated protocols.</td></tr>
+                                <tr><td>18</td><td>Consensus Inference: cross-verification protocol</td><td><span class="type-badge type-code">Code</span></td><td>Multiple models verify each other&rsquo;s outputs. Majority voting + synthesis.</td></tr>
+                                <tr><td>19</td><td>Consensus Inference: user-facing protocol selection</td><td><span class="type-badge type-code">Code</span></td><td>Speed/Quality/Verify mode selection in UI. Energy budget controls.</td></tr>
+                                <tr><td>20</td><td>Consensus Inference: provenance logging</td><td><span class="type-badge type-code">Code</span></td><td>Record which nodes, which protocol, energy used. Full audit trail on ledger.</td></tr>
+                                <tr><td>21</td><td>Conversation Memory: 3-tier architecture (Hot/Warm/Cold)</td><td><span class="type-badge type-code">Code</span></td><td>Hot = current session, Warm = recent context, Cold = long-term storage.</td></tr>
+                                <tr><td>22</td><td>Conversation Memory: Fact Store with heuristic + LLM extraction</td><td><span class="type-badge type-code">Code</span></td><td>Extract and store facts from conversations. Heuristic + LLM-based extraction pipeline.</td></tr>
+                                <tr><td>23</td><td>Conversation Memory: semantic recall via embeddings</td><td><span class="type-badge type-code">Code</span></td><td>Retrieve relevant memories using semantic similarity. Local embedding model.</td></tr>
+                                <tr><td>24</td><td>Node reputation system (reliability scoring)</td><td><span class="type-badge type-code">Code</span></td><td>Score nodes on uptime, quality, energy efficiency. Published on ledger.</td></tr>
+                                <tr><td>25</td><td>Anti-Sybil protections (IP + hardware fingerprint)</td><td><span class="type-badge type-code">Code</span></td><td>Prevent fake nodes. IP diversity + hardware attestation.</td></tr>
+                                <tr><td>26</td><td>SAPO integration prototype (reasoning rollout sharing)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Decentralized experience sharing for reasoning improvement. Based on Gensyn research.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -969,23 +805,25 @@
             </div>
 
             <!-- v0.7.5 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-indigo);">
+            <div class="version-block" style="border-left: 3px solid var(--c-violet);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--c-indigo);">v0.7.5</span>
-                    <span class="version-name">R&amp;D + Documentation &mdash; Whitepaper v2 &amp; Vision</span>
+                    <span class="version-tag" style="background: rgba(139, 92, 246, 0.15); color: var(--c-violet);">v0.7.5</span>
+                    <span class="version-name">R&amp;D + Documentation</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">PT-BitNet prototype, Accessibility Tree, Whitepaper v2, site v2 &mdash; 4 tasks</p>
+                <p class="version-desc">Whitepaper v2, PT-BitNet R&amp;D, KV-Cache proof of concept, benchmarks &mdash; 6 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 4 tasks</summary>
+                    <summary>View 6 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>PT-BitNet prototype <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Ternarize Qwen3-14B (28 GB &rarr; ~3 GB). Benchmark quality vs full precision. Validate distribution across 3-4 nodes.</td><td>aria/model_manager.py, benchmarks/</td></tr>
-                                <tr><td>2</td><td>Accessibility Tree (Computer Use L1) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Read OS accessibility tree (UI Automation / AT-SPI) via Tauri/Rust. Convert to text for LLM.</td><td>desktop/src-tauri/src/accessibility.rs (new)</td></tr>
-                                <tr><td>3</td><td>Write Whitepaper v2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: 5-layer architecture, Consensus Inference, ARIA-LM, tokenomics, competitor comparison.</td><td>ARIA_Whitepaper_v2.pdf, docs/</td></tr>
-                                <tr><td>4</td><td>Website redesign v2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-web">Web</span></td><td>New landing page: &ldquo;local Claude Desktop&rdquo; pitch, ARIA-LM section, tokenomics, visual roadmap. Multi-page.</td><td>GitHub Pages (complete redesign)</td></tr>
+                                <tr><td>27</td><td>Whitepaper v2</td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: Consensus Inference, KV-Cache, ARIA-LM, tokenomics, competitor analysis.</td></tr>
+                                <tr><td>28</td><td>PT-BitNet R&amp;D: ternarize Qwen3-14B</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Post-training ternarization of Qwen3-14B (28 GB &rarr; ~3 GB). Quality benchmarks.</td></tr>
+                                <tr><td>29</td><td>KV-Cache NVMe: proof of concept (save/restore between sessions)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Prototype SSD-based KV-cache persistence. Save and restore context across sessions.</td></tr>
+                                <tr><td>30</td><td>Benchmark Falcon-Edge vs Microsoft BitNet (publication content)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Rigorous comparison. Publishable results for community credibility.</td></tr>
+                                <tr><td>31</td><td>Reproduce SLM-MATRIX results on ARIA infrastructure</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Validate multi-agent debate accuracy claims on ARIA&rsquo;s consensus system.</td></tr>
+                                <tr><td>32</td><td>Update threat model for distributed features</td><td><span class="type-badge type-doc">Doc</span></td><td>Address new attack vectors from DHT, consensus, memory, and reputation systems.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -993,27 +831,29 @@
             </div>
 
             <!-- v0.8.0 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-violet);">
+            <div class="version-block" style="border-left: 3px solid var(--c-pink);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(139, 92, 246, 0.15); color: var(--c-violet);">v0.8.0</span>
-                    <span class="version-name">Collective Intelligence &mdash; Consensus Inference + Agentic App</span>
+                    <span class="version-tag" style="background: rgba(236, 72, 153, 0.15); color: var(--c-pink);">v0.8.0</span>
+                    <span class="version-name">Extended Context &amp; Knowledge</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">Consensus Inference, RAG, ARIA Code, vision pipeline &mdash; 8 tasks</p>
+                <p class="version-desc">KV-Cache NVMe paging, Knowledge Network, desktop UI &mdash; 10 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 8 tasks</summary>
+                    <summary>View 10 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>Consensus Inference Protocol <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Full implementation: parallel brainstorm, iterative deliberation (1-3 rounds), consensus + synthesis. Provenance on ledger.</td><td>aria/consensus.py (new), aria/node.py</td></tr>
-                                <tr><td>2</td><td>Consensus UI parameters <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Desktop: agent count (3/5/7), rounds (1-3), Speed/Quality mode, energy budget. Real-time debate visualization.</td><td>desktop/src/pages/Chat*, desktop/src/components/</td></tr>
-                                <tr><td>3</td><td>Local RAG <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Local document indexing (PDF, TXT, MD, DOCX). Local embedding via candle/Rust. 100% local.</td><td>aria/rag.py (new), desktop/src-tauri/src/indexer.rs</td></tr>
-                                <tr><td>4</td><td>ARIA Code (local sandbox) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Coding assistant: read/write/execute in isolated sandbox (Docker or venv). Auto error iteration. Free &amp; unlimited.</td><td>aria/code_sandbox.py (new), desktop/src/pages/Code*</td></tr>
-                                <tr><td>5</td><td>Local vision pipeline (Level 2) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>OCR (Tesseract/PaddleOCR) + UI detection (OmniParser/Florence-2) + structured text for LLM. &lt;1 GB total.</td><td>aria/vision/ (new directory)</td></tr>
-                                <tr><td>6</td><td>Distillation API &rarr; training <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Pipeline: prompt &rarr; frontier API &rarr; response &rarr; local gradient computation &rarr; network aggregation. Only gradient leaves node.</td><td>aria/distillation.py (new), aria/api_bridge.py</td></tr>
-                                <tr><td>7</td><td>Consensus Inference documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Complete spec: protocol, messages, scoring, provenance, parameters. Update protocol-spec.md.</td><td>docs/consensus-inference.md (new)</td></tr>
-                                <tr><td>8</td><td>WP v2 publication + posts</td><td><span class="type-badge type-com">Com</span></td><td>Publish WP v2 (arXiv if possible). Posts: Consensus Inference demo on HN, r/MachineLearning.</td><td>ARIA_Whitepaper_v2.pdf, docs/PUBLICATION_POSTS.md</td></tr>
+                                <tr><td>33</td><td>KV-Cache NVMe: attention-aware eviction + prefetch (SpeCache-style)</td><td><span class="type-badge type-code">Code</span></td><td>Sparse attention identifies critical keys. Evict cold keys to SSD, prefetch hot keys.</td></tr>
+                                <tr><td>34</td><td>KV-Cache NVMe: 2-bit quantization (KIVI)</td><td><span class="type-badge type-code">Code</span></td><td>Compress KV-cache to 2-bit with &lt;2% accuracy loss. Enables massive context on limited RAM.</td></tr>
+                                <tr><td>35</td><td>KV-Cache NVMe: async I/O overlapped with compute</td><td><span class="type-badge type-code">Code</span></td><td>Pipeline SSD reads with GPU/CPU compute to hide I/O latency.</td></tr>
+                                <tr><td>36</td><td>Target: 500K+ tokens on 8GB RAM laptop</td><td><span class="type-badge type-code">Code</span></td><td>Integration of eviction + quantization + async I/O to reach 500K+ token context.</td></tr>
+                                <tr><td>37</td><td>Knowledge Network: P2P embedding sharing (Kademlia-based)</td><td><span class="type-badge type-code">Code</span></td><td>Distribute document embeddings across the P2P network via DHT.</td></tr>
+                                <tr><td>38</td><td>Knowledge Network: privacy-preserving embeddings (Eguard projection)</td><td><span class="type-badge type-code">Code</span></td><td>Projection-based defense reduces inversion attacks from &gt;95% to &lt;5%.</td></tr>
+                                <tr><td>39</td><td>Knowledge Network: standardized embedding model (DAO-governed)</td><td><span class="type-badge type-code">Code</span></td><td>Community-selected embedding model. DAO votes on model updates.</td></tr>
+                                <tr><td>40</td><td>Knowledge Network: semantic search across distributed documents</td><td><span class="type-badge type-code">Code</span></td><td>Query the network for relevant documents. Federated semantic search.</td></tr>
+                                <tr><td>41</td><td>Infinite Context Mode UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Desktop UI for managing extended context. Visual indicators for hot/cold cache.</td></tr>
+                                <tr><td>42</td><td>Conversation Memory Manager UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Browse, search, and manage stored memories. Fact store visualization.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1021,27 +861,28 @@
             </div>
 
             <!-- v0.9.0 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-pink);">
+            <div class="version-block" style="border-left: 3px solid var(--c-red);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(236, 72, 153, 0.15); color: var(--c-pink);">v0.9.0</span>
-                    <span class="version-name">ARIA-LM v0 + Ecosystem &mdash; Community Fine-tune + MCP</span>
+                    <span class="version-tag" style="background: rgba(239, 68, 68, 0.15); color: var(--c-red);">v0.9.0</span>
+                    <span class="version-name">ARIA-LM: Community Model</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">Community LoRA fine-tune, MCP client, browser agent, mobile R&amp;D &mdash; 8 tasks</p>
+                <p class="version-desc">Community-evolving language model, SAPO, LoRA merging, distillation &mdash; 9 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 8 tasks</summary>
+                    <summary>View 9 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>ARIA-LM v0 &mdash; Community LoRA fine-tune <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>LoRA/QLoRA fine-tune of existing 1-bit model with Consensus Inference responses + community data. Not training from scratch.</td><td>aria/training/ (new), aria/aria_lm.py (new)</td></tr>
-                                <tr><td>2</td><td>Feedback &rarr; fine-tune pipeline <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-code">Code</span></td><td>User feedback (thumbs up/down) &rarr; local dataset &rarr; periodic fine-tune. Data never leaves node.</td><td>aria/feedback.py (new), aria/training/</td></tr>
-                                <tr><td>3</td><td>Specialized ARIA-LM variants <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Base (generalist), Code (programming), Chat (conversation). Directed by specialized distillation data.</td><td>aria/aria_lm.py, aria/model_manager.py</td></tr>
-                                <tr><td>4</td><td>MCP client (Model Context Protocol) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>MCP protocol client. Compatible with all existing MCP servers (GitHub, Slack, Drive, DB, etc.).</td><td>aria/mcp_client.py (new), desktop/src-tauri/</td></tr>
-                                <tr><td>5</td><td>Piloted browser (ARIA Browse) <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Integrated WebView or Playwright headless driven by LLM. Web search, form filling, data extraction.</td><td>desktop/src/pages/Browse* (new), aria/browser.py</td></tr>
-                                <tr><td>6</td><td>Consensus &rarr; ARIA-LM synergy <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Best Consensus Inference responses auto-feed ARIA-LM fine-tuning. Self-improving loop.</td><td>aria/consensus.py, aria/training/</td></tr>
-                                <tr><td>7</td><td>Mobile (design &amp; prototype)</td><td><span class="type-badge type-design">Design</span></td><td>Mobile UI/UX design. React Native or Tauri Mobile prototype. On-device inference (1B-3B). R&amp;D only.</td><td>mobile/ (new directory)</td></tr>
-                                <tr><td>8</td><td>ARIA-LM + MCP documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>Create: aria-lm.md, mcp-integration.md, browser-agent.md. Update architecture.md.</td><td>docs/*.md</td></tr>
+                                <tr><td>43</td><td>ARIA-LM base model selection and distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Select base 1-bit model. Build distillation pipeline from frontier models.</td></tr>
+                                <tr><td>44</td><td>SAPO: decentralized reasoning rollout collection</td><td><span class="type-badge type-code">Code</span></td><td>Collect reasoning traces from network nodes. Quality filtering via reputation.</td></tr>
+                                <tr><td>45</td><td>SAPO: quality validation via reputation + cross-verification</td><td><span class="type-badge type-code">Code</span></td><td>Only high-reputation nodes contribute training data. Cross-verify quality.</td></tr>
+                                <tr><td>46</td><td>LoRA merging: community-contributed adapters (TIES-Merging/MergeKit)</td><td><span class="type-badge type-code">Code</span></td><td>Community submits LoRA adapters. Merge using TIES-Merging or MergeKit.</td></tr>
+                                <tr><td>47</td><td>LoRA anti-poisoning: benchmark testing before merge</td><td><span class="type-badge type-code">Code</span></td><td>Automated benchmark suite validates adapter quality before community merge.</td></tr>
+                                <tr><td>48</td><td>Meta-LoRA: CPU-only adapter generation from datasets</td><td><span class="type-badge type-code">Code</span></td><td>Generate LoRA adapters on CPU from user-provided datasets. No GPU required.</td></tr>
+                                <tr><td>49</td><td>RAG communautaire: document contribution and retrieval</td><td><span class="type-badge type-code">Code</span></td><td>Community document sharing via Knowledge Network. Contribute and retrieve.</td></tr>
+                                <tr><td>50</td><td>Consensus Inference &rarr; distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Best debate outputs become training data for ARIA-LM. Self-improving loop.</td></tr>
+                                <tr><td>51</td><td>ARIA-LM v0.1 release</td><td><span class="type-badge type-com">Com</span></td><td>First community model release. Benchmarks, documentation, download.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1049,28 +890,30 @@
             </div>
 
             <!-- v1.0.0 — Planned -->
-            <div class="version-block" style="border-left: 3px solid var(--c-red);">
+            <div class="version-block" style="border-left: 3px solid #f59e0b;">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(239, 68, 68, 0.15); color: var(--c-red);">v1.0.0</span>
-                    <span class="version-name">Mainnet &mdash; $ARIA Token + DAO + Production</span>
+                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">v1.0.0</span>
+                    <span class="version-name">Mainnet</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">$ARIA token, DAO, staking, audit, launch &mdash; 9 tasks</p>
+                <p class="version-desc">$ARIA token, DAO governance, production deployment &mdash; 11 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 9 tasks</summary>
+                    <summary>View 11 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
+                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>1</td><td>$ARIA Token &mdash; Smart contract <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Deploy on Base/Arbitrum (L2). Fixed supply 1B. 2% burn. Distribution: 50% mining / 20% DAO / 15% team / 10% testnet / 5% eco.</td><td>contracts/ (new), aria/token.py (new)</td></tr>
-                                <tr><td>2</td><td>Hybrid blockchain &mdash; Bridge ledger &rarr; L2 <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Internal ARIA ledger (fast, free) + periodic L2 settlement (liquidity/exchanges). Lightning Network model.</td><td>aria/ledger.py, aria/bridge.py (new)</td></tr>
-                                <tr><td>3</td><td>Multi-tier rewards <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Dynamic pricing. 6 tiers: inference (1x), consensus (3-5x), training (10x), distillation (15-20x), feedback (0.1x), hosting (passive).</td><td>aria/economics.py (new), aria/node.py</td></tr>
-                                <tr><td>4</td><td>DAO &amp; governance <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Quadratic voting. On-chain proposals. DAO treasury (200M $ARIA). Voting interface in desktop app.</td><td>contracts/governance/, desktop/src/pages/DAO*</td></tr>
-                                <tr><td>5</td><td>Early adopter airdrop <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-infra">Infra</span></td><td>Distribution of 100M $ARIA to testnet adopters, proportional to v0.7.0 snapshot. Claim via desktop app.</td><td>contracts/, desktop/</td></tr>
-                                <tr><td>6</td><td>Staking + slashing <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>Mandatory staking for validators. Slashing for cheating (data poisoning, fake energy). Integrated with reputation.</td><td>contracts/, aria/reputation.py</td></tr>
-                                <tr><td>7</td><td>Tokenomics documentation <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-doc">Doc</span></td><td>docs/tokenomics.md: supply, distribution, mechanisms, rewards, burn, staking, DAO.</td><td>docs/tokenomics.md (new)</td></tr>
-                                <tr><td>8</td><td>Security audit</td><td><span class="type-badge type-infra">Infra</span></td><td>Smart contract audit by third-party. P2P network audit. Bug bounty program.</td><td>docs/threat-model.md, docs/audit-report.md</td></tr>
-                                <tr><td>9</td><td>Launch + communication</td><td><span class="type-badge type-com">Com</span></td><td>Mainnet campaign: HN, Reddit, Twitter, LinkedIn, Product Hunt. DEX listings. Press kit, demo video.</td><td>docs/PUBLICATION_POSTS.md, press-kit/</td></tr>
+                                <tr><td>52</td><td>$ARIA token implementation (1B supply, deflationary)</td><td><span class="type-badge type-code">Code</span></td><td>Smart contract on L2. Fixed 1B supply with 2% burn mechanism.</td></tr>
+                                <tr><td>53</td><td>Multi-level reward system</td><td><span class="type-badge type-code">Code</span></td><td>Rewards for inference, consensus, SAPO, KV-cache hosting, knowledge contribution.</td></tr>
+                                <tr><td>54</td><td>Staking and slashing for validator nodes</td><td><span class="type-badge type-code">Code</span></td><td>Mandatory staking. Slashing for cheating (data poisoning, fake energy reports).</td></tr>
+                                <tr><td>55</td><td>DAO governance with quadratic voting</td><td><span class="type-badge type-code">Code</span></td><td>On-chain proposals. Quadratic voting prevents whale dominance. DAO treasury.</td></tr>
+                                <tr><td>56</td><td>Distributed KV-Cache across P2P network</td><td><span class="type-badge type-code">Code</span></td><td>Share KV-cache across nodes. Collaborative context extension.</td></tr>
+                                <tr><td>57</td><td>Context Relay: map-reduce for long documents</td><td><span class="type-badge type-code">Code</span></td><td>Split long documents across nodes. Map-reduce style processing.</td></tr>
+                                <tr><td>58</td><td>Smart Inference Routing (local vs P2P vs cloud fallback)</td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: try local first, then P2P network, then cloud API fallback.</td></tr>
+                                <tr><td>59</td><td>Universal API Bridge (OpenAI-compatible from any app)</td><td><span class="type-badge type-code">Code</span></td><td>Drop-in replacement for OpenAI API. Works with any OpenAI-compatible application.</td></tr>
+                                <tr><td>60</td><td>Production security hardening</td><td><span class="type-badge type-infra">Infra</span></td><td>Smart contract audit. P2P network audit. Bug bounty program.</td></tr>
+                                <tr><td>61</td><td>DEX token listing preparation</td><td><span class="type-badge type-infra">Infra</span></td><td>Liquidity provision. DEX listing on Uniswap/SushiSwap. Market making.</td></tr>
+                                <tr><td>62</td><td>Mainnet launch</td><td><span class="type-badge type-com">Com</span></td><td>Production deployment. Launch campaign: HN, Reddit, Twitter, Product Hunt.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1084,24 +927,18 @@
                     <span class="version-name">Beyond &mdash; Long-term Vision</span>
                     <span class="version-status status-vision">Vision</span>
                 </div>
-                <p class="version-desc">Mobile, Computer Use, MoE+1-bit, full ARIA-LM training, SDK &mdash; 7 tasks</p>
-                <details class="version-tasks">
-                    <summary>View 7 tasks</summary>
-                    <div class="task-table-wrap">
-                        <table class="task-table">
-                            <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th><th>Files</th></tr></thead>
-                            <tbody>
-                                <tr><td>1</td><td>Mobile app iOS/Android</td><td><span class="type-badge type-code">Code</span></td><td>Full mobile release. On-device inference (1B-3B). Lightweight mobile node. Network contribution from phone.</td><td>mobile/</td></tr>
-                                <tr><td>2</td><td>Full Computer Use (Level 2+3) <span class="task-badge task-moved">MOVED</span></td><td><span class="type-badge type-code">Code</span></td><td>Full local vision pipeline + frontier routing for complex tasks. Mouse/keyboard control via enigo (Rust). Moved from v1.0.0.</td><td>desktop/src-tauri/src/computer_use.rs</td></tr>
-                                <tr><td>3</td><td>ARIA-LM vN &mdash; Distillation + Federated Learning <span class="task-badge task-v21">v2.1</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>3B training by multi-teacher distillation + federated RLHF (Flower) + Consensus data. When community and resources allow.</td><td>aria/training/, aria/federated.py (new)</td></tr>
-                                <tr><td>4</td><td>MoE + 1-bit R&amp;D <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>100B+ total model, 5-10B active/token, ~1 GB memory. Frontier-class distributed on laptops.</td><td>research/ (new)</td></tr>
-                                <tr><td>5</td><td>Native 1-bit VLM <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Ternarize small VLM (Moondream, Florence-2) via PT-BitNet. Native vision in LLM.</td><td>aria/vision/</td></tr>
-                                <tr><td>6</td><td>Third-party developer SDK <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-code">Code</span></td><td>SDK for developers to build apps on ARIA network. Stable API, documentation, examples, templates.</td><td>sdk/ (new), docs/developer-guide.md</td></tr>
-                                <tr><td>7</td><td>ARIA-LM Convergence <span class="task-badge task-new">NEW</span></td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Continuous loop: distillation + federated RLHF + Consensus data. Versions snapshotted on ledger. Autonomous community model.</td><td>aria/training/</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
+                <p class="version-desc">Mobile, mesh networking, automation, gamification, MoE+1-bit research</p>
+                <div class="version-milestones">
+                    <ul>
+                        <li><strong>Mobile companion app</strong> &mdash; iOS/Android with on-device inference (1B&ndash;3B models)</li>
+                        <li><strong>ARIA Mesh Mode</strong> &mdash; Offline local inference via Bluetooth/WiFi Direct</li>
+                        <li><strong>Live Network Globe</strong> &mdash; 3D visualization of the global ARIA network</li>
+                        <li><strong>Automation Studio</strong> &mdash; No-code AI workflows and task automation</li>
+                        <li><strong>Team/Family sharing</strong> &mdash; LAN-based node sharing for groups</li>
+                        <li><strong>Gamification &amp; achievements</strong> &mdash; Reward engagement and contribution milestones</li>
+                        <li><strong>MoE + 1-bit research</strong> &mdash; 100B+ params, ~1 GB memory, frontier-class on laptops</li>
+                    </ul>
+                </div>
             </div>
 
         </div>
@@ -1121,12 +958,8 @@
                     <div class="desc">Identified Tasks</div>
                 </div>
                 <div class="summary-card">
-                    <div class="num">44</div>
-                    <div class="desc">New Tasks (vs v1)</div>
-                </div>
-                <div class="summary-card">
-                    <div class="num">7</div>
-                    <div class="desc">v2.1 Corrections</div>
+                    <div class="num">v0.5.5</div>
+                    <div class="desc">Current Version</div>
                 </div>
             </div>
         </div>
