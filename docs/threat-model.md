@@ -1,6 +1,8 @@
 # ARIA Protocol Threat Model
 
-This document describes the security threat model for ARIA Protocol v0.2.5, including known attack vectors, current mitigations, and planned security improvements.
+This document describes the security threat model for ARIA Protocol v0.5.5, including known attack vectors, current mitigations, and planned security improvements.
+
+> **See also:** [SECURITY.md](../SECURITY.md) for vulnerability reporting, [Security Architecture](security-architecture.md) for the defense-in-depth model.
 
 ## Table of Contents
 
@@ -116,7 +118,7 @@ Legitimate requests → routed to attacker nodes
 - Reputation builds slowly over time
 - Quality scoring considers multiple factors
 
-**Planned Mitigations** (v0.4.0):
+**Planned Mitigations** (v0.7.0):
 - [ ] Stake-based node registration (economic cost to create nodes)
 - [ ] Identity verification via hardware attestation
 - [ ] Social graph analysis for detecting clusters
@@ -149,7 +151,7 @@ Legitimate requests → routed to attacker nodes
 - Peer discovery from multiple sources
 - Dead peer detection removes unresponsive nodes
 
-**Planned Mitigations** (v0.3.0):
+**Planned Mitigations** (v0.6.0):
 - [ ] Diverse peer selection (by IP range, geography)
 - [ ] Persistent peer storage across restarts
 - [ ] Outbound connection ratio requirements
@@ -181,7 +183,7 @@ User ──► [Attacker] ──► Node
 - Message integrity via JSON structure
 - Node ID verification in messages
 
-**Planned Mitigations** (v0.2.5):
+**Planned Mitigations** (v0.5.5):
 - [x] TLS/WSS for all WebSocket connections
 - [ ] Message signing with node keys
 - [ ] Certificate pinning for known peers
@@ -215,7 +217,7 @@ async def handle_inference(request):
 - Proof of Useful Work requires actual computation
 - Reputation tracking over time
 
-**Planned Mitigations** (v0.4.0):
+**Planned Mitigations** (v0.7.0–v1.0.0):
 - [ ] Redundant inference (query multiple nodes)
 - [ ] Result voting/consensus
 - [ ] Cryptographic commitment schemes
@@ -287,7 +289,7 @@ def report_energy(actual_mj):
 - Cross-reference with latency
 - Statistical outlier detection
 
-**Planned Mitigations** (v0.4.0):
+**Planned Mitigations** (v0.7.0–v1.0.0):
 - [ ] Hardware attestation (TPM/SGX)
 - [ ] External power monitoring integration
 - [ ] Benchmark-based calibration
@@ -322,7 +324,7 @@ def report_energy(actual_mj):
 - Reputation affects reward multiplier
 - Request fees create cost for attackers
 
-**Planned Mitigations** (v0.4.0):
+**Planned Mitigations** (v0.7.0–v1.0.0):
 - [ ] Request origin verification
 - [ ] Fee burning mechanism
 - [ ] Time-locked rewards
@@ -357,7 +359,7 @@ async def handle_inference(request):
 - Users can run local nodes
 - No central logging by design
 
-**Planned Mitigations** (v0.3.0):
+**Planned Mitigations** (v0.7.0–v1.0.0):
 - [ ] Prompt encryption (homomorphic or MPC)
 - [ ] Trusted execution environments (TEE)
 - [ ] Differential privacy for activations
@@ -407,18 +409,18 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 
 ## Mitigation Summary
 
-### Current Status (v0.2.5)
+### Current Status (v0.5.5)
 
 | Threat | Severity | Mitigation Status |
 |--------|----------|-------------------|
-| Sybil Attack | HIGH | PARTIAL |
-| Eclipse Attack | MEDIUM | PARTIAL |
-| MITM Attack | HIGH | IMPLEMENTED (TLS) |
-| Result Falsification | HIGH | PARTIAL |
-| Pipeline Poisoning | MEDIUM | PARTIAL |
-| Energy Fraud | MEDIUM | PARTIAL |
-| Reward Gaming | MEDIUM | PARTIAL |
-| Prompt Leakage | HIGH | PARTIAL |
+| Sybil Attack | HIGH | PARTIAL (PoUW + rate limiting) |
+| Eclipse Attack | MEDIUM | PARTIAL (bootstrap + peer detection) |
+| MITM Attack | HIGH | IMPLEMENTED (TLS 1.3) |
+| Result Falsification | HIGH | PARTIAL (provenance + timing) |
+| Pipeline Poisoning | MEDIUM | PARTIAL (checksums + timeouts) |
+| Energy Fraud | MEDIUM | PARTIAL (estimation + outlier detection) |
+| Reward Gaming | MEDIUM | PARTIAL (PoUW + reputation) |
+| Prompt Leakage | HIGH | PARTIAL (local inference + consent) |
 | Activation Analysis | LOW | MINIMAL |
 
 ### Defense in Depth
@@ -460,29 +462,38 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 
 ## Security Roadmap
 
-### v0.2.5 (Current)
+### v0.2.5 (Completed ✅)
 
 - [x] TLS/WSS support for WebSocket connections
 - [x] Self-signed certificate generation
 - [x] Threat model documentation
-- [ ] Basic input validation hardening
+- [x] Basic input validation hardening
 
-### v0.3.0 (Mobile)
+### v0.5.5 (Current ✅)
 
-- [ ] End-to-end prompt encryption
-- [ ] Peer diversity requirements
-- [ ] Certificate pinning
-- [ ] Mobile-specific security (keychain, etc.)
+- [x] Security policy (SECURITY.md)
+- [x] Defense-in-depth architecture documentation
+- [x] Security section in README
+- [x] Website security page
 
-### v0.4.0 (Consensus)
+### v0.6.0 (Testnet Alpha)
+
+- [ ] Peer diversity requirements (by IP range, geography)
+- [ ] Persistent peer storage across restarts
+- [ ] Certificate pinning for known peers
+- [ ] NAT traversal with security hardening
+
+### v0.7.0 (Smart Layer)
 
 - [ ] Stake-based Sybil resistance
-- [ ] Slashing for misbehavior
-- [ ] Hardware attestation integration
-- [ ] Redundant inference consensus
+- [ ] Reputation system with slow accrual / fast decay
+- [ ] End-to-end prompt encryption
+- [ ] Message signing with node keys
 
 ### v1.0.0 (Mainnet)
 
+- [ ] Slashing for misbehavior
+- [ ] Hardware attestation integration (TPM/SGX)
 - [ ] Third-party security audit
 - [ ] Bug bounty program
 - [ ] Formal verification of critical paths
@@ -515,5 +526,5 @@ We aim to respond within 48 hours and will work with you on coordinated disclosu
 
 ---
 
-*Document Version: 0.2.5*
-*Last Updated: 2026-02-01*
+*Document Version: 0.5.5*
+*Last Updated: 2026-02-10*
