@@ -348,6 +348,7 @@ Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.i
 | [API Reference](docs/api-reference.md) | OpenAI-compatible API documentation |
 | [Protocol Spec](docs/protocol-spec.md) | WebSocket protocol specification |
 | [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
+| [Security Architecture](docs/security-architecture.md) | Defense-in-depth security model |
 | [Benchmarks](benchmarks/README.md) | Performance methodology and results |
 | [Roadmap](docs/ROADMAP.md) | Full roadmap v3.0 (62 tasks, 9 versions) |
 | [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
@@ -398,6 +399,61 @@ ARIA is evolving from a local inference protocol to a fully distributed network.
 * **$ARIA Token & DAO (v1.0.0)** — Proof of Useful Work tokenomics where mining equals inference
 
 See the [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+
+---
+
+## Security & Trust Architecture
+
+In decentralized AI, the fundamental question is: **"How do you trust an untrusted node?"** ARIA Protocol answers this with five independent defense layers, where each layer catches failures the others miss.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    ARIA DEFENSE-IN-DEPTH                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  Layer 5: Privacy & Consent                               │  │
+│  │  Consent contracts · Data minimization · Local inference   │  │
+│  │  ┌─────────────────────────────────────────────────────┐  │  │
+│  │  │  Layer 4: Economic Security                         │  │  │
+│  │  │  Staking · Slashing · Time-locked rewards           │  │  │
+│  │  │  ┌───────────────────────────────────────────────┐  │  │  │
+│  │  │  │  Layer 3: Consensus Security                  │  │  │  │
+│  │  │  │  Proof of Useful Work · Proof of Sobriety     │  │  │  │
+│  │  │  │  ┌─────────────────────────────────────────┐  │  │  │  │
+│  │  │  │  │  Layer 2: Protocol Security              │  │  │  │  │
+│  │  │  │  │  Message auth · Replay protection        │  │  │  │  │
+│  │  │  │  │  ┌───────────────────────────────────┐   │  │  │  │  │
+│  │  │  │  │  │  Layer 1: Transport Security      │   │  │  │  │  │
+│  │  │  │  │  │  TLS 1.3 · Certificate validation │   │  │  │  │  │
+│  │  │  │  │  └───────────────────────────────────┘   │  │  │  │  │
+│  │  │  │  └─────────────────────────────────────────┘  │  │  │  │
+│  │  │  └───────────────────────────────────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │              Provenance Ledger (Immutable Core)            │  │
+│  │  Every inference recorded: hash, nodes, energy, timestamp  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### How ARIA prevents cheating
+
+| Attack | How it's detected | Mechanism |
+|--------|-------------------|-----------|
+| **Fake inference** (return garbage to save compute) | Output hash verification + timing analysis | Proof of Useful Work ([`proof.py`](aria/proof.py)) |
+| **Energy fraud** (report less energy to earn more) | Cross-reference with hardware TDP + statistical outliers | Proof of Sobriety ([`proof.py`](aria/proof.py)) |
+| **Sybil attack** (create fake nodes for rewards) | IP + hardware fingerprint + stake requirements | Reputation system + Staking |
+| **Result manipulation** (alter inference outputs) | Immutable provenance chain + redundant verification | Provenance Ledger ([`ledger.py`](aria/ledger.py)) |
+| **Prompt leakage** (spy on user queries) | Local-first inference + consent contracts | Consent system ([`consent.py`](aria/consent.py)) |
+
+### Trust model
+
+Nodes **DO NOT trust each other** — they verify. Users trust their local node (which they control) and the cryptographic proofs on the ledger. Every inference produces an immutable record containing the I/O hashes, participating nodes, energy consumed, and timestamp. This is not a heavyweight blockchain consensus — it's a lightweight provenance chain optimized for AI inference workloads.
+
+📖 **Full details:** [Threat Model](docs/threat-model.md) · [Security Policy](SECURITY.md) · [Protocol Spec](docs/protocol-spec.md)
 
 ---
 
