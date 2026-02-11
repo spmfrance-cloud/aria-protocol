@@ -1,7 +1,7 @@
 """
 ARIA Protocol - Core Node
 The main ARIA node that ties everything together.
-Join the network. Contribute compute. Earn rewards.
+Join the network. Contribute compute. Build reputation.
 
 MIT License - Anthony MURGO, 2026
 """
@@ -27,7 +27,7 @@ class ARIANode:
 
     This is the primary entry point for participating in ARIA.
     A node can contribute CPU resources for AI inference and
-    earn ARIA tokens in return.
+    build reputation through useful work.
 
     Minimal example (async):
         node = ARIANode(cpu_percent=25, port=8765)
@@ -107,7 +107,7 @@ class ARIANode:
 
         # State
         self.is_running = False
-        self.tokens_earned = 0.0
+        self.contribution_score = 0.0
         self.start_time: Optional[float] = None
 
         # Set inference callback for network requests
@@ -202,13 +202,13 @@ class ARIANode:
             )
             print(f"[ARIA] Sobriety rating: {attestation.efficiency_rating}")
 
-        # Mine any pending records
+        # Finalize any pending records
         if self.ledger.pending_records:
             self.ledger.mine_pending_block(miner_id=self.node_id)
 
         print(f"[ARIA] Node {self.node_id} stopped")
         print(f"[ARIA] Total inferences: {self.engine.total_inferences}")
-        print(f"[ARIA] Tokens earned: {self.tokens_earned:.4f} ARIA")
+        print(f"[ARIA] Contribution score: {self.contribution_score:.4f}")
 
     async def connect_to_peers(self, peers: List[str]):
         """
@@ -263,9 +263,9 @@ class ARIANode:
                 record = result.to_provenance_record(state.query)
                 self.ledger.add_record(record)
 
-                # Calculate reward (split among all nodes)
-                reward = self._calculate_reward(result) / len(result.nodes_used)
-                self.tokens_earned += reward
+                # Update contribution score (split among all nodes)
+                score = self._calculate_contribution_score(result) / len(result.nodes_used)
+                self.contribution_score += score
 
                 return {
                     "status": "completed",
@@ -423,7 +423,7 @@ class ARIANode:
         1. Run inference through the local engine
         2. Record provenance on the ledger
         3. Submit Proof of Useful Work
-        4. Calculate and add rewards
+        4. Update contribution score
 
         Args:
             query: The input text/prompt
@@ -459,9 +459,9 @@ class ARIANode:
         )
         self.pouw.submit_proof(proof)
 
-        # 4. Calculate rewards
-        reward = self._calculate_reward(result)
-        self.tokens_earned += reward
+        # 4. Update contribution score
+        score = self._calculate_contribution_score(result)
+        self.contribution_score += score
 
         return result
 
@@ -495,16 +495,19 @@ class ARIANode:
                 return None
         return None
 
-    def _calculate_reward(self, result: InferenceResult) -> float:
+    def _calculate_contribution_score(self, result: InferenceResult) -> float:
         """
-        Calculate ARIA token reward for an inference.
+        Calculate contribution score for an inference.
 
-        Reward = base_rate × quality_score × efficiency_bonus
+        Score = base_rate × quality_score × efficiency_bonus
 
         Quality: based on latency (faster = better)
         Efficiency: based on energy consumption (less = better)
+
+        The contribution score is used for node reputation
+        and network quality tracking, not as a currency.
         """
-        base_rate = 0.001  # 0.001 ARIA per inference
+        base_rate = 0.001  # Base contribution points per inference
 
         # Quality score: latency-based [0, 1]
         # Target: <1000ms = perfect, >5000ms = minimum
@@ -531,7 +534,7 @@ class ARIANode:
             "is_running": self.is_running,
             "uptime_seconds": round(uptime),
             "consent": str(self.consent),
-            "tokens_earned": round(self.tokens_earned, 6),
+            "contribution_score": round(self.contribution_score, 6),
             "engine": engine_stats,
             "network": network_stats,
             "ledger": ledger_stats,
@@ -563,5 +566,5 @@ class ARIANode:
         return (
             f"ARIANode(id={self.node_id}, status={status}, "
             f"inferences={self.engine.total_inferences}, "
-            f"earned={self.tokens_earned:.4f} ARIA)"
+            f"score={self.contribution_score:.4f})"
         )

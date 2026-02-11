@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARIA Protocol - Roadmap v3.0</title>
-    <meta name="description" content="ARIA Protocol Roadmap v3.0 — 9 versions, 62 tasks, from testnet to mainnet. Full interactive roadmap.">
+    <meta name="description" content="ARIA Protocol Roadmap v3.0 — 9 versions, from testnet to production. Full interactive roadmap.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F310;</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -673,14 +673,14 @@
                 v0.5.5 in progress
             </div>
             <h1>ARIA Protocol &mdash; <span class="gradient-text">Roadmap v3.0</span></h1>
-            <p class="hero-subtitle">From testnet to mainnet. 9 versions charting the path from proof-of-concept to a fully decentralized AI inference network.</p>
+            <p class="hero-subtitle">From testnet to production. 9 versions charting the path from proof-of-concept to a fully decentralized AI inference network.</p>
             <div class="hero-stats">
                 <div class="hero-stat">
                     <span class="value">9</span>
                     <span class="label">Versions</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="value">62</span>
+                    <span class="value">54</span>
                     <span class="label">Tasks</span>
                 </div>
                 <div class="hero-stat">
@@ -818,7 +818,7 @@
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>27</td><td>Whitepaper v2</td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: Consensus Inference, KV-Cache, ARIA-LM, tokenomics, competitor analysis.</td></tr>
+                                <tr><td>27</td><td>Whitepaper v2</td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: Consensus Inference, KV-Cache, ARIA-LM, reputation system, competitor analysis.</td></tr>
                                 <tr><td>28</td><td>PT-BitNet R&amp;D: ternarize Qwen3-14B</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Post-training ternarization of Qwen3-14B (28 GB &rarr; ~3 GB). Quality benchmarks.</td></tr>
                                 <tr><td>29</td><td>KV-Cache NVMe: proof of concept (save/restore between sessions)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Prototype SSD-based KV-cache persistence. Save and restore context across sessions.</td></tr>
                                 <tr><td>30</td><td>Benchmark Falcon-Edge vs Microsoft BitNet (publication content)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Rigorous comparison. Publishable results for community credibility.</td></tr>
@@ -850,7 +850,7 @@
                                 <tr><td>36</td><td>Target: 500K+ tokens on 8GB RAM laptop</td><td><span class="type-badge type-code">Code</span></td><td>Integration of eviction + quantization + async I/O to reach 500K+ token context.</td></tr>
                                 <tr><td>37</td><td>Knowledge Network: P2P embedding sharing (Kademlia-based)</td><td><span class="type-badge type-code">Code</span></td><td>Distribute document embeddings across the P2P network via DHT.</td></tr>
                                 <tr><td>38</td><td>Knowledge Network: privacy-preserving embeddings (Eguard projection)</td><td><span class="type-badge type-code">Code</span></td><td>Projection-based defense reduces inversion attacks from &gt;95% to &lt;5%.</td></tr>
-                                <tr><td>39</td><td>Knowledge Network: standardized embedding model (DAO-governed)</td><td><span class="type-badge type-code">Code</span></td><td>Community-selected embedding model. DAO votes on model updates.</td></tr>
+                                <tr><td>39</td><td>Knowledge Network: standardized embedding model (community-governed)</td><td><span class="type-badge type-code">Code</span></td><td>Community-selected embedding model. Community governance for model updates.</td></tr>
                                 <tr><td>40</td><td>Knowledge Network: semantic search across distributed documents</td><td><span class="type-badge type-code">Code</span></td><td>Query the network for relevant documents. Federated semantic search.</td></tr>
                                 <tr><td>41</td><td>Infinite Context Mode UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Desktop UI for managing extended context. Visual indicators for hot/cold cache.</td></tr>
                                 <tr><td>42</td><td>Conversation Memory Manager UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Browse, search, and manage stored memories. Fact store visualization.</td></tr>
@@ -893,27 +893,22 @@
             <div class="version-block" style="border-left: 3px solid #f59e0b;">
                 <div class="version-header">
                     <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">v1.0.0</span>
-                    <span class="version-name">Mainnet</span>
+                    <span class="version-name">Production Network</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">$ARIA token, DAO governance, production deployment &mdash; 11 tasks</p>
+                <p class="version-desc">Stable production network, reputation system, hardened infrastructure &mdash; 6 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 11 tasks</summary>
+                    <summary>View 6 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>52</td><td>$ARIA token implementation (1B supply, deflationary)</td><td><span class="type-badge type-code">Code</span></td><td>Smart contract on L2. Fixed 1B supply with 2% burn mechanism.</td></tr>
-                                <tr><td>53</td><td>Multi-level reward system</td><td><span class="type-badge type-code">Code</span></td><td>Rewards for inference, consensus, SAPO, KV-cache hosting, knowledge contribution.</td></tr>
-                                <tr><td>54</td><td>Staking and slashing for validator nodes</td><td><span class="type-badge type-code">Code</span></td><td>Mandatory staking. Slashing for cheating (data poisoning, fake energy reports).</td></tr>
-                                <tr><td>55</td><td>DAO governance with quadratic voting</td><td><span class="type-badge type-code">Code</span></td><td>On-chain proposals. Quadratic voting prevents whale dominance. DAO treasury.</td></tr>
-                                <tr><td>56</td><td>Distributed KV-Cache across P2P network</td><td><span class="type-badge type-code">Code</span></td><td>Share KV-cache across nodes. Collaborative context extension.</td></tr>
-                                <tr><td>57</td><td>Context Relay: map-reduce for long documents</td><td><span class="type-badge type-code">Code</span></td><td>Split long documents across nodes. Map-reduce style processing.</td></tr>
-                                <tr><td>58</td><td>Smart Inference Routing (local vs P2P vs cloud fallback)</td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: try local first, then P2P network, then cloud API fallback.</td></tr>
-                                <tr><td>59</td><td>Universal API Bridge (OpenAI-compatible from any app)</td><td><span class="type-badge type-code">Code</span></td><td>Drop-in replacement for OpenAI API. Works with any OpenAI-compatible application.</td></tr>
-                                <tr><td>60</td><td>Production security hardening</td><td><span class="type-badge type-infra">Infra</span></td><td>Smart contract audit. P2P network audit. Bug bounty program.</td></tr>
-                                <tr><td>61</td><td>DEX token listing preparation</td><td><span class="type-badge type-infra">Infra</span></td><td>Liquidity provision. DEX listing on Uniswap/SushiSwap. Market making.</td></tr>
-                                <tr><td>62</td><td>Mainnet launch</td><td><span class="type-badge type-com">Com</span></td><td>Production deployment. Launch campaign: HN, Reddit, Twitter, Product Hunt.</td></tr>
+                                <tr><td>52</td><td>Distributed KV-Cache across P2P network</td><td><span class="type-badge type-code">Code</span></td><td>Share KV-cache across nodes. Collaborative context extension.</td></tr>
+                                <tr><td>53</td><td>Context Relay: map-reduce for long documents</td><td><span class="type-badge type-code">Code</span></td><td>Split long documents across nodes. Map-reduce style processing.</td></tr>
+                                <tr><td>54</td><td>Smart Inference Routing (local vs P2P vs cloud fallback)</td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: try local first, then P2P network, then cloud API fallback.</td></tr>
+                                <tr><td>55</td><td>Universal API Bridge (OpenAI-compatible from any app)</td><td><span class="type-badge type-code">Code</span></td><td>Drop-in replacement for OpenAI API. Works with any OpenAI-compatible application.</td></tr>
+                                <tr><td>56</td><td>Production security hardening</td><td><span class="type-badge type-infra">Infra</span></td><td>P2P network audit. Bug bounty program. Third-party security review.</td></tr>
+                                <tr><td>57</td><td>Production launch</td><td><span class="type-badge type-com">Com</span></td><td>Stable production network for public use. Launch campaign: HN, Reddit, Twitter, Product Hunt.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -954,7 +949,7 @@
                     <div class="desc">Planned Versions</div>
                 </div>
                 <div class="summary-card">
-                    <div class="num">62</div>
+                    <div class="num">54</div>
                     <div class="desc">Identified Tasks</div>
                 </div>
                 <div class="summary-card">
