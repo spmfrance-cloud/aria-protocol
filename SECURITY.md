@@ -39,15 +39,15 @@ ARIA Protocol secures decentralized AI inference through **five defense layers**
 - Rate limiting on peer announcements
 
 ### Layer 3 — Consensus Security
-- **Proof of Useful Work (PoUW):** Mining IS inference — no wasted computation. Every reward requires actual AI inference work, verified via output hashing and timing analysis.
+- **Proof of Useful Work (PoUW):** Every computation is real AI inference — no wasted work. Every contribution requires actual AI inference work, verified via output hashing and timing analysis.
 - **Proof of Sobriety:** Energy consumption is tracked per inference and cross-referenced with hardware capabilities. Statistical outlier detection flags impossible claims.
 - **Provenance Ledger:** Every inference is recorded immutably — timestamp, I/O hashes, participating nodes, energy consumed. Full audit trail.
 
-### Layer 4 — Economic Security *(designed, implementation v0.7.0–v1.0.0)*
-- Stake-based node registration (economic cost to create nodes)
-- Slashing conditions for detected fraud
-- Time-locked rewards preventing hit-and-run attacks
-- Reputation system with slow accrual and fast decay
+### Layer 4 — Reputation Security *(designed, implementation v0.7.0–v1.0.0)*
+- Reputation-based node ranking (quality-driven participation)
+- Reputation penalties for detected fraud
+- Time-weighted reputation preventing hit-and-run attacks
+- Slow accrual, fast decay reputation scoring
 
 ### Layer 5 — Privacy & Consent
 - Consent contracts: explicit CPU, RAM, schedule, and task-type limits
@@ -56,13 +56,13 @@ ARIA Protocol secures decentralized AI inference through **five defense layers**
 
 ## Threat Model
 
-A comprehensive threat model covering P2P attacks (Sybil, Eclipse, MITM), inference integrity attacks (result falsification, pipeline poisoning), economic attacks (energy fraud, reward gaming), and privacy attacks (prompt leakage) is documented in [docs/threat-model.md](docs/threat-model.md).
+A comprehensive threat model covering P2P attacks (Sybil, Eclipse, MITM), inference integrity attacks (result falsification, pipeline poisoning), reputation attacks (energy fraud, reputation gaming), and privacy attacks (prompt leakage) is documented in [docs/threat-model.md](docs/threat-model.md).
 
 ## Known Limitations
 
 ARIA Protocol is pre-mainnet software. The following security features are designed but not yet implemented:
-- Stake-based Sybil resistance (planned v0.7.0)
-- Slashing for misbehavior (planned v1.0.0)
+- Reputation-based Sybil resistance (planned v0.7.0)
+- Reputation penalties for misbehavior (planned v1.0.0)
 - Hardware attestation (planned v1.0.0)
 - Third-party security audit (planned v1.0.0)
 - Bug bounty program (planned v1.0.0)

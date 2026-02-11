@@ -26,7 +26,7 @@ This document describes the technical architecture of the ARIA Protocol, a peer-
 │  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐      │   │
 │  │  │   Provenance    │  │  Proof of       │  │  Proof of       │      │   │
 │  │  │   Ledger        │  │  Useful Work    │  │  Sobriety       │      │   │
-│  │  │  (blockchain)   │  │ (mining=infer)  │  │ (energy track)  │      │   │
+│  │  │  (blockchain)   │  │ (useful work)   │  │ (energy track)  │      │   │
 │  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘      │   │
 │  │           │                    │                    │                │   │
 │  │           └────────────────────┼────────────────────┘                │   │
@@ -160,7 +160,7 @@ ARIA supports multiple inference backends with automatic fallback:
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ TernaryLayer simulation — Protocol mechanics demo     │   │
 │  │ ✓ Always available, no dependencies                   │   │
-│  │ ✓ Full protocol flow (ledger, proofs, rewards)        │   │
+│  │ ✓ Full protocol flow (ledger, proofs, scoring)        │   │
 │  │ ✗ No real language model output                        │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                                                              │
@@ -197,7 +197,7 @@ Models are split across multiple nodes for distributed inference:
 
 ### Layer 2: Consensus Layer
 
-Ensures transparency, accountability, and fair rewards.
+Ensures transparency, accountability, and quality tracking.
 
 #### Provenance Ledger (`ledger.py`)
 
@@ -240,7 +240,7 @@ An immutable blockchain recording all inference operations:
 
 #### Proof of Useful Work (`proof.py`)
 
-Unlike Bitcoin's wasteful hash mining, ARIA's mining IS inference:
+Unlike Bitcoin's wasteful hash computation, ARIA ensures every computation is useful AI inference:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -248,8 +248,8 @@ Unlike Bitcoin's wasteful hash mining, ARIA's mining IS inference:
 │                                                              │
 │    Bitcoin                         ARIA                      │
 │    ───────                         ────                      │
-│    hash(nonce) → reward     inference(query) → reward        │
-│    Wasted energy            Actual AI work                   │
+│    hash(nonce) → nothing useful    inference(query) → real AI output │
+│    Wasted energy                   Actual AI work            │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ UsefulWorkProof:                                      │   │
@@ -263,10 +263,10 @@ Unlike Bitcoin's wasteful hash mining, ARIA's mining IS inference:
 │  │   timestamp: 1706745600                               │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                                                              │
-│  Block Producer Selection:                                   │
+│  Top Contributor Tracking:                                   │
 │  - Track verified work count per node per epoch              │
-│  - Node with most useful work becomes block producer         │
-│  - More inference = higher chance of producing blocks        │
+│  - Nodes are ranked by quality and quantity of useful work   │
+│  - Used for reputation scoring and network quality metrics   │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -331,8 +331,8 @@ No resource is used without explicit permission:
 │    allow_logging: true,                                      │
 │    allow_geo_tracking: false,                                │
 │                                                              │
-│    // Economics                                              │
-│    min_reward_per_inference: 0.001  // Minimum ARIA tokens   │
+│    // Quality                                               │
+│    min_reputation_score: 0.001  // Minimum reputation threshold │
 │  }                                                           │
 │                                                              │
 │  Consent Matching:                                           │
@@ -414,7 +414,7 @@ Provides user-facing interfaces and integrations.
 │  │  ID: alice        │  │  Peers: 3         │               │
 │  │  Uptime: 2h 15m   │  │  Messages: 1,247  │               │
 │  │  Inferences: 42   │  │  Requests: 89     │               │
-│  │  Tokens: 0.042    │  │                   │               │
+│  │  Score: 0.042     │  │                   │               │
 │  └───────────────────┘  └───────────────────┘               │
 │                                                              │
 │  ┌───────────────────────────────────────────┐              │
@@ -508,17 +508,20 @@ Here's how a request flows through the entire system:
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
 │  │ ProofOfUsefulWork.submit_proof(UsefulWorkProof(...))                  │  │
 │  │ → Verified work count incremented                                     │  │
-│  │ → Node eligible for block production                                  │  │
+│  │ → Node contribution tracked for reputation                            │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │           │                                                                 │
 │           ▼                                                                 │
-│  7. CALCULATE REWARD                                                        │
+│  7. UPDATE CONTRIBUTION SCORE                                               │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ reward = base_rate × quality_score × efficiency_bonus                 │  │
+│  │ score = base_rate × quality_score × efficiency_bonus                  │  │
 │  │                                                                       │  │
-│  │ base_rate = 0.001 ARIA                                                │  │
+│  │ base_rate = 0.001 (contribution points)                               │  │
 │  │ quality = 1 - (latency - 1000ms) / 4000ms    [0, 1]                  │  │
 │  │ efficiency = min(2.0, max(0.5, 150mJ / energy))   [0.5, 2.0]         │  │
+│  │                                                                       │  │
+│  │ Contribution score is used for reputation tracking,                   │  │
+│  │ not as a currency or token.                                           │  │
 │  └───────────────────────────────────────────────────────────────────────┘  │
 │           │                                                                 │
 │           ▼                                                                 │

@@ -12,10 +12,10 @@ graph TB
         C3[Data Minimization<br/>Only hashes transit network]
     end
 
-    subgraph "Layer 4: Economic Security"
-        E1[Staking<br/>Economic cost to join as validator]
-        E2[Slashing<br/>Penalties for proven fraud]
-        E3[Time-Locked Rewards<br/>No hit-and-run attacks]
+    subgraph "Layer 4: Reputation Security"
+        E1[Reputation Scoring<br/>Quality-based node ranking]
+        E2[Reputation Penalties<br/>Consequences for proven fraud]
+        E3[Minimum Threshold<br/>Quality gate for participation]
     end
 
     subgraph "Layer 3: Consensus Security"
@@ -75,18 +75,17 @@ This is ARIA's core innovation — **Proof of Useful Work** means mining IS infe
 
 **Implementation:** `aria/proof.py`, `aria/ledger.py`
 
-### Layer 4 — Economic Security (Designed 📐)
+### Layer 4 — Reputation Security (Designed 📐)
 
-Economic mechanisms create real financial cost for attacks, making cheating unprofitable.
+Reputation mechanisms create real consequences for dishonest behavior, making cheating unprofitable.
 
 | Mechanism | Target Version | Description |
 |-----------|---------------|-------------|
-| Staking | v0.7.0 | Validators must stake $ARIA tokens. Creates economic cost for Sybil attacks. |
-| Slashing | v1.0.0 | Proven fraud (falsified inference, energy fraud) results in stake confiscation. |
-| Time-locked rewards | v1.0.0 | Rewards vest over time, preventing hit-and-run attacks. |
-| Reputation system | v0.7.0 | Slow accrual, fast decay. Long-term honest behavior is rewarded; a single fraud incident has lasting consequences. |
+| Reputation scoring | v0.7.0 | Nodes build reputation through consistent, quality inference work. Slow accrual, fast decay — a single fraud incident has lasting consequences. |
+| Reputation penalties | v0.7.0 | Proven fraud (falsified inference, energy fraud) results in severe reputation loss and potential network exclusion. |
+| Minimum reputation threshold | v0.7.0 | Nodes must maintain a minimum reputation score to participate in distributed inference tasks. |
 
-**Design:** Documented in [Tokenomics v2.1](../ARIA_Tokenomics_v2_1.docx) §5 "Mécanismes anti-abus"
+**Design:** Reputation mechanics are detailed in the consensus security documentation.
 
 ### Layer 5 — Privacy & Consent (Implemented ✅)
 
