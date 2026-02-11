@@ -77,7 +77,7 @@ print(response.choices[0].message.content)
 | **Web Dashboard** | Real-time monitoring with WebSocket updates | ✅ Complete |
 | **CLI Interface** | Full command-line control of nodes | ✅ Complete |
 | **Provenance Ledger** | Blockchain for inference traceability | ✅ Complete |
-| **Proof of Useful Work** | Mining = Inference (no wasted computation) | ✅ Complete |
+| **Proof of Useful Work** | Every computation is real AI inference (no wasted work) | ✅ Complete |
 | **Proof of Sobriety** | Verifiable energy efficiency attestations | ✅ Complete |
 | **Consent Contracts** | Explicit resource usage permissions | ✅ Complete |
 | **bitnet.cpp Integration** | Real 1-bit inference kernels | ✅ Complete |
@@ -99,7 +99,6 @@ print(response.choices[0].message.content)
 | **Conversation Memory** | Persistent 3-tier memory across chat sessions | v0.7.0 |
 | **Knowledge Network** | Distributed RAG via P2P embedding sharing | v0.8.0 |
 | **ARIA-LM** | Community-evolving language model via SAPO + LoRA merging | v0.9.0 |
-| **$ARIA Token** | Proof of Useful Work token economics + DAO governance | v1.0.0 |
 
 ---
 
@@ -173,7 +172,7 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 2: CONSENSUS                                             │
 │  ├── Provenance Ledger (blockchain)                             │
-│  ├── Proof of Useful Work (mining = inference)                  │
+│  ├── Proof of Useful Work (every computation is useful)          │
 │  ├── Proof of Sobriety (energy tracking)                        │
 │  └── Consent Contracts                                          │
 ├─────────────────────────────────────────────────────────────────┤
@@ -220,7 +219,7 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 | Data centers waste energy | Distributed across existing consumer devices |
 | Users have no control | Explicit consent for every resource used |
 | AI outputs are untraceable | Blockchain provenance ledger |
-| Crypto mining wastes energy | Mining IS inference (Proof of Useful Work) |
+| Computation should be useful | Every cycle produces real AI output (Proof of Useful Work) |
 | Models depend on one provider | 8+ organizations produce independent 1-bit models |
 | Context windows are limited by RAM | KV-Cache NVMe paging targets 500K+ tokens on 8GB laptops |
 | Single model has blind spots | Consensus Inference: multiple models collaborate for higher quality |
@@ -350,7 +349,7 @@ Visit [spmfrance-cloud.github.io/aria-protocol](https://spmfrance-cloud.github.i
 | [Threat Model](docs/threat-model.md) | Security analysis and mitigations |
 | [Security Architecture](docs/security-architecture.md) | Defense-in-depth security model |
 | [Benchmarks](benchmarks/README.md) | Performance methodology and results |
-| [Roadmap](docs/ROADMAP.md) | Full roadmap v3.0 (62 tasks, 9 versions) |
+| [Roadmap](docs/ROADMAP.md) | Full roadmap v3.0 (9 versions) |
 | [Whitepaper](ARIA_Whitepaper.pdf) | Technical whitepaper |
 
 ---
@@ -396,9 +395,8 @@ ARIA is evolving from a local inference protocol to a fully distributed network.
 * **Consensus Inference (v0.7.0)** — Multi-agent orchestrated debate for frontier-quality answers from small models. Research shows 7B models with orchestration reach 92.85% accuracy (Nature 2025, SLM-MATRIX)
 * **KV-Cache NVMe Paging (v0.8.0)** — 500K+ token contexts on 8GB RAM laptops via intelligent SSD offloading
 * **ARIA-LM (v0.9.0)** — A community-evolving language model improved via distributed reasoning (SAPO) and LoRA merging, without GPU requirements
-* **$ARIA Token & DAO (v1.0.0)** — Proof of Useful Work tokenomics where mining equals inference
 
-See the [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+See the [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all tasks across 9 versions.
 
 ---
 
@@ -415,8 +413,8 @@ In decentralized AI, the fundamental question is: **"How do you trust an untrust
 │  │  Layer 5: Privacy & Consent                               │  │
 │  │  Consent contracts · Data minimization · Local inference   │  │
 │  │  ┌─────────────────────────────────────────────────────┐  │  │
-│  │  │  Layer 4: Economic Security                         │  │  │
-│  │  │  Staking · Slashing · Time-locked rewards           │  │  │
+│  │  │  Layer 4: Reputation Security                       │  │  │
+│  │  │  Reputation scoring · Penalties · Quality threshold │  │  │
 │  │  │  ┌───────────────────────────────────────────────┐  │  │  │
 │  │  │  │  Layer 3: Consensus Security                  │  │  │  │
 │  │  │  │  Proof of Useful Work · Proof of Sobriety     │  │  │  │
@@ -444,8 +442,8 @@ In decentralized AI, the fundamental question is: **"How do you trust an untrust
 | Attack | How it's detected | Mechanism |
 |--------|-------------------|-----------|
 | **Fake inference** (return garbage to save compute) | Output hash verification + timing analysis | Proof of Useful Work ([`proof.py`](aria/proof.py)) |
-| **Energy fraud** (report less energy to earn more) | Cross-reference with hardware TDP + statistical outliers | Proof of Sobriety ([`proof.py`](aria/proof.py)) |
-| **Sybil attack** (create fake nodes for rewards) | IP + hardware fingerprint + stake requirements | Reputation system + Staking |
+| **Energy fraud** (report less energy to inflate reputation) | Cross-reference with hardware TDP + statistical outliers | Proof of Sobriety ([`proof.py`](aria/proof.py)) |
+| **Sybil attack** (create fake nodes to game reputation) | IP + hardware fingerprint + reputation requirements | Reputation system ([`proof.py`](aria/proof.py)) |
 | **Result manipulation** (alter inference outputs) | Immutable provenance chain + redundant verification | Provenance Ledger ([`ledger.py`](aria/ledger.py)) |
 | **Prompt leakage** (spy on user queries) | Local-first inference + consent contracts | Consent system ([`consent.py`](aria/consent.py)) |
 
@@ -544,7 +542,7 @@ ARIA's architecture is grounded in peer-reviewed research:
 | v0.7.0 | Smart Layer | Consensus Inference, Memory, Knowledge Network | ⬜ Planned |
 | v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens on 8GB) | ⬜ Planned |
 | v0.9.0 | ARIA-LM | Community-evolving model (SAPO + LoRA merging) | ⬜ Planned |
-| v1.0.0 | Mainnet | Production network, $ARIA token, DAO governance | ⬜ Planned |
+| v1.0.0 | Production | Stable production network, reputation system | ⬜ Planned |
 
 ### Current Focus: v0.5.5 Housekeeping & Foundations
 
@@ -553,7 +551,7 @@ ARIA's architecture is grounded in peer-reviewed research:
 * Documentation alignment with current architecture
 * Preparation for v0.6.0 Testnet Alpha
 
-See [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all 62 tasks across 9 versions.
+See [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all tasks across 9 versions.
 
 ---
 

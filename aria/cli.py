@@ -427,8 +427,8 @@ def cmd_node_status(args):
                 print(f"  Energy Used:    {format_energy(engine.get('total_energy_mj', 0))}")
                 print(f"  Models Loaded:  {engine.get('loaded_models', 0)}")
 
-            if "tokens_earned" in data:
-                print(f"  Tokens Earned:  {data['tokens_earned']:.6f} ARIA")
+            if "contribution_score" in data:
+                print(f"  Contribution:   {data['contribution_score']:.6f}")
 
             print()
             print("Network")

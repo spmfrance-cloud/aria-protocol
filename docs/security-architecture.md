@@ -12,10 +12,10 @@ graph TB
         C3[Data Minimization<br/>Only hashes transit network]
     end
 
-    subgraph "Layer 4: Economic Security"
-        E1[Staking<br/>Economic cost to join as validator]
-        E2[Slashing<br/>Penalties for proven fraud]
-        E3[Time-Locked Rewards<br/>No hit-and-run attacks]
+    subgraph "Layer 4: Reputation Security"
+        E1[Reputation Scoring<br/>Quality-based node ranking]
+        E2[Reputation Penalties<br/>Consequences for proven fraud]
+        E3[Minimum Threshold<br/>Quality gate for participation]
     end
 
     subgraph "Layer 3: Consensus Security"
@@ -64,29 +64,28 @@ Messages include node ID verification, timestamps for replay protection, and pro
 
 ### Layer 3 — Consensus Security (Implemented ✅ / Designed 📐)
 
-This is ARIA's core innovation — **Proof of Useful Work** means mining IS inference. There is zero wasted computation.
+This is ARIA's core innovation — **Proof of Useful Work** means every computation produces real AI inference. There is zero wasted computation.
 
 | Mechanism | Status | Description |
 |-----------|--------|-------------|
-| Proof of Useful Work | ✅ Implemented | Every reward requires actual AI inference. Output hashes and timing are recorded. Suspiciously fast responses trigger re-verification. |
+| Proof of Useful Work | ✅ Implemented | Every contribution requires actual AI inference. Output hashes and timing are recorded. Suspiciously fast responses trigger re-verification. |
 | Proof of Sobriety | ✅ Implemented | Energy consumption per inference is estimated via CPU-time × TDP and cross-referenced with hardware capabilities. Statistical outlier detection flags impossible energy claims. |
 | Provenance Ledger | ✅ Implemented | Immutable chain recording every inference: query hash, output hash, participating nodes, energy consumed, model used, timestamp. |
 | Consensus Inference | 📐 Designed | Multi-agent orchestrated debate (SLM-MUX routing). Multiple nodes independently process the same query, and results are cross-verified. A node consistently producing low-quality or divergent outputs sees its reputation score decrease. |
 
 **Implementation:** `aria/proof.py`, `aria/ledger.py`
 
-### Layer 4 — Economic Security (Designed 📐)
+### Layer 4 — Reputation Security (Designed 📐)
 
-Economic mechanisms create real financial cost for attacks, making cheating unprofitable.
+Reputation mechanisms create real consequences for dishonest behavior, making cheating unprofitable.
 
 | Mechanism | Target Version | Description |
 |-----------|---------------|-------------|
-| Staking | v0.7.0 | Validators must stake $ARIA tokens. Creates economic cost for Sybil attacks. |
-| Slashing | v1.0.0 | Proven fraud (falsified inference, energy fraud) results in stake confiscation. |
-| Time-locked rewards | v1.0.0 | Rewards vest over time, preventing hit-and-run attacks. |
-| Reputation system | v0.7.0 | Slow accrual, fast decay. Long-term honest behavior is rewarded; a single fraud incident has lasting consequences. |
+| Reputation scoring | v0.7.0 | Nodes build reputation through consistent, quality inference work. Slow accrual, fast decay — a single fraud incident has lasting consequences. |
+| Reputation penalties | v0.7.0 | Proven fraud (falsified inference, energy fraud) results in severe reputation loss and potential network exclusion. |
+| Minimum reputation threshold | v0.7.0 | Nodes must maintain a minimum reputation score to participate in distributed inference tasks. |
 
-**Design:** Documented in [Tokenomics v2.1](../ARIA_Tokenomics_v2_1.docx) §5 "Mécanismes anti-abus"
+**Design:** Reputation mechanics are detailed in the consensus security documentation.
 
 ### Layer 5 — Privacy & Consent (Implemented ✅)
 
@@ -114,7 +113,7 @@ How each attack vector is addressed across multiple layers:
 | Eclipse (isolation) | — | Peer diversity | Bootstrap nodes | — | — |
 | Prompt leakage | TLS 1.3 | — | — | — | Local inference |
 | Pipeline poisoning | — | Checksums | Activation validation | Reputation decay | — |
-| Reward gaming | — | — | PoUW ties rewards to work | Time-locked rewards | — |
+| Reputation gaming | — | — | PoUW ties score to work | Time-weighted reputation | — |
 
 ## Comparison with Competitors
 
