@@ -492,7 +492,7 @@ Request node statistics.
   "data": {
     "node_id": "node-abc123",
     "uptime_seconds": 3600,
-    "tokens_earned": 1.234,
+    "contribution_score": 1.234,
     "engine": {
       "total_inferences": 100,
       "total_energy_mj": 2830.0,
