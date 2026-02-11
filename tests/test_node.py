@@ -16,7 +16,7 @@ class TestARIANode:
         assert len(node.node_id) > 0
         assert node.consent is not None
         assert node.is_running is False
-        assert node.tokens_earned == 0.0
+        assert node.contribution_score == 0.0
 
     def test_node_creation_with_id(self):
         """Test creating a node with custom ID."""
@@ -125,14 +125,14 @@ class TestARIANode:
         )
         await node.start()
 
-        initial_tokens = node.tokens_earned
+        initial_score = node.contribution_score
         node.process_request(
             query="Test query",
             model_id="aria-2b-1bit",
             max_tokens=5
         )
 
-        assert node.tokens_earned > initial_tokens
+        assert node.contribution_score > initial_score
         await node.stop()
 
     @pytest.mark.asyncio
@@ -155,7 +155,7 @@ class TestARIANode:
 
         assert "node_id" in stats
         assert "is_running" in stats
-        assert "tokens_earned" in stats
+        assert "contribution_score" in stats
         assert "engine" in stats
         assert "network" in stats
         assert stats["node_id"] == "test-stats"
@@ -164,8 +164,8 @@ class TestARIANode:
         await node.stop()
 
     @pytest.mark.asyncio
-    async def test_calculate_reward(self):
-        """Test reward calculation for inference."""
+    async def test_calculate_contribution_score(self):
+        """Test contribution score calculation for inference."""
         node = ARIANode(node_id="test", port=19005)
         node.load_model(
             model_id="aria-2b-1bit",
@@ -180,9 +180,9 @@ class TestARIANode:
             max_tokens=5
         )
 
-        reward = node._calculate_reward(result)
-        assert reward > 0
-        assert isinstance(reward, float)
+        score = node._calculate_contribution_score(result)
+        assert score > 0
+        assert isinstance(score, float)
 
         await node.stop()
 
