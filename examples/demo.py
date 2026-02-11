@@ -264,7 +264,7 @@ async def run_demo():
     # ==========================================
     total_inferences = sum(n.engine.total_inferences for n in nodes)
     total_energy = sum(n.engine.total_energy_mj for n in nodes)
-    total_tokens = sum(n.tokens_earned for n in nodes)
+    total_score = sum(n.contribution_score for n in nodes)
     total_messages = sum(n.network.messages_sent + n.network.messages_received for n in nodes)
 
     gpu_equivalent = total_inferences * 150  # 150 mJ per inference on GPU
@@ -279,7 +279,7 @@ async def run_demo():
     print(f"  Total energy (ARIA):    {total_energy:.1f} mJ")
     print(f"  GPU equivalent:         {gpu_equivalent:.1f} mJ")
     print(f"  Energy saved:           {savings:.1f} mJ ({savings/max(gpu_equivalent,1)*100:.1f}%)")
-    print(f"  Tokens earned (total):  {total_tokens:.6f} ARIA")
+    print(f"  Contribution score:     {total_score:.6f}")
     print(f"  Ledger integrity:       {'VALID' if alice.ledger.verify_chain() else 'INVALID'}")
     print()
     print("  === DISTRIBUTED INFERENCE ===")

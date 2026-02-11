@@ -64,11 +64,11 @@ Messages include node ID verification, timestamps for replay protection, and pro
 
 ### Layer 3 — Consensus Security (Implemented ✅ / Designed 📐)
 
-This is ARIA's core innovation — **Proof of Useful Work** means mining IS inference. There is zero wasted computation.
+This is ARIA's core innovation — **Proof of Useful Work** means every computation produces real AI inference. There is zero wasted computation.
 
 | Mechanism | Status | Description |
 |-----------|--------|-------------|
-| Proof of Useful Work | ✅ Implemented | Every reward requires actual AI inference. Output hashes and timing are recorded. Suspiciously fast responses trigger re-verification. |
+| Proof of Useful Work | ✅ Implemented | Every contribution requires actual AI inference. Output hashes and timing are recorded. Suspiciously fast responses trigger re-verification. |
 | Proof of Sobriety | ✅ Implemented | Energy consumption per inference is estimated via CPU-time × TDP and cross-referenced with hardware capabilities. Statistical outlier detection flags impossible energy claims. |
 | Provenance Ledger | ✅ Implemented | Immutable chain recording every inference: query hash, output hash, participating nodes, energy consumed, model used, timestamp. |
 | Consensus Inference | 📐 Designed | Multi-agent orchestrated debate (SLM-MUX routing). Multiple nodes independently process the same query, and results are cross-verified. A node consistently producing low-quality or divergent outputs sees its reputation score decrease. |
@@ -113,7 +113,7 @@ How each attack vector is addressed across multiple layers:
 | Eclipse (isolation) | — | Peer diversity | Bootstrap nodes | — | — |
 | Prompt leakage | TLS 1.3 | — | — | — | Local inference |
 | Pipeline poisoning | — | Checksums | Activation validation | Reputation decay | — |
-| Reward gaming | — | — | PoUW ties rewards to work | Time-locked rewards | — |
+| Reputation gaming | — | — | PoUW ties score to work | Time-weighted reputation | — |
 
 ## Comparison with Competitors
 

@@ -204,8 +204,8 @@ class ARIADashboard:
             "loaded_models": engine.get("loaded_models", 0),
         }
 
-        # Tokens earned
-        tokens_earned = stats.get("tokens_earned", 0)
+        # Contribution score
+        contribution_score = stats.get("contribution_score", 0)
 
         # Energy savings (Proof of Sobriety)
         sobriety = stats.get("sobriety", {})
@@ -249,7 +249,7 @@ class ARIADashboard:
         return {
             "node": node_status,
             "inference": inference_stats,
-            "tokens_earned": tokens_earned,
+            "contribution_score": contribution_score,
             "energy": energy_stats,
             "network": network_stats,
             "peers": peer_list,
@@ -784,14 +784,14 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- Tokens Earned -->
+            <!-- Contribution Score -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Tokens Earned</span>
-                    <div class="card-icon">&#x1F4B0;</div>
+                    <span class="card-title">Contribution Score</span>
+                    <div class="card-icon">&#x2B50;</div>
                 </div>
-                <div class="metric-large" style="color: var(--accent-purple);" id="tokensEarned">0.000000</div>
-                <div class="metric-label">ARIA Tokens</div>
+                <div class="metric-large" style="color: var(--accent-purple);" id="contributionScore">0.000000</div>
+                <div class="metric-label">Reputation Points</div>
                 <div class="metric-row" style="margin-top: 16px;">
                     <span class="metric-name">Chain Blocks</span>
                     <span class="metric-value" id="chainLength">0</span>
@@ -896,8 +896,8 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
             document.getElementById('messagesSent').textContent = data.network?.messages_sent || 0;
             document.getElementById('messagesReceived').textContent = data.network?.messages_received || 0;
 
-            // Tokens
-            document.getElementById('tokensEarned').textContent = (data.tokens_earned || 0).toFixed(6);
+            // Contribution Score
+            document.getElementById('contributionScore').textContent = (data.contribution_score || 0).toFixed(6);
             document.getElementById('chainLength').textContent = data.ledger?.chain_length || 0;
             const chainValid = document.getElementById('chainValid');
             if (data.ledger?.chain_valid !== undefined) {
