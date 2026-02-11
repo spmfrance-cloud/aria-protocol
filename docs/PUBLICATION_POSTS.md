@@ -28,7 +28,7 @@ ARIA is a peer-to-peer protocol for distributed inference of 1-bit quantized LLM
 
 *Energy estimated via CPU-time × TDP/threads. This is not a direct hardware measurement (no RAPL). Per-token energy is roughly ~73 mJ/token for 0.7B and ~869 mJ/token for 2.4B. These are upper-bound estimates.
 
-**How it works:** 1-bit quantization reduces weights to {-1, 0, +1}, replacing floating-point multiplications with simple additions and subtractions. This makes inference memory-bound rather than compute-bound, which is why it runs well on CPUs. The P2P layer distributes model layers across nodes using pipeline parallelism over WebSocket connections. A blockchain ledger records every inference for provenance. Proof of Useful Work replaces wasteful hash mining — the mining IS the inference.
+**How it works:** 1-bit quantization reduces weights to {-1, 0, +1}, replacing floating-point multiplications with simple additions and subtractions. This makes inference memory-bound rather than compute-bound, which is why it runs well on CPUs. The P2P layer distributes model layers across nodes using pipeline parallelism over WebSocket connections. A blockchain ledger records every inference for provenance. Proof of Useful Work ensures every computation produces real AI output.
 
 **How ARIA differs from Bittensor, Gensyn, and Petals:** Those projects target GPU-based inference and incentive markets for existing large models. ARIA takes a fundamentally different bet: that 1-bit quantized models will make CPU-only inference competitive enough to build a viable distributed network without any GPU requirement. This is a narrower scope but a more practical path to running on the billions of idle CPUs worldwide.
 
@@ -78,7 +78,7 @@ The 0.7B model hits 120 tok/s which is solidly usable for real-time applications
 
 - **Inference:** Python calling llama-cli from bitnet.cpp (Microsoft Research's 1-bit runtime)
 - **Networking:** WebSocket-based P2P with pipeline parallelism for model sharding
-- **Consensus:** Blockchain provenance ledger + Proof of Useful Work (mining = inference)
+- **Consensus:** Blockchain provenance ledger + Proof of Useful Work (every computation is useful)
 - **API:** OpenAI-compatible, drop-in replacement
 
 ### Why 1-bit?
@@ -264,7 +264,7 @@ Layer 1 — COMPUTE
 ```
 
 - **Layer 1 (Compute):** WebSocket-based P2P network with model sharding. A 24-layer model gets split across nodes, each holding ~133 MB for a 2B parameter model.
-- **Layer 2 (Consensus):** Blockchain-based provenance ledger. Every inference is recorded immutably. Instead of Proof of Work (wasteful hashing), we use **Proof of Useful Work** — mining *is* inference. We also track energy via **Proof of Sobriety** attestations.
+- **Layer 2 (Consensus):** Blockchain-based provenance ledger. Every inference is recorded immutably. Instead of Proof of Work (wasteful hashing), we use **Proof of Useful Work** — every computation produces real AI output. We also track energy via **Proof of Sobriety** attestations.
 - **Layer 3 (Service):** Drop-in replacement for OpenAI's API. Point your existing code at `localhost:3000` and it just works.
 
 ### The economic angle
@@ -306,7 +306,7 @@ ARIA is a peer-to-peer protocol for running 1-bit quantized LLMs (ternary weight
 
 We benchmarked on a Ryzen 9: 89.65 t/s for 0.7B params, 36.94 t/s for 2.4B, 15.03 t/s for 8B — all on CPU, at ~28 mJ/token (99.5% less energy than GPU inference).
 
-Key design choices: WebSocket-based P2P with pipeline parallelism for model sharding across nodes. Provenance ledger records every inference immutably. Proof of Useful Work replaces wasteful hash mining — the "mining" is the inference itself. Consent contracts ensure no resource is used without explicit permission.
+Key design choices: WebSocket-based P2P with pipeline parallelism for model sharding across nodes. Provenance ledger records every inference immutably. Proof of Useful Work ensures every computation produces real AI output. Consent contracts ensure no resource is used without explicit permission.
 
 Drop-in OpenAI-compatible API. ~5,800 lines Python, MIT licensed, 102 tests passing.
 
@@ -351,7 +351,7 @@ Result: a 2.4B parameter model fits in 1.3 GB of RAM and runs at 36.94 tokens/s 
 The architecture has 3 layers:
 
 Layer 1: P2P compute network with model sharding
-Layer 2: Consensus with Proof of Useful Work (mining = inference)
+Layer 2: Consensus with Proof of Useful Work (every computation is useful)
 Layer 3: OpenAI-compatible API — drop-in replacement, zero code changes
 
 ---
@@ -382,7 +382,7 @@ This validates the distributed approach: scale out across machines, not up withi
 
 Every inference is recorded on an immutable provenance ledger.
 
-No Proof of Work nonsense — we use Proof of Useful Work. The "mining" IS the inference. Every computation produces real value.
+We use Proof of Useful Work — every computation is real AI inference. Every cycle produces real value.
 
 Plus: Consent Contracts ensure no resource is used without permission.
 
@@ -446,7 +446,7 @@ Les résultats de nos benchmarks parlent d'eux-mêmes :
 
 L'impact environnemental est considérable. Pour un usage de 10M tokens/jour, ARIA consomme environ 102 kWh/an contre plus de 20 000 kWh/an pour une solution GPU classique. À l'heure où l'empreinte carbone de l'IA est au cœur des préoccupations, ce type d'architecture offre une voie concrète vers une IA plus sobre.
 
-Le protocole intègre un système de **Proof of Useful Work** (le minage produit de l'inférence utile, pas du calcul gaspillé), un **ledger de provenance** immutable pour la traçabilité, et des **contrats de consentement** qui garantissent qu'aucune ressource n'est utilisée sans autorisation explicite.
+Le protocole intègre un système de **Proof of Useful Work** (chaque calcul produit de l'inférence utile, pas du calcul gaspillé), un **ledger de provenance** immutable pour la traçabilité, et des **contrats de consentement** qui garantissent qu'aucune ressource n'est utilisée sans autorisation explicite.
 
 ARIA est compatible avec l'API OpenAI — aucune modification de code nécessaire pour migrer.
 
