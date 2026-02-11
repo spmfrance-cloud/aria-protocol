@@ -74,7 +74,7 @@ class Block:
         """
         Mine this block with Proof of Useful Work.
         
-        In ARIA, mining IS inference. The nonce is the count of
+        In ARIA, every computation is useful inference. The nonce is the count of
         useful inferences performed. The difficulty adjusts to
         maintain a target block time.
         
