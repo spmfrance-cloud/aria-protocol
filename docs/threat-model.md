@@ -267,11 +267,11 @@ Layer 0-7    Layer 8-15    Layer 16-23
 
 ### 6. Energy Fraud
 
-**Description**: Nodes report false energy consumption to game the Proof of Sobriety system and earn higher rewards.
+**Description**: Nodes report false energy consumption to game the Proof of Sobriety system and inflate their reputation score.
 
 **Impact**:
-- Unfair reward distribution
-- Undermines efficiency incentives
+- Unfair reputation scoring
+- Undermines network quality metrics
 - Environmental claims become unreliable
 
 **Attack Vector**:
@@ -291,7 +291,7 @@ def report_energy(actual_mj):
 - [ ] Hardware attestation (TPM/SGX)
 - [ ] External power monitoring integration
 - [ ] Benchmark-based calibration
-- [ ] Slashing for proven fraud
+- [ ] Severe reputation penalties for proven fraud
 
 **Detection Methods**:
 1. **Latency correlation**: Energy should correlate with time
@@ -303,14 +303,14 @@ def report_energy(actual_mj):
 
 ---
 
-### 7. Reward Gaming
+### 7. Reputation Gaming
 
-**Description**: Nodes exploit the reward mechanism to earn tokens without providing proportional value.
+**Description**: Nodes exploit the reward mechanism to inflate reputation score without providing proportional value.
 
 **Impact**:
-- Token inflation
-- Honest nodes earn less
-- Economic model breaks down
+- Score inflation
+- Honest nodes ranked lower
+- Reputation model breaks down
 
 **Attack Vectors**:
 - Self-dealing: Send requests to own nodes
@@ -324,8 +324,8 @@ def report_energy(actual_mj):
 
 **Planned Mitigations** (v0.4.0):
 - [ ] Request origin verification
-- [ ] Fee burning mechanism
-- [ ] Time-locked rewards
+- [ ] Rate limiting per node
+- [ ] Time-weighted reputation
 - [ ] Collusion detection algorithms
 
 **Risk Level**: MEDIUM
