@@ -151,14 +151,14 @@ class TestProofOfUsefulWork:
         assert result is False
         assert pouw.rejected_count == 1
 
-    def test_select_block_producer_empty(self):
-        """Test selecting block producer with no proofs."""
+    def test_select_top_contributor_empty(self):
+        """Test selecting top contributor with no proofs."""
         pouw = ProofOfUsefulWork(difficulty=2)
-        producer = pouw.select_block_producer()
+        producer = pouw.select_top_contributor()
         assert producer is None
 
-    def test_select_block_producer(self):
-        """Test selecting block producer based on work."""
+    def test_select_top_contributor(self):
+        """Test selecting top contributor based on work."""
         pouw = ProofOfUsefulWork(difficulty=2)
 
         # Submit multiple proofs from different nodes
@@ -186,7 +186,7 @@ class TestProofOfUsefulWork:
         pouw.submit_proof(proof)
 
         # node1 should be selected (more work)
-        producer = pouw.select_block_producer()
+        producer = pouw.select_top_contributor()
         assert producer == "node1"
 
 

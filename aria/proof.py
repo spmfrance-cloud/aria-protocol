@@ -1,6 +1,6 @@
 """
 ARIA Protocol - Proof Mechanisms
-Proof of Useful Work (PoUW): Mining IS inference.
+Proof of Useful Work (PoUW): Every computation is useful AI inference.
 Proof of Sobriety: Verifiable energy efficiency attestation.
 
 MIT License - Anthony MURGO, 2026
@@ -75,11 +75,11 @@ class ProofOfUsefulWork:
     """
     ARIA's Proof of Useful Work consensus mechanism.
     
-    The key innovation: mining IS inference.
+    The key innovation: computation IS useful work.
     Instead of wasting energy on arbitrary computation,
     nodes prove they did useful AI inference work.
-    
-    Block producers are selected based on the quantity
+
+    Top contributors are identified based on the quantity
     and quality of inference work they've performed.
     """
     
@@ -119,12 +119,13 @@ class ProofOfUsefulWork:
             self.rejected_count += 1
             return False
     
-    def select_block_producer(self) -> Optional[str]:
+    def select_top_contributor(self) -> Optional[str]:
         """
-        Select the next block producer based on useful work.
-        
+        Select the top contributing node based on useful work.
+
         The node with the most verified useful work in the
-        current epoch gets to produce the next block.
+        current epoch is identified as the top contributor.
+        Used for reputation tracking and network quality metrics.
         """
         if not self.proofs:
             return None
