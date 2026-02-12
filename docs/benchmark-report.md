@@ -87,6 +87,22 @@ This report presents comprehensive benchmark results for ARIA Protocol, a peer-t
 | BitNet-b1.58-2B-4T | 2.4B | 1,133 MB | I2_S (2 bpw) | Microsoft |
 | Llama3-8B-1.58 | 8.0B | 3,677 MB | I2_S (2 bpw) | Community |
 
+### Multi-Architecture Testing (v0.5.5)
+
+Starting v0.5.5, benchmarks are validated across multiple CPU architectures:
+
+| | AMD Ryzen 9 7845HX | Intel Core i7-11370H |
+|---|---|---|
+| **Cores/Threads** | 12C/24T | 4C/8T |
+| **Architecture** | Zen 4 | Tiger Lake |
+| **AVX-512** | Double-pumped (2x256-bit) | Native 512-bit |
+| **VNNI** | Yes | Yes |
+| **RAM** | 64 GB DDR5 | 16 GB DDR4 |
+| **OS** | Windows 11 | Windows 11 |
+
+> **Key finding**: 1-bit inference performance depends on ISA execution width, not just core count.
+> Intel Tiger Lake with native 512-bit AVX-512 outperforms AMD Zen 4 on the 2.4B model by +111%.
+
 ---
 
 ## 2. Benchmark Methodology
@@ -248,6 +264,22 @@ This validates ARIA's P2P approach: distribute across machines, not threads.
     ✓ Prompt processing is LINEAR (~28 ms/token)
     ✓ Generation speed minimally affected (-5.2%)
 ```
+
+### 3.5 Multi-Architecture Comparison (v0.5.5)
+
+| Model | AMD Ryzen 9 (12C) | Intel i7 (4C) | Delta | Winner |
+|-------|-------------------|---------------|-------|--------|
+| 0.7B | 120.25 t/s | 61.81 t/s | -49% | AMD |
+| 2.4B | 36.62 t/s | **77.21 t/s** | **+111%** | **Intel** |
+| 8.0B | ~15.03 t/s | 10.36 t/s | -31% | AMD |
+
+**Analysis**: The 2.4B result is the most significant finding. Both CPUs support AVX-512 with VNNI, but they execute differently:
+- **Tiger Lake** (Intel): Native 512-bit execution units — single uop per AVX-512 instruction
+- **Zen 4** (AMD): Double-pumped — each AVX-512 instruction decoded as 2x 256-bit uops
+
+The BitNet-b1.58-2B-4T model (Microsoft's newer architecture, optimized GGUF) has memory access patterns that particularly benefit from true 512-bit throughput on ternary LUT kernels.
+
+**Implication for ARIA**: A distributed network with heterogeneous hardware will exhibit non-uniform performance characteristics. The Smart Router (v0.7.0) must account for per-model CPU affinity when assigning inference tasks.
 
 ---
 
@@ -583,6 +615,7 @@ Activation × Weight = Lookup Table Operation
 | 99% energy reduction | Massive sustainability impact |
 | $0 hardware cost | Democratizes AI inference |
 | Sub-linear model scaling | Larger models viable on CPU |
+| ISA matters more than core count | Route by CPU architecture, not just speed |
 
 ### 9.2 Recommendations
 
@@ -648,7 +681,7 @@ All benchmark data is available in JSON format:
 ### C. Methodology Limitations
 
 1. **Energy estimation** — Based on CPU-time × TDP, not direct measurement
-2. **Single hardware** — Tested on AMD Ryzen 9 7845HX only
+2. **Limited hardware** — Tested on AMD Ryzen 9 7845HX and Intel Core i7-11370H
 3. **Model quality** — Not benchmarked (assumed comparable for same model)
 4. **Network latency** — P2P benchmarks not included in this report
 5. **Long-term stability** — Short benchmark runs only

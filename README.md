@@ -130,6 +130,8 @@ Real-world performance across Intel and AMD platforms (subprocess backend callin
 
 Earlier benchmarks using bitnet.cpp directly (different methodology, not directly comparable):
 
+*AMD Ryzen 9 7845HX (8 threads):*
+
 | Model | Params | Tokens/s | Energy* |
 |-------|--------|----------|---------|
 | BitNet-b1.58-large | 0.7B | 89.65 t/s | ~11 mJ/token |
