@@ -37,7 +37,7 @@ ARIA Protocol is a decentralized AI inference network where untrusted nodes coll
 | Model weights | LOW | HIGH | MEDIUM |
 | Energy reports | LOW | HIGH | LOW |
 | Node reputation | LOW | HIGH | MEDIUM |
-| ARIA tokens | N/A | HIGH | HIGH |
+| Contribution scores | N/A | HIGH | HIGH |
 
 ---
 
@@ -84,7 +84,7 @@ ARIA Protocol is a decentralized AI inference network where untrusted nodes coll
 
 2. **Nodes trust the ledger** to:
    - Maintain immutable history
-   - Fairly distribute rewards
+   - Fairly distribute contribution scores
    - Track reputation accurately
 
 3. **Nodes DO NOT trust other nodes** to:
@@ -103,7 +103,7 @@ ARIA Protocol is a decentralized AI inference network where untrusted nodes coll
 **Impact**:
 - Overwhelm routing decisions
 - Manipulate reputation scores
-- Collect majority of rewards unfairly
+- Collect majority of contribution scores unfairly
 - Potentially control inference results
 
 **Attack Vector**:
@@ -119,7 +119,7 @@ Legitimate requests → routed to attacker nodes
 - Quality scoring considers multiple factors
 
 **Planned Mitigations** (v0.7.0):
-- [ ] Stake-based node registration (economic cost to create nodes)
+- [ ] Reputation-based node registration (contribution cost to create nodes)
 - [ ] Identity verification via hardware attestation
 - [ ] Social graph analysis for detecting clusters
 - [ ] Rate limiting on new node announcements
@@ -222,7 +222,7 @@ async def handle_inference(request):
 - [ ] Result voting/consensus
 - [ ] Cryptographic commitment schemes
 - [ ] Zero-knowledge proofs of correct execution
-- [ ] Slashing for detected falsification
+- [ ] Reputation penalty for detected falsification
 
 **Detection Methods**:
 1. **Spot checking**: Re-run random samples
@@ -307,7 +307,7 @@ def report_energy(actual_mj):
 
 ### 7. Reputation Gaming
 
-**Description**: Nodes exploit the reward mechanism to inflate reputation score without providing proportional value.
+**Description**: Nodes exploit the contribution mechanism to inflate reputation score without providing proportional value.
 
 **Impact**:
 - Score inflation
@@ -320,8 +320,8 @@ def report_energy(actual_mj):
 - Free-riding: Accept work but don't complete it
 
 **Current Mitigations**:
-- Proof of Useful Work ties rewards to computation
-- Reputation affects reward multiplier
+- Proof of Useful Work ties contribution scores to computation
+- Reputation affects contribution multiplier
 - Request fees create cost for attackers
 
 **Planned Mitigations** (v0.7.0–v1.0.0):
@@ -419,7 +419,7 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 | Result Falsification | HIGH | PARTIAL (provenance + timing) |
 | Pipeline Poisoning | MEDIUM | PARTIAL (checksums + timeouts) |
 | Energy Fraud | MEDIUM | PARTIAL (estimation + outlier detection) |
-| Reward Gaming | MEDIUM | PARTIAL (PoUW + reputation) |
+| Contribution Gaming | MEDIUM | PARTIAL (PoUW + reputation) |
 | Prompt Leakage | HIGH | PARTIAL (local inference + consent) |
 | Activation Analysis | LOW | MINIMAL |
 
@@ -446,8 +446,8 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 │  └── Reputation system                                      │
 │                                                             │
 │  Layer 4: Economic Security                                 │
-│  ├── Stake requirements (planned)                          │
-│  ├── Slashing conditions (planned)                         │
+│  ├── Reputation requirements (planned)                     │
+│  ├── Reputation penalty conditions (planned)               │
 │  └── Fee mechanisms                                         │
 │                                                             │
 │  Layer 5: Privacy                                           │
@@ -485,14 +485,14 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 
 ### v0.7.0 (Smart Layer)
 
-- [ ] Stake-based Sybil resistance
+- [ ] Reputation-based Sybil resistance
 - [ ] Reputation system with slow accrual / fast decay
 - [ ] End-to-end prompt encryption
 - [ ] Message signing with node keys
 
 ### v1.0.0 (Mainnet)
 
-- [ ] Slashing for misbehavior
+- [ ] Reputation penalty for misbehavior
 - [ ] Hardware attestation integration (TPM/SGX)
 - [ ] Third-party security audit
 - [ ] Bug bounty program
