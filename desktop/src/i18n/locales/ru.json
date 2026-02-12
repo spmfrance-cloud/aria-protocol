@@ -62,7 +62,11 @@
     "deleteConversation": "Удалить диалог?",
     "thinking": "Обрабатываю...",
     "tokensGenerated": "токенов сгенерировано",
-    "model": "Модель"
+    "model": "Модель",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "Энергия и экономия",

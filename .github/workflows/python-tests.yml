@@ -1,0 +1,78 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aria/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'Makefile'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'aria/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'Makefile'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+
+      - name: Verify no AI assistant mentions in source
+        shell: bash
+        run: |
+          FOUND=$(grep -rni "claude\|anthropic" aria/ tests/ \
+            --include="*.py" | grep -v "OpenAI-compatible" | grep -v "noqa" || true)
+          if [ -n "$FOUND" ]; then
+            echo "ERROR: Found AI assistant mentions:"
+            echo "$FOUND"
+            exit 1
+          fi
+
+      - name: Verify post-detokenization terminology
+        shell: bash
+        run: |
+          FOUND=$(grep -rni "\bminer\b\|\bmining\b\|token_earned\|\brewards\b\|\bslashing\b\|\bstaking\b" \
+            aria/ tests/ --include="*.py" | grep -v "noqa" | grep -v "test.*legacy" || true)
+          if [ -n "$FOUND" ]; then
+            echo "ERROR: Found forbidden terminology:"
+            echo "$FOUND"
+            exit 1
+          fi
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install and run linter
+        run: |
+          pip install ruff
+          ruff check aria/ tests/

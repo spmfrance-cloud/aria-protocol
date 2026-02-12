@@ -58,7 +58,7 @@ def _load_cryptography():
             'rsa': rsa,
         }
         CRYPTOGRAPHY_AVAILABLE = True
-    except Exception:
+    except ImportError:
         CRYPTOGRAPHY_AVAILABLE = False
     return CRYPTOGRAPHY_AVAILABLE
 
@@ -473,8 +473,8 @@ class ARIANetwork:
         for node_id, ws in list(self._connections.items()):
             try:
                 await ws.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"[{self.node_id}] Error closing connection to {node_id}: {e}")
         self._connections.clear()
         self._connection_locks.clear()
 
@@ -501,7 +501,7 @@ class ARIANetwork:
                         sender_id = msg.get("sender_id")
                         if sender_id and sender_id not in self._connections:
                             peer_id = sender_id
-                    except:
+                    except (json.JSONDecodeError, AttributeError):
                         pass
 
         except websockets.exceptions.ConnectionClosed:
@@ -611,8 +611,8 @@ class ARIANetwork:
             try:
                 # Fire and forget - don't wait for response
                 await ws.send(message)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"[{self.node_id}] Broadcast send to {peer_id} failed: {e}")
 
     # ==========================================
     # BOOTSTRAP & DISCOVERY
@@ -682,8 +682,8 @@ class ARIANetwork:
                                 pass
                     except asyncio.TimeoutError:
                         logger.debug(f"[{self.node_id}] Heartbeat timeout for {peer_id}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(f"[{self.node_id}] Heartbeat error for {peer_id}: {e}")
 
                 # Prune dead peers
                 self.prune_dead_peers()
