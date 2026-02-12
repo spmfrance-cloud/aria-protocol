@@ -45,7 +45,7 @@ All foundational milestones complete:
 - **v0.1.0 — Genesis**: Whitepaper published, reference implementation
 - **v0.2.0 — Full Stack**: P2P WebSocket + TLS networking, CLI, API server, real-time Dashboard, BitNet inference engine
 - **v0.2.5 — Hardening**: Threat model, protocol specification, TLS support
-- **v0.3.0 — Benchmarks**: Real-world performance validation with bitnet.cpp (89.65 t/s on 0.7B)
+- **v0.3.0 — Benchmarks**: Real-world performance validation with bitnet.cpp (up to 120 t/s on 0.7B, multi-architecture)
 - **v0.4.0 — Native BitNet**: Direct Python ctypes bindings to bitnet.cpp
 - **v0.5.0 — Desktop App**: Tauri 2.0 + Electron GUI, 12-language support, system tray, model manager
 - **v0.5.2 — Subprocess Backend**: Multi-backend inference (native/subprocess/simulation), comparative benchmarks (120.25 t/s on 0.7B), 176 tests passing
