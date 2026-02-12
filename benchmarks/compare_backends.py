@@ -218,13 +218,31 @@ def print_summary(all_results, model_id, num_prompts, max_tokens):
 # ---------------------------------------------------------------------------
 
 
+def _get_cpu_name():
+    """Get the full CPU name, using wmic on Windows for better detection."""
+    if platform.system() == "Windows":
+        try:
+            import subprocess as _sp
+            result = _sp.run(
+                ["powershell", "-Command",
+                 "(Get-CimInstance Win32_Processor).Name"],
+                capture_output=True, text=True, timeout=10,
+            )
+            name = result.stdout.strip()
+            if name:
+                return name
+        except Exception:
+            pass
+    return platform.processor() or platform.machine()
+
+
 def build_json_report(all_results, model_id, num_prompts, max_tokens, threads):
     """Build a JSON-serialisable report dict."""
     return {
         "timestamp": datetime.now().isoformat(),
         "system_info": {
             "platform": platform.platform(),
-            "cpu": platform.processor() or platform.machine(),
+            "cpu": _get_cpu_name(),
             "threads": threads,
             "python_version": platform.python_version(),
         },
