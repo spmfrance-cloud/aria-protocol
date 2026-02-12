@@ -249,7 +249,7 @@ export function useChat() {
         }
       }
 
-      // ── MOCK MODE (Web dev / non-Tauri) ──
+      // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
       const fullResponse = getMockResponse(content);
       const assistantMsgId = createId();
 

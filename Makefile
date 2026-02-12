@@ -1,4 +1,4 @@
-.PHONY: install test demo clean
+.PHONY: install test test-cov test-verbose lint lint-fix install-dev demo clean
 
 # Install the package in development mode
 install:
@@ -10,15 +10,23 @@ install-dev:
 
 # Run all tests
 test:
-	pytest
+	python -m pytest tests/ -v
 
 # Run tests with verbose output
 test-verbose:
-	pytest -v
+	python -m pytest tests/ -v --tb=long
 
 # Run tests with coverage
 test-cov:
-	pytest --cov=aria --cov-report=term-missing
+	python -m pytest tests/ -v --cov=aria --cov-report=html --cov-report=term
+
+# Lint source code
+lint:
+	ruff check aria/ tests/
+
+# Lint and auto-fix
+lint-fix:
+	ruff check --fix aria/ tests/
 
 # Run the demo
 demo:
@@ -44,5 +52,7 @@ help:
 	@echo "  test         - Run all tests"
 	@echo "  test-verbose - Run tests with verbose output"
 	@echo "  test-cov     - Run tests with coverage report"
+	@echo "  lint         - Run ruff linter"
+	@echo "  lint-fix     - Run ruff linter with auto-fix"
 	@echo "  demo         - Run the demo script"
 	@echo "  clean        - Remove build artifacts"

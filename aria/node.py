@@ -204,7 +204,7 @@ class ARIANode:
 
         # Finalize any pending records
         if self.ledger.pending_records:
-            self.ledger.mine_pending_block(miner_id=self.node_id)
+            self.ledger.seal_pending_block(contributor_id=self.node_id)
 
         print(f"[ARIA] Node {self.node_id} stopped")
         print(f"[ARIA] Total inferences: {self.engine.total_inferences}")
