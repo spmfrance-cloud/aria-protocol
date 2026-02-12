@@ -62,7 +62,11 @@
     "deleteConversation": "बातचीत हटाएँ?",
     "thinking": "सोच रहा है...",
     "tokensGenerated": "टोकन उत्पन्न हुए",
-    "model": "मॉडल"
+    "model": "मॉडल",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "ऊर्जा और बचत",

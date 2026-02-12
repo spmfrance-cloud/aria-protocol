@@ -62,7 +62,11 @@
     "deleteConversation": "删除此对话？",
     "thinking": "思考中...",
     "tokensGenerated": "已生成令牌",
-    "model": "模型"
+    "model": "模型",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "能源与节约",

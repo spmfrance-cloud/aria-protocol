@@ -15,6 +15,7 @@ interface DataPoint {
   value: number;
 }
 
+// FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
 function generateMockData(count: number): DataPoint[] {
   const data: DataPoint[] = [];
   const now = Date.now();

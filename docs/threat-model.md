@@ -460,6 +460,30 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 
 ---
 
+## Known Limitations (v0.5.5 — Alpha)
+
+### TLS Verification
+TLS certificate verification is disabled by default in development mode for compatibility
+with self-signed certificates. This MUST be enforced before any testnet deployment.
+**Target:** v0.6.0 Testnet Alpha
+
+### Message Authentication
+P2P messages use sender identification but lack cryptographic message-level
+authentication (signatures). Messages can be spoofed in the current alpha.
+**Target:** v0.6.0 Testnet Alpha — Ed25519 message signatures
+
+### Proof of Useful Work Verification
+PoUW proofs are currently self-reported by the computing node. Cross-verification
+by multiple nodes is not yet implemented.
+**Target:** v0.7.0 Reputation — multi-node verification
+
+### Private Key Storage
+Node private keys are stored without passphrase encryption. This is acceptable for
+development but must use encrypted storage before production.
+**Target:** v0.6.0 Testnet Alpha
+
+---
+
 ## Security Roadmap
 
 ### v0.2.5 (Completed ✅)
