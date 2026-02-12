@@ -20,10 +20,9 @@ aria api start --port 3000 --node-port 8765
 
 # Check status
 aria api status
-
-# Stop API server
-aria api stop
 ```
+
+> **Note:** `aria api stop` is planned for v0.6.0. Currently, stop the API server with Ctrl+C in the terminal where it is running.
 
 ### Using Python
 
@@ -116,7 +115,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
     "completion_tokens": 50,
     "total_tokens": 75
   },
-  "system_fingerprint": "aria-v0.1.0"
+  "system_fingerprint": "aria-v0.5.5"
 }
 ```
 
@@ -208,6 +207,70 @@ curl http://localhost:3000/v1/models \
 
 ---
 
+### GET /v1/status
+
+Returns backend status including whether native inference is available.
+
+#### Request
+
+```bash
+curl http://localhost:3000/v1/status
+```
+
+#### Response
+
+```json
+{
+  "backend": "native",
+  "llama_cli_available": true,
+  "llama_cli_path": "/path/to/llama-cli",
+  "models_count": 3,
+  "version": "0.5.5"
+}
+```
+
+---
+
+### GET /v1/energy
+
+Returns real energy consumption and savings statistics accumulated from inference requests during the current session.
+
+#### Request
+
+```bash
+curl http://localhost:3000/v1/energy
+```
+
+#### Response
+
+```json
+{
+  "session_uptime_seconds": 3600.0,
+  "total_inferences": 42,
+  "total_tokens_generated": 2100,
+  "total_energy_mj": 1176.0,
+  "total_energy_kwh": 0.000327,
+  "avg_energy_per_token_mj": 0.56,
+  "savings": {
+    "vs_gpu": {
+      "energy_saved_mj": 11812500.0,
+      "energy_saved_kwh": 3.28,
+      "reduction_percent": 99.99
+    },
+    "vs_cloud": {
+      "energy_saved_mj": 14698824.0,
+      "energy_saved_kwh": 4.08,
+      "reduction_percent": 99.99
+    },
+    "co2_saved_kg": 1.64,
+    "cost_saved_usd": 0.027
+  },
+  "recent_history": []
+}
+```
+
+---
+
 ### GET /health
 
 Check the health status of the API server and connected ARIA node.
@@ -223,12 +286,32 @@ curl http://localhost:3000/health
 ```json
 {
   "status": "healthy",
-  "node_connected": true,
-  "node_id": "node-abc123",
+  "version": "0.5.5",
   "uptime_seconds": 3600,
-  "version": "0.1.0"
+  "node": {
+    "uri": "ws://localhost:8765",
+    "status": "healthy",
+    "node_id": "node-abc123",
+    "uptime_seconds": 3600,
+    "is_running": true
+  },
+  "endpoints": {
+    "/v1/chat/completions": "available",
+    "/v1/models": "available",
+    "/health": "available"
+  }
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | "healthy" if node is reachable, "degraded" otherwise |
+| `version` | string | ARIA Protocol version |
+| `uptime_seconds` | integer | API server uptime |
+| `node.uri` | string | WebSocket URI of the connected ARIA node |
+| `node.status` | string | "healthy", "unhealthy", or "unreachable" |
+
+Returns HTTP 200 when healthy, HTTP 503 when degraded.
 
 ---
 
