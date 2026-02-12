@@ -108,10 +108,11 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   if (invoke) {
     return invoke('get_system_info') as Promise<SystemInfo>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return {
     os: navigator.platform,
     arch: 'unknown',
-    version: '0.5.2',
+    version: '0.5.5',
   };
 }
 
@@ -120,7 +121,8 @@ export async function getAppVersion(): Promise<string> {
   if (invoke) {
     return invoke('get_app_version') as Promise<string>;
   }
-  return '0.5.2';
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
+  return '0.5.5';
 }
 
 export async function getNodeStatus(): Promise<NodeStatus> {
@@ -128,11 +130,12 @@ export async function getNodeStatus(): Promise<NodeStatus> {
   if (invoke) {
     return invoke('get_node_status') as Promise<NodeStatus>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return {
     running: false,
     peer_count: 0,
     uptime_seconds: 0,
-    version: '0.5.2',
+    version: '0.5.5',
     backend: 'mock',
     model: null,
     llama_cli_available: false,
@@ -144,6 +147,7 @@ export async function startNode(): Promise<StartNodeResult> {
   if (invoke) {
     return invoke('start_node') as Promise<StartNodeResult>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return {
     status: 'mock',
     backend: 'mock',
@@ -158,6 +162,7 @@ export async function stopNode(): Promise<string> {
   if (invoke) {
     return invoke('stop_node') as Promise<string>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return 'Mock: Node stopped (dev mode)';
 }
 
@@ -206,6 +211,7 @@ export async function downloadModel(name: string): Promise<DownloadProgress> {
   if (invoke) {
     return invoke('download_model', { name }) as Promise<DownloadProgress>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return { model: name, progress: 0, status: 'mock' };
 }
 
@@ -214,6 +220,7 @@ export async function sendInference(prompt: string, model: string): Promise<Infe
   if (invoke) {
     return invoke('send_inference', { prompt, model }) as Promise<InferenceResponse>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return {
     text: `[Dev mode] Mock response for: "${prompt}"`,
     tokens_per_second: 0,
@@ -228,6 +235,7 @@ export async function getBackendInfo(): Promise<BackendInfo> {
   if (invoke) {
     return invoke('get_backend_info') as Promise<BackendInfo>;
   }
+  // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
   return {
     python_found: false,
     python_path: '',

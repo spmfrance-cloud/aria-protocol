@@ -17,6 +17,7 @@ from typing import Optional, Dict, List, Any
 from aiohttp import web
 import websockets
 
+from aria import __version__
 from aria.bitnet_subprocess import (
     run_inference,
     check_backend_status,
@@ -600,7 +601,7 @@ class ARIAOpenAIServer:
                 "llama_cli_available": status["available"],
                 "llama_cli_path": status.get("llama_cli_path"),
                 "models_count": models_count,
-                "version": "0.5.5",
+                "version": __version__,
             }
 
             response = web.json_response(status_response)
@@ -613,7 +614,7 @@ class ARIAOpenAIServer:
                 "llama_cli_available": False,
                 "llama_cli_path": None,
                 "models_count": 0,
-                "version": "0.5.5",
+                "version": __version__,
             })
             return self._add_cors_headers(response)
 
@@ -646,7 +647,7 @@ class ARIAOpenAIServer:
 
         health_response = {
             "status": "healthy" if node_status == "healthy" else "degraded",
-            "version": "0.1.0",
+            "version": __version__,
             "uptime_seconds": int(uptime),
             "node": {
                 "uri": self.node_uri,
