@@ -62,44 +62,42 @@ aria node start \
   --port 8765 \
   --cpu 25 \
   --schedule "00:00-23:59" \
-  --model aria-2b-1bit \
-  --layers 0-7
+  --model aria-2b-1bit
 ```
+
+> **Note:** The `--layers` flag for specifying layer ranges is planned for v0.6.0.
+> Currently, each node loads all layers of the model.
 
 ### Terminal 2: Node Bob (Layers 8-15)
 
 ```bash
-# Start the node
+# Start the node and connect to Alice via --peers
 aria node start \
   --port 8766 \
   --cpu 25 \
   --model aria-2b-1bit \
-  --layers 8-15
-
-# Connect to Alice
-aria peers add localhost:8765
+  --peers localhost:8765
 ```
 
 ### Terminal 3: Node Carol (Layers 16-23)
 
 ```bash
-# Start the node
+# Start the node and connect to Alice and Bob via --peers
 aria node start \
   --port 8767 \
   --cpu 25 \
   --model aria-2b-1bit \
-  --layers 16-23
-
-# Connect to Alice and Bob
-aria peers add localhost:8765
-aria peers add localhost:8766
+  --peers localhost:8765,localhost:8766
 ```
+
+> **Note:** The `aria peers add` command for dynamically adding peers is planned for v0.6.0.
+> Currently, peers are specified at startup with the `--peers` flag.
 
 ### Verify the Network
 
 ```bash
 # Check connected peers
-aria peers list
+aria network peers
 
 # Expected output:
 # Connected Peers (2):
@@ -215,7 +213,7 @@ Model:       aria-2b-1bit (layers 0-23)
 
 Statistics:
   Inferences:     142
-  Tokens Earned:  0.142 ARIA
+  Contribution:   0.142
   Energy Used:    4.26 J
 
 Network:
@@ -249,13 +247,15 @@ aria ledger verify
 |------|-------------|---------|
 | `--port` | WebSocket port | 8765 |
 | `--cpu` | Max CPU usage (%) | 25 |
-| `--ram` | Max RAM (MB) | 512 |
 | `--schedule` | Available hours (UTC) | 00:00-23:59 |
 | `--model` | Model to load | aria-2b-1bit |
-| `--layers` | Layer range (e.g., 0-7) | all |
+| `--backend` | Inference backend (auto/native/subprocess/simulation) | auto |
 | `--tls` | Enable TLS/WSS encryption | disabled |
 | `--cert` | Path to TLS certificate | auto-generated |
 | `--key` | Path to TLS private key | auto-generated |
+| `--peers` | Comma-separated list of peers (host:port) | none |
+
+> **Planned flags (v0.6.0):** `--ram` (max RAM in MB), `--layers` (layer range for sharding, e.g., 0-7)
 
 ### API Server Configuration
 
@@ -396,7 +396,7 @@ aria node start --port 8766
 
 1. Check that the peer node is running:
    ```bash
-   aria peers list
+   aria network peers
    ```
 
 2. Verify network connectivity:
