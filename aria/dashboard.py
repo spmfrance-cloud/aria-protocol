@@ -9,6 +9,7 @@ MIT License - Anthony MURGO, 2026
 
 import asyncio
 import json
+import logging
 import time
 from collections import deque
 from datetime import datetime
@@ -16,6 +17,8 @@ from typing import Optional, Dict, List, Any, Set
 
 from aiohttp import web, WSMsgType
 import websockets
+
+logger = logging.getLogger(__name__)
 
 
 class ARIADashboard:
@@ -125,7 +128,8 @@ class ARIADashboard:
                 if "data" in result:
                     return result["data"]
                 return {}
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Failed to fetch node stats: {e}")
             return {}
 
     async def _get_peers(self) -> List[Dict]:
@@ -146,7 +150,8 @@ class ARIADashboard:
                 if "data" in result and "peers" in result["data"]:
                     return result["data"]["peers"]
                 return []
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Failed to fetch peers: {e}")
             return []
 
     async def _push_updates(self):
@@ -176,14 +181,15 @@ class ARIADashboard:
                     for ws in self.ws_clients:
                         try:
                             await ws.send_str(message)
-                        except Exception:
+                        except Exception as e:
+                            logger.debug(f"WebSocket client send failed: {e}")
                             disconnected.add(ws)
 
                     # Remove disconnected clients
                     self.ws_clients -= disconnected
 
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Dashboard push update error: {e}")
 
             await asyncio.sleep(2)  # Update every 2 seconds
 

@@ -20,7 +20,7 @@ class UsefulWorkProof:
     """
     Proof that a node performed useful inference work.
     
-    Unlike Bitcoin's PoW where computation is wasted on finding
+    Unlike traditional PoW where computation is wasted on finding
     arbitrary hashes, ARIA's PoUW proves that the node performed
     actual AI inference that served a user's request.
     """
@@ -307,7 +307,7 @@ class ProofOfSobriety:
                         if "model name" in line:
                             return line.split(":")[1].strip()
             return f"{platform.processor() or platform.machine()}"
-        except:
+        except (OSError, ValueError):
             return "unknown"
     
     def get_network_savings(self) -> Dict:
