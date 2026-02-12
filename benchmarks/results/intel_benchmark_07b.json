@@ -1,0 +1,109 @@
+{
+  "timestamp": "2026-02-12T18:18:32.213238",
+  "system_info": {
+    "platform": "Windows-11-10.0.28020-SP0",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11370H @ 3.30GHz",
+    "threads": 8,
+    "python_version": "3.12.8"
+  },
+  "model": "bitnet-b1.58-large",
+  "num_prompts": 5,
+  "max_tokens": 50,
+  "results": {
+    "native": [],
+    "subprocess": [
+      {
+        "tokens_per_second": 58.92,
+        "latency_ms": 1569.57,
+        "energy_estimate_mj": 23543.53,
+        "energy_mj_per_token": 480.48,
+        "output_length": 244,
+        "prompt": "What is artificial intelligence?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 60.08,
+        "latency_ms": 1179.3,
+        "energy_estimate_mj": 17689.48,
+        "energy_mj_per_token": 361.01,
+        "output_length": 285,
+        "prompt": "Explain quantum computing in simple terms.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 62.61,
+        "latency_ms": 1168.74,
+        "energy_estimate_mj": 17531.1,
+        "energy_mj_per_token": 357.78,
+        "output_length": 226,
+        "prompt": "Write a Python function to sort a list.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 52.13,
+        "latency_ms": 1304.65,
+        "energy_estimate_mj": 19569.75,
+        "energy_mj_per_token": 399.38,
+        "output_length": 202,
+        "prompt": "What are the benefits of renewable energy?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": 75.3,
+        "latency_ms": 1018.9,
+        "energy_estimate_mj": 15283.49,
+        "energy_mj_per_token": 311.91,
+        "output_length": 204,
+        "prompt": "Describe the architecture of a neural network.",
+        "status": "ok"
+      }
+    ],
+    "simulation": [
+      {
+        "tokens_per_second": null,
+        "latency_ms": 17.57,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "What is artificial intelligence?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 16.08,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "Explain quantum computing in simple terms.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 17.13,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "Write a Python function to sort a list.",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 16.78,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "What are the benefits of renewable energy?",
+        "status": "ok"
+      },
+      {
+        "tokens_per_second": null,
+        "latency_ms": 17.0,
+        "energy_estimate_mj": 100,
+        "energy_mj_per_token": 2.0,
+        "output_length": 44,
+        "prompt": "Describe the architecture of a neural network.",
+        "status": "ok"
+      }
+    ]
+  }
+}
