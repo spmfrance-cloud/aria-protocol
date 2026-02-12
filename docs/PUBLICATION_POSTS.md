@@ -211,6 +211,8 @@ Si vous travaillez sur l'IA distribuée, l'edge computing, ou la souveraineté t
 
 ---
 
+> **Note**: The posts below are v0.3.0 drafts with AMD-only benchmarks. For current multi-architecture results, see the v0.5.2+ posts above.
+
 ## 1. Reddit r/LocalLLaMA
 
 **Titre:** `89 tokens/s on CPU — We built a P2P protocol for distributed 1-bit LLM inference, and it actually works`
