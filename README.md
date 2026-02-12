@@ -177,7 +177,7 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    ARIA PROTOCOL v0.5.2+                         │
+│                    ARIA PROTOCOL v0.5.5                           │
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 3: SERVICE                                               │
 │  ├── OpenAI-compatible API (aiohttp, streaming)                 │

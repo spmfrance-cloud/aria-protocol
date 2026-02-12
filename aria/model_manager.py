@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from aria import __version__
+
 
 # Default cache directory
 MODELS_DIR = Path.home() / ".aria" / "models"
@@ -203,7 +205,7 @@ class ModelManager:
         try:
             req = urllib.request.Request(
                 url,
-                headers={"User-Agent": "ARIA-Protocol/0.4.0"}
+                headers={"User-Agent": f"ARIA-Protocol/{__version__}"}
             )
             with urllib.request.urlopen(req, timeout=300) as response:
                 with open(dest, "wb") as f:

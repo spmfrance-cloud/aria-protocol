@@ -339,7 +339,7 @@ export default function Settings() {
                   ARIA Protocol
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  {t("settings.version")} v0.5.1
+                  {t("settings.version")} v0.5.5
                 </p>
               </div>
             </div>

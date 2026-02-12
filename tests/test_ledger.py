@@ -108,17 +108,17 @@ class TestBlock:
         assert hash1 == hash2
         assert len(hash1) == 64
 
-    def test_block_mine(self):
-        """Test mining a block."""
+    def test_block_seal(self):
+        """Test sealing a block."""
         block = Block(
             index=1,
             timestamp=time.time(),
             records=[],
             previous_hash="0" * 64
         )
-        mined_hash = block.mine(difficulty=1)
-        assert mined_hash.startswith("0")
-        assert block.hash == mined_hash
+        sealed_hash = block.seal(difficulty=1)
+        assert sealed_hash.startswith("0")
+        assert block.hash == sealed_hash
 
 
 class TestProvenanceLedger:
@@ -148,8 +148,8 @@ class TestProvenanceLedger:
         assert len(ledger.pending_records) == 1
         assert record_hash == record.to_hash()
 
-    def test_mine_pending_block(self):
-        """Test mining a block with pending records."""
+    def test_seal_pending_block(self):
+        """Test sealing a block with pending records."""
         ledger = ProvenanceLedger(difficulty=1)
 
         # Add a record
@@ -165,25 +165,25 @@ class TestProvenanceLedger:
         )
         ledger.add_record(record)
 
-        # Mine block
-        block = ledger.mine_pending_block(miner_id="miner1")
+        # Seal block
+        block = ledger.seal_pending_block(contributor_id="contributor1")
         assert block is not None
         assert block.index == 1
-        assert block.miner_id == "miner1"
+        assert block.contributor_id == "contributor1"
         assert len(ledger.chain) == 2
         assert len(ledger.pending_records) == 0
 
-    def test_mine_empty_pending(self):
-        """Test that mining with no pending records returns None."""
+    def test_seal_empty_pending(self):
+        """Test that sealing with no pending records returns None."""
         ledger = ProvenanceLedger(difficulty=1)
-        block = ledger.mine_pending_block(miner_id="miner1")
+        block = ledger.seal_pending_block(contributor_id="contributor1")
         assert block is None
 
     def test_verify_chain(self):
-        """Test blockchain verification."""
+        """Test ledger chain verification."""
         ledger = ProvenanceLedger(difficulty=1)
 
-        # Add and mine a record
+        # Add and seal a record
         record = InferenceRecord(
             query_hash="abc",
             output_hash="def",
@@ -195,7 +195,7 @@ class TestProvenanceLedger:
             tokens_generated=10
         )
         ledger.add_record(record)
-        ledger.mine_pending_block(miner_id="miner1")
+        ledger.seal_pending_block(contributor_id="contributor1")
 
         assert ledger.verify_chain() is True
 
@@ -214,7 +214,7 @@ class TestProvenanceLedger:
             tokens_generated=10
         )
         record_hash = ledger.add_record(record)
-        ledger.mine_pending_block(miner_id="miner1")
+        ledger.seal_pending_block(contributor_id="contributor1")
 
         retrieved = ledger.get_record_by_hash(record_hash)
         assert retrieved is not None
@@ -246,7 +246,7 @@ class TestProvenanceLedger:
         )
         ledger.add_record(record1)
         ledger.add_record(record2)
-        ledger.mine_pending_block(miner_id="miner1")
+        ledger.seal_pending_block(contributor_id="contributor1")
 
         node1_records = ledger.get_records_by_node("node1")
         assert len(node1_records) == 1
@@ -267,7 +267,7 @@ class TestProvenanceLedger:
             tokens_generated=10
         )
         ledger.add_record(record)
-        ledger.mine_pending_block(miner_id="miner1")
+        ledger.seal_pending_block(contributor_id="contributor1")
 
         model_records = ledger.get_records_by_model("aria-2b-1bit")
         assert len(model_records) == 1
@@ -287,7 +287,7 @@ class TestProvenanceLedger:
             tokens_generated=10
         )
         ledger.add_record(record)
-        ledger.mine_pending_block(miner_id="miner1")
+        ledger.seal_pending_block(contributor_id="contributor1")
 
         stats = ledger.get_network_stats()
         assert "total_inferences" in stats
@@ -296,7 +296,7 @@ class TestProvenanceLedger:
         assert stats["total_energy_joules"] == 0.05  # 50 mJ = 0.05 J
 
     def test_export_chain(self):
-        """Test exporting blockchain as JSON."""
+        """Test exporting ledger chain as JSON."""
         ledger = ProvenanceLedger(difficulty=1)
 
         exported = ledger.export_chain()

@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from aria import __version__
 from aria.node import ARIANode
 from aria.consent import ARIAConsent, TaskType
 from aria.ledger import ProvenanceLedger
@@ -407,7 +408,7 @@ def cmd_node_status(args):
                 await ws.send(json.dumps(msg))
                 response = await asyncio.wait_for(ws.recv(), timeout=5)
                 return json.loads(response)
-        except Exception:
+        except (ConnectionError, asyncio.TimeoutError, OSError, json.JSONDecodeError):
             return None
 
     try:
@@ -439,8 +440,8 @@ def cmd_node_status(args):
                 print(f"  Active Peers:   {net.get('alive_peers', 0)}")
                 print(f"  Messages Sent:  {net.get('messages_sent', 0)}")
                 print(f"  Messages Recv:  {net.get('messages_received', 0)}")
-    except Exception:
-        print("\n  (Could not fetch live metrics)")
+    except (ConnectionError, OSError, ValueError) as e:
+        print(f"\n  (Could not fetch live metrics: {e})")
 
     return 0
 
@@ -590,7 +591,7 @@ def cmd_ledger_stats(args):
                 print(f"  Chain Length:     {len(ledger_data.get('chain', []))}")
                 print("\n  Note: Start a node for live statistics")
                 return 0
-            except Exception:
+            except (json.JSONDecodeError, OSError):
                 pass
 
         print("No ARIA node is currently running.")
@@ -749,7 +750,7 @@ class APIServerManager:
                 await ws.send(json.dumps(msg))
                 await asyncio.wait_for(ws.recv(), timeout=5)
                 print(f"  Node Status:   Connected")
-        except Exception as e:
+        except (ConnectionError, asyncio.TimeoutError, OSError) as e:
             print(f"  Node Status:   Not reachable ({e})")
             print()
             print("Warning: ARIA node is not running or not reachable.")
@@ -853,7 +854,7 @@ def cmd_api_status(args):
             health = json.loads(response.read().decode())
             node_status = health.get("node", {}).get("status", "unknown")
             print(f"  Node Status:  {node_status}")
-    except Exception:
+    except (ConnectionError, OSError, json.JSONDecodeError, ValueError):
         print(f"  Node Status:  (could not check)")
 
     print()
@@ -902,7 +903,7 @@ class DashboardManager:
                 await ws.send(json.dumps(msg))
                 await asyncio.wait_for(ws.recv(), timeout=5)
                 print(f"  Node Status:   Connected")
-        except Exception as e:
+        except (ConnectionError, asyncio.TimeoutError, OSError) as e:
             print(f"  Node Status:   Not reachable ({e})")
             print()
             print("Warning: ARIA node is not running or not reachable.")
@@ -1003,7 +1004,7 @@ Documentation: https://github.com/spmfrance-cloud/aria-protocol
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="%(prog)s 0.5.2"
+        version=f"%(prog)s {__version__}"
     )
 
     subparsers = parser.add_subparsers(

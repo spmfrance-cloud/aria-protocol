@@ -1,6 +1,6 @@
 """
 ARIA Protocol - Provenance Ledger
-A lightweight blockchain for tracking AI inference provenance.
+A lightweight provenance ledger for tracking AI inference history.
 Every inference is recorded immutably with full traceability.
 
 MIT License - Anthony MURGO, 2026
@@ -52,7 +52,7 @@ class Block:
     records: List[InferenceRecord]
     previous_hash: str
     nonce: int = 0
-    miner_id: str = ""
+    contributor_id: str = ""
     
     # Computed
     hash: str = ""
@@ -65,20 +65,20 @@ class Block:
             "records": [asdict(r) for r in self.records],
             "previous_hash": self.previous_hash,
             "nonce": self.nonce,
-            "miner_id": self.miner_id,
+            "contributor_id": self.contributor_id,
         }
         data = json.dumps(block_data, sort_keys=True)
         return hashlib.sha256(data.encode()).hexdigest()
     
-    def mine(self, difficulty: int = 2) -> str:
+    def seal(self, difficulty: int = 2) -> str:
         """
-        Mine this block with Proof of Useful Work.
-        
+        Seal this block with Proof of Useful Work.
+
         In ARIA, every computation is useful inference. The nonce is the count of
         useful inferences performed. The difficulty adjusts to
         maintain a target block time.
-        
-        For the reference implementation, we use a simple 
+
+        For the reference implementation, we use a simple
         hash-based proof with leading zeros.
         """
         prefix = "0" * difficulty
@@ -91,8 +91,8 @@ class Block:
 
 class ProvenanceLedger:
     """
-    The ARIA provenance blockchain.
-    
+    The ARIA provenance ledger.
+
     A lightweight chain optimized for AI inference metadata.
     Stores only hashes and provenance data — no model weights
     or actual inference data on-chain.
@@ -130,7 +130,7 @@ class ProvenanceLedger:
             timestamp=time.time(),
             records=[],
             previous_hash="0" * 64,
-            miner_id="genesis",
+            contributor_id="genesis",
         )
         genesis.hash = genesis.compute_hash()
         self.chain.append(genesis)
@@ -145,19 +145,19 @@ class ProvenanceLedger:
         Add an inference record to the pending pool.
         Returns the record hash for reference.
         
-        When enough records accumulate, a new block is mined.
+        When enough records accumulate, a new block is sealed.
         """
         record_hash = record.to_hash()
         self.pending_records.append(record)
         
-        # Auto-mine when we have enough records
+        # Auto-seal when we have enough records
         if len(self.pending_records) >= self.records_per_block:
-            self.mine_pending_block()
+            self.seal_pending_block()
         
         return record_hash
     
-    def mine_pending_block(self, miner_id: str = "local") -> Optional[Block]:
-        """Mine a new block with all pending records."""
+    def seal_pending_block(self, contributor_id: str = "local") -> Optional[Block]:
+        """Seal a new block with all pending records."""
         if not self.pending_records:
             return None
         
@@ -166,10 +166,10 @@ class ProvenanceLedger:
             timestamp=time.time(),
             records=self.pending_records[:self.records_per_block],
             previous_hash=self.last_block.hash,
-            miner_id=miner_id,
+            contributor_id=contributor_id,
         )
-        
-        new_block.mine(self.difficulty)
+
+        new_block.seal(self.difficulty)
         self.chain.append(new_block)
         self.pending_records = self.pending_records[self.records_per_block:]
         
@@ -259,7 +259,7 @@ class ProvenanceLedger:
                 "timestamp": block.timestamp,
                 "hash": block.hash,
                 "previous_hash": block.previous_hash,
-                "miner_id": block.miner_id,
+                "contributor_id": block.contributor_id,
                 "records": [asdict(r) for r in block.records],
             })
         return json.dumps(chain_data, indent=2)

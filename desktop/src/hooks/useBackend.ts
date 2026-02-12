@@ -54,7 +54,7 @@ export function useBackend() {
           lastChecked: Date.now(),
         });
       } else if (!isTauri()) {
-        // Not in Tauri — always mock mode
+        // FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
         setStatus({
           mode: 'mock',
           available: false,
