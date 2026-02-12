@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aria-protocol"
-version = "0.5.1"
+version = "0.5.5"
 description = "A peer-to-peer protocol for efficient, ethical, and decentralized AI inference using 1-bit models on CPUs"
 readme = "README.md"
 license = "MIT"
@@ -19,7 +19,7 @@ keywords = [
     "inference",
     "1-bit",
     "cpu",
-    "blockchain",
+    "provenance",
     "decentralized"
 ]
 classifiers = [
@@ -41,8 +41,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-aiohttp>=1.0",
+    "pytest-cov>=4.1",
+    "aiohttp>=3.9",
+    "ruff>=0.4",
 ]
 
 [project.scripts]
@@ -62,3 +66,11 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+markers = [
+    "asyncio: mark a test as an asyncio coroutine",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:websockets.*:",
+    "ignore::DeprecationWarning:aiohttp.*:",
+]
