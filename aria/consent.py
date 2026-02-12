@@ -62,8 +62,8 @@ class ARIAConsent:
     allow_logging: bool = True       # Allow inference metadata logging
     allow_geo_tracking: bool = False # Allow geographic location tracking
     
-    # Economics
-    min_reward_per_inference: float = 0.0  # Minimum ARIA tokens per task
+    # Contribution
+    min_contribution_score: float = 0.0  # Minimum contribution score per task
     
     # Metadata
     version: str = "1.0"
@@ -116,8 +116,8 @@ class ARIAConsent:
         if ram_needed > self.max_ram_mb:
             return False
         
-        reward = request.get("reward", 0)
-        if reward < self.min_reward_per_inference:
+        contribution_score = request.get("contribution_score", 0)
+        if contribution_score < self.min_contribution_score:
             return False
         
         return True

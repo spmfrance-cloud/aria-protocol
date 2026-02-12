@@ -273,7 +273,7 @@ class InferenceRequest:
     max_tokens: int = 256
     temperature: float = 0.7
     ram_mb: int = 512
-    reward: float = 0.01  # ARIA tokens offered
+    contribution_score: float = 0.01  # Contribution score offered
     timestamp: float = field(default_factory=time.time)
 
     def to_hash(self) -> str:
@@ -761,7 +761,7 @@ class ARIANetwork:
             req_dict = {
                 "task_type": request.task_type,
                 "ram_mb": request.ram_mb,
-                "reward": request.reward,
+                "contribution_score": request.contribution_score,
             }
 
             if not peer.consent.matches_request(req_dict):

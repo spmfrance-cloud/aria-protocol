@@ -106,9 +106,9 @@ How each attack vector is addressed across multiple layers:
 
 | Attack | Layer 1 | Layer 2 | Layer 3 | Layer 4 | Layer 5 |
 |--------|---------|---------|---------|---------|---------|
-| Sybil (fake nodes) | — | Rate limiting | PoUW requires real compute | Staking cost | — |
-| Result falsification | — | Message auth | Output hash + timing | Slashing | — |
-| Energy fraud | — | — | PoS cross-reference | Slashing | — |
+| Sybil (fake nodes) | — | Rate limiting | PoUW requires real compute | Reputation requirement | — |
+| Result falsification | — | Message auth | Output hash + timing | Reputation penalty | — |
+| Energy fraud | — | — | PoS cross-reference | Reputation penalty | — |
 | MITM eavesdropping | TLS 1.3 | — | — | — | E2E encryption |
 | Eclipse (isolation) | — | Peer diversity | Bootstrap nodes | — | — |
 | Prompt leakage | TLS 1.3 | — | — | — | Local inference |
@@ -134,8 +134,8 @@ How each attack vector is addressed across multiple layers:
 | v0.2.5 ✅ | TLS/WSS, threat model, self-signed certs |
 | v0.5.x ✅ | Security policy (SECURITY.md), defense-in-depth documentation |
 | v0.6.0 | Peer diversity requirements, certificate pinning |
-| v0.7.0 | Reputation system, stake-based Sybil resistance |
-| v1.0.0 | Slashing, hardware attestation, third-party audit, bug bounty |
+| v0.7.0 | Reputation system, reputation-based Sybil resistance |
+| v1.0.0 | Reputation penalties, hardware attestation, third-party audit, bug bounty |
 
 ---
 
