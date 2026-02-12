@@ -20,7 +20,7 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 
 # Create output directory
-output_dir = r"C:\Users\antho\Documents\aria-protocol\docs"
+output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 os.makedirs(output_dir, exist_ok=True)
 
 def create_bar_chart_image(data, labels, title, ylabel, filename, colors_list=None):
@@ -36,6 +36,39 @@ def create_bar_chart_image(data, labels, title, ylabel, filename, colors_list=No
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(data)*0.02,
                f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
     ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.grid(axis='y', alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+def create_multiarch_chart(filename):
+    """Create grouped bar chart comparing AMD and Intel throughput."""
+    fig, ax = plt.subplots(figsize=(12, 6))
+    models = ['0.7B', '2.4B', '8.0B']
+    amd_data = [120.25, 36.62, 15.03]
+    intel_data = [61.81, 77.21, 10.36]
+    x = np.arange(len(models))
+    width = 0.35
+    bars_amd = ax.bar(x - width/2, amd_data, width, label='AMD Ryzen 9 7845HX (12C/24T)',
+                       color='#4ECDC4', edgecolor='white')
+    bars_intel = ax.bar(x + width/2, intel_data, width, label='Intel i7-11370H (4C/8T)',
+                         color='#2E86AB', edgecolor='white')
+    ax.set_xticks(x)
+    ax.set_xticklabels(models)
+    ax.set_ylabel('Tokens/second', fontsize=11)
+    ax.set_title('Multi-Architecture Throughput Comparison', fontsize=14, fontweight='bold', pad=15)
+    ax.legend(loc='upper right', fontsize=9)
+    for bar, val in zip(bars_amd, amd_data):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
+               f'{val:.1f}', ha='center', va='bottom', fontsize=9, fontweight='bold', color='#4ECDC4')
+    for bar, val in zip(bars_intel, intel_data):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
+               f'{val:.1f}', ha='center', va='bottom', fontsize=9, fontweight='bold', color='#2E86AB')
+    ax.annotate('Intel wins\n(+111%)', xy=(1 + width/2, 77.21), xytext=(1.8, 85),
+               arrowprops=dict(arrowstyle='->', color='#FF6B6B', lw=2),
+               fontsize=10, color='#FF6B6B', fontweight='bold', ha='center')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.grid(axis='y', alpha=0.3)
@@ -134,9 +167,7 @@ def create_pdf_report():
     chart_dir = os.path.join(output_dir, "charts")
     os.makedirs(chart_dir, exist_ok=True)
     
-    create_bar_chart_image([89.65, 36.94, 15.03], ['0.7B', '2.4B', '8.0B'], 
-        'Throughput by Model Size (tokens/s)', 'Tokens/second',
-        os.path.join(chart_dir, 'throughput.png'))
+    create_multiarch_chart(os.path.join(chart_dir, 'throughput.png'))
     create_comparison_chart(os.path.join(chart_dir, 'cost.png'))
     create_energy_chart(os.path.join(chart_dir, 'energy.png'))
     create_thread_scaling_chart(os.path.join(chart_dir, 'threads.png'))
@@ -172,7 +203,7 @@ def create_pdf_report():
     story.append(Paragraph("Comprehensive Performance Analysis<br/>& Industry Comparison", styles['Subtitle']))
     story.append(Spacer(1, 1*inch))
     
-    metrics_data = [['89.65 t/s', '~11 mJ', '99%', '$0.003'],
+    metrics_data = [['120.25 t/s', '~11 mJ', '99%', '$0.003'],
                     ['Peak Throughput', 'Energy/Token', 'Energy Savings', 'Cost/1M Tokens']]
     metrics_table = Table(metrics_data, colWidths=[3.5*cm]*4)
     metrics_table.setStyle(TableStyle([
@@ -194,12 +225,12 @@ def create_pdf_report():
     story.append(Paragraph(
         "This report presents comprehensive benchmark results for ARIA Protocol, a peer-to-peer "
         "distributed inference system using 1-bit quantized models. All benchmarks were conducted "
-        "on consumer hardware (AMD Ryzen 9 7845HX) with fully reproducible methodology.",
+        "on consumer hardware (AMD Ryzen 9 7845HX and Intel Core i7-11370H) with fully reproducible methodology.",
         styles['CustomBody']))
     
     summary_data = [
         ['Metric', 'ARIA (Best)', 'ARIA (Balanced)', 'Industry Standard'],
-        ['Throughput', '89.65 t/s', '36.94 t/s', '50-100 t/s (GPU)'],
+        ['Throughput', '120.25 t/s', '77.21 t/s', '50-100 t/s (GPU)'],
         ['Energy/Token', '~11 mJ', '~28 mJ', '~3,000-7,000 mJ'],
         ['Hardware Cost', '$0 (existing)', '$0 (existing)', '$1,000-$10,000+'],
         ['Latency (TTFT)', '88 ms', '504 ms', '200-800 ms (API)'],
@@ -225,7 +256,8 @@ def create_pdf_report():
         "<b>1-bit inference is memory-bound</b> - Optimal performance at 8 threads",
         "<b>Horizontal scaling beats vertical scaling</b> - P2P distribution outperforms multi-threading by 3x",
         "<b>Energy efficiency is 100-250x better</b> than datacenter GPU inference",
-        "<b>Sub-linear model scaling</b> - 8B model is 11x larger but only 6x slower than 0.7B"
+        "<b>Sub-linear model scaling</b> - 8B model is 11x larger but only 6x slower than 0.7B",
+        "<b>ISA execution width matters</b> - Native 512-bit AVX-512 (Tiger Lake) outperforms double-pumped (Zen 4) on 2.4B model by 111%"
     ]
     for finding in findings:
         story.append(Paragraph("* " + finding, styles['CustomBody']))
@@ -238,12 +270,12 @@ def create_pdf_report():
     story.append(Spacer(1, 0.2*inch))
     
     perf_data = [
-        ['Model', 'Generation (t/s)', 'Prompt (t/s)', 'ms/token', 'Load Time', 'RAM'],
-        ['0.7B', '89.65', '91.07', '11.16', '168 ms', '~400 MB'],
-        ['2.4B', '36.94', '37.45', '27.07', '658 ms', '~1,300 MB'],
-        ['8.0B', '15.03', '15.95', '66.53', '1,031 ms', '~4,200 MB'],
+        ['Model', 'AMD t/s', 'AMD Latency', 'Intel t/s', 'Intel Latency', 'RAM'],
+        ['0.7B', '120.25', '588 ms', '61.81', '1,248 ms', '~400 MB'],
+        ['2.4B', '36.62', '2,120 ms', '77.21', '657 ms', '~1,300 MB'],
+        ['8.0B', '~15.03', '--', '10.36', '7,874 ms', '~4,200 MB'],
     ]
-    perf_table = Table(perf_data, colWidths=[2*cm, 2.8*cm, 2.5*cm, 2*cm, 2*cm, 2*cm])
+    perf_table = Table(perf_data, colWidths=[2*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2.5*cm, 2*cm])
     perf_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#4ECDC4')),
         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
@@ -351,6 +383,7 @@ def create_pdf_report():
         ['99%+ energy reduction', 'Massive sustainability impact'],
         ['$0 hardware cost', 'Democratizes AI inference'],
         ['Sub-linear model scaling', 'Larger models viable on CPU'],
+        ['ISA matters more than core count', 'Route by CPU architecture, not just speed'],
     ]
     conclusions_table = Table(conclusions_data, colWidths=[6*cm, 7.5*cm])
     conclusions_table.setStyle(TableStyle([
