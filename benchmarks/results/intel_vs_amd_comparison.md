@@ -12,10 +12,10 @@
 | **Architecture** | Tiger Lake (11th Gen) | Zen 4 (Raphael) |
 | **Cores / Threads** | 4C / 8T | 12C / 24T |
 | **Max Clock** | 3.30 GHz (base) / 4.80 GHz (boost) | 3.60 GHz (base) / 5.20 GHz (boost) |
-| **SIMD** | AVX-512 (VNNI) | AVX2 + AVX-512 (Zen 4) |
-| **RAM** | 16 GB | 32 GB |
+| **SIMD** | AVX-512 (native 512-bit, VNNI) | AVX-512 (double-pumped 256-bit, VNNI) |
+| **RAM** | 16 GB | 64 GB DDR5 |
 | **OS** | Windows 11 (10.0.28020) | Windows 11 |
-| **Python** | 3.12.8 | 3.12.x |
+| **Python** | 3.12.8 | 3.14.3 |
 
 ## 2. Performance Comparison (tokens/s)
 
@@ -25,7 +25,7 @@
 | BitNet-b1.58-2B-4T | 2.4B | 77.21 | 36.62 | +110.8% | 657.01 | 2120.00 | -69.0% |
 | Llama3-8B-1.58 | 8.0B | 10.36 | 15.03 | -31.1% | 7873.58 | N/A | N/A |
 
-> Note: The 2.4B model (Microsoft BitNet-b1.58-2B-4T) is a newer architecture released after the AMD benchmarks. The AMD 2.4B result was obtained with a different conversion pipeline, which may explain the performance difference. Direct comparison should be interpreted with caution.
+> Note: The 2.4B model performance difference may be explained by Intel Tiger Lake's native 512-bit AVX-512 execution vs AMD Zen 4's double-pumped 256-bit implementation. Both support VNNI, but the execution width differs significantly for ternary weight lookup operations.
 
 ## 3. Energy Efficiency (estimated mJ/token)
 
@@ -41,11 +41,11 @@
 
 - **Core count dominates throughput on the 0.7B model**: The AMD Ryzen 9 7845HX (12C/24T) delivers ~2x the throughput of the Intel i7-11370H (4C/8T) on the 0.7B model, suggesting that small-model inference scales well with thread count in bitnet.cpp's MAD (multiply-and-add) kernel.
 
-- **The 2.4B model favors Intel significantly**: The Intel platform achieves 77.21 tok/s vs AMD's 36.62 tok/s. This is likely due to the Microsoft BitNet-b1.58-2B-4T model using a different weight packing format that may benefit from AVX-512 VNNI instructions available on Tiger Lake. The newer model architecture may also have different memory access patterns.
+- **The 2.4B model favors Intel significantly**: The Intel platform achieves 77.21 tok/s vs AMD's 36.62 tok/s. Both CPUs support AVX-512 VNNI, but Tiger Lake executes 512-bit instructions natively on full-width execution units, while Zen 4 double-pumps them as 2× 256-bit µops. The BitNet-b1.58-2B-4T model (Microsoft's newer architecture) likely has memory access patterns that benefit from true 512-bit throughput on the ternary LUT kernels.
 
 - **8B model shows expected scaling**: The 8B model is compute-bound on both platforms, with the AMD achieving ~1.45x the throughput of Intel, roughly proportional to the core count advantage (12C vs 4C) after accounting for memory bandwidth limitations.
 
-- **AVX-512 vs core count trade-off**: While the Intel i7-11370H supports AVX-512 with VNNI extensions (beneficial for integer-based 1-bit inference), the AMD Ryzen 9 7845HX compensates with 3x more cores. For the 0.7B and 8B models, core count appears more impactful than wider SIMD for this workload.
+- **Native 512-bit execution vs core count trade-off**: Both CPUs support AVX-512 VNNI, but they implement it differently: Tiger Lake has native 512-bit execution units, while Zen 4 decodes AVX-512 as 2× 256-bit µops. For the 0.7B and 8B models, the AMD's 3× core advantage dominates. For the 2.4B model, Intel's true 512-bit throughput appears more impactful — suggesting that the optimal hardware depends on the model architecture.
 
 - **Memory bandwidth is not the bottleneck for small models**: The 0.7B model (257 MB quantized) fits entirely in L3 cache on both platforms, making the benchmark primarily compute-bound. The 8B model (3.7 GB) exceeds cache capacity, making memory bandwidth more relevant.
 
