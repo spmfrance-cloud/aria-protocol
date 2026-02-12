@@ -83,7 +83,7 @@
                         </svg>
                     </div>
                     <h3 class="card-title">CPU-Efficient</h3>
-                    <div class="card-metric">89 t/s</div>
+                    <div class="card-metric">120 t/s</div>
                     <p class="card-desc">1-bit ternary weights (-1, 0, +1) replace expensive multiplications with simple additions. Runs on any consumer CPU &mdash; no GPU required.</p>
                 </div>
                 <div class="card">
@@ -129,7 +129,7 @@
     <section id="benchmarks" class="benchmarks">
         <div class="container">
             <h2 class="section-title">Real-World Benchmarks</h2>
-            <p class="section-subtitle">Tested on AMD Ryzen 9 7845HX &mdash; 8 threads, reproducible results.</p>
+            <p class="section-subtitle">Tested on AMD Ryzen 9 7845HX &amp; Intel Core i7-11370H &mdash; 8 threads, subprocess backend, reproducible results.</p>
 
             <div class="table-wrapper">
                 <table class="bench-table">
@@ -137,9 +137,9 @@
                         <tr>
                             <th>Model</th>
                             <th>Parameters</th>
-                            <th>Throughput</th>
+                            <th>AMD Ryzen 9</th>
+                            <th>Intel i7</th>
                             <th>Energy*</th>
-                            <th>Latency (p50)</th>
                             <th>Memory</th>
                         </tr>
                     </thead>
@@ -147,31 +147,32 @@
                         <tr>
                             <td><strong>BitNet-b1.58-large</strong></td>
                             <td>0.7B</td>
-                            <td class="highlight">89.65 t/s</td>
+                            <td class="highlight">120.25 t/s</td>
+                            <td>61.81 t/s</td>
                             <td>~11 mJ/token</td>
-                            <td>88 ms</td>
                             <td>~400 MB</td>
                         </tr>
                         <tr>
                             <td><strong>BitNet-b1.58-2B-4T</strong></td>
                             <td>2.4B</td>
-                            <td class="highlight">36.94 t/s</td>
+                            <td>36.62 t/s</td>
+                            <td class="highlight">77.21 t/s</td>
                             <td>~28 mJ/token</td>
-                            <td>504 ms</td>
                             <td>~1.3 GB</td>
                         </tr>
                         <tr>
                             <td><strong>Llama3-8B-1.58</strong></td>
                             <td>8.0B</td>
-                            <td class="highlight">15.03 t/s</td>
+                            <td class="highlight">~15.03 t/s</td>
+                            <td>10.36 t/s</td>
                             <td>~66 mJ/token</td>
-                            <td>1,031 ms</td>
                             <td>~4.2 GB</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="table-note">*Energy is estimated via CPU-time x TDP. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
+            <p class="table-note"><strong>Notable:</strong> The 4-core Intel i7 outperforms the 12-core AMD Ryzen 9 on the 2.4B model (+111%). Tiger Lake executes AVX-512 on native 512-bit units, while Zen 4 double-pumps as 2&times; 256-bit &micro;ops &mdash; 1-bit inference is ISA-sensitive, not just core-count-dependent.</p>
+            <p class="table-note" style="margin-top: 8px;">*Energy is estimated via CPU-time x TDP. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
             <p class="table-note" style="margin-top: 8px; color: #8b949e;">Coming soon: Falcon3 1.58-bit (1B&ndash;10B), Falcon-Edge (outperforms Microsoft BitNet), PT-BitNet conversions</p>
 
             <!-- Cost Comparison -->
@@ -329,8 +330,8 @@
                 <div class="security-layer layer-4">
                     <div class="layer-number">4</div>
                     <div class="layer-content">
-                        <h3>Economic Security</h3>
-                        <p>Staking &middot; Slashing &middot; Time-locked rewards &middot; Reputation</p>
+                        <h3>Reputation Security</h3>
+                        <p>Contribution scoring &middot; Reputation penalties &middot; Quality thresholds &middot; Temporal decay</p>
                     </div>
                     <span class="layer-status status-designed">Designed</span>
                 </div>
@@ -375,7 +376,7 @@
                 <div class="security-card">
                     <div class="security-card-icon">🛡️</div>
                     <h4>Anti-Sybil</h4>
-                    <p>Proof of Useful Work requires real computation. Staking creates economic cost. Rate limiting caps fake node creation.</p>
+                    <p>Proof of Useful Work requires real computation. Reputation requirements create contribution cost. Rate limiting caps fake node creation.</p>
                 </div>
                 <div class="security-card">
                     <div class="security-card-icon">⚡</div>
