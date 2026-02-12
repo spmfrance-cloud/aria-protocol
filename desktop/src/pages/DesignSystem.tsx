@@ -84,7 +84,7 @@ export default function DesignSystem() {
               ARIA Desktop
             </h1>
             <p className="text-sm text-text-secondary">
-              Design System Preview — v0.5.0
+              Design System Preview — v0.5.5
             </p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function DesignSystem() {
               <Badge variant="warning">Pending</Badge>
               <Badge variant="error">Error</Badge>
               <Badge variant="outline">Outline</Badge>
-              <Badge variant="success">v0.5.0</Badge>
+              <Badge variant="success">v0.5.5</Badge>
               <Badge variant="default">BitNet</Badge>
               <Badge variant="outline">1-bit</Badge>
             </div>
@@ -349,7 +349,7 @@ export default function DesignSystem() {
         variants={item}
         className="text-center text-sm text-text-secondary/50 pb-8"
       >
-        ARIA Protocol Desktop App — v0.5.0
+        ARIA Protocol Desktop App — v0.5.5
       </motion.footer>
     </motion.div>
   );
