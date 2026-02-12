@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onToggle }) => {
               exit={{ opacity: 0 }}
               className="text-xs text-text-secondary/50 text-center"
             >
-              ARIA Protocol v0.5.2
+              ARIA Protocol v0.5.5
             </motion.p>
           ) : (
             <motion.p

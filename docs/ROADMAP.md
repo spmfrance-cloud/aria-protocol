@@ -1,6 +1,6 @@
 # ARIA Protocol — Roadmap v2.1
 
-> From v0.5.2 (current) to v1.1.0+ · 9 versions · 59 tasks
+> From v0.5.5 (current) to v1.1.0+ · 9 versions · 59 tasks
 > Covers: code, docs, whitepaper, website, communication
 
 ## Changelog v2 → v2.1
