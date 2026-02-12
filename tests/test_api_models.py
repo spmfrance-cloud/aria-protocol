@@ -14,6 +14,8 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
+from aria import __version__
+
 from aria.api import ARIAOpenAIServer
 
 
@@ -137,7 +139,7 @@ class TestStatus:
         client = await aiohttp_client(app)
         resp = await client.get("/v1/status")
         data = await resp.json()
-        assert data["version"] == "0.5.5"
+        assert data["version"] == __version__
 
     @pytest.mark.asyncio
     async def test_status_has_cors_headers(self, aiohttp_client, app):
