@@ -104,14 +104,27 @@ print(response.choices[0].message.content)
 
 ## Benchmarks
 
-### v0.5.2 — Subprocess backend (latest)
+### v0.5.5 — Multi-architecture benchmarks (latest)
 
-Real-world performance on AMD Ryzen 9 7845HX (8 threads, subprocess backend calling llama-cli):
+Real-world performance across Intel and AMD platforms (subprocess backend calling llama-cli, 8 threads):
+
+**AMD Ryzen 9 7845HX** (12C/24T, AVX-512 double-pumped, 64 GB DDR5):
 
 | Model | Params | Avg tok/s | Avg latency | Avg energy* |
 |-------|--------|-----------|-------------|-------------|
 | BitNet-b1.58-large | 0.7B | **120.25** | 588 ms | 8,823 mJ |
 | BitNet-b1.58-2B-4T | 2.4B | **36.62** | 2,120 ms | 31,807 mJ |
+| Llama3-8B-1.58 | 8.0B | **~15.03** | — | ~66 mJ/token |
+
+**Intel Core i7-11370H** (4C/8T, AVX-512 native + VNNI, 16 GB DDR4):
+
+| Model | Params | Avg tok/s | Avg latency |
+|-------|--------|-----------|-------------|
+| BitNet-b1.58-large | 0.7B | **61.81** | 1,248 ms |
+| BitNet-b1.58-2B-4T | 2.4B | **77.21** | 657 ms |
+| Llama3-8B-1.58 | 8.0B | **10.36** | 7,874 ms |
+
+> **Notable finding:** The 4-core Intel i7 outperforms the 12-core AMD Ryzen 9 on the 2.4B model (+111%). Tiger Lake executes AVX-512 on native 512-bit units, while Zen 4 double-pumps as 2× 256-bit µops — this benefits the ternary LUT kernels in the newer BitNet-2B-4T architecture. 1-bit inference performance is ISA-sensitive, not just core-count-dependent.
 
 ### v0.3.0 — Direct bitnet.cpp benchmarks
 
@@ -231,6 +244,7 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 | Memory (2B model) | 4.0 GB | 0.4 GB | **10x less** |
 | Energy (CPU) | 150 mJ/inference | 28 mJ/inference | **5x less** |
 | Hardware | GPU ($10K+) | Any CPU | **Free** |
+| Architectures tested | — | Intel + AMD | **Both x86** |
 
 ---
 
@@ -238,11 +252,11 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 
 ### Currently validated
 
-| Model | Params | Throughput | Format | Source |
-|-------|--------|------------|--------|--------|
-| BitNet-b1.58-large | 0.7B | 89.65 t/s | GGUF | Microsoft Research |
-| BitNet-b1.58-2B-4T | 2.4B | 36.94 t/s | GGUF | Microsoft Research |
-| Llama3-8B-1.58 | 8.0B | 15.03 t/s | GGUF | Microsoft Research |
+| Model | Params | AMD Ryzen 9 | Intel i7 | Format | Source |
+|-------|--------|-------------|----------|--------|--------|
+| BitNet-b1.58-large | 0.7B | 120.25 t/s | 61.81 t/s | GGUF | Microsoft Research |
+| BitNet-b1.58-2B-4T | 2.4B | 36.62 t/s | 77.21 t/s | GGUF | Microsoft Research |
+| Llama3-8B-1.58 | 8.0B | ~15.03 t/s | 10.36 t/s | GGUF | Microsoft Research |
 
 ### Coming in v0.6.0
 
