@@ -267,6 +267,13 @@ aria node start --port 8765 --api-port 3000
 - Smooth 200ms transitions throughout
 - Framer Motion for mount/interaction animations
 
+## Known Limitations
+
+### Alpha (v0.5.x)
+
+- **CSP disabled**: Content Security Policy is intentionally set to `null` in `tauri.conf.json` during alpha. A strict policy will be enforced before stable release. See: https://tauri.app/reference/config/#securityconfig
+- **Updater signing disabled**: The updater `pubkey` is empty during alpha. A valid Ed25519 public key must be configured before any public release to ensure update authenticity.
+
 ## License
 
 MIT — ARIA Protocol Contributors
