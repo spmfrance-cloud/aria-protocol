@@ -1,3 +1,4 @@
+// FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
 import { SupportedLanguage, detectLanguage } from "./detectLanguage";
 
 interface LocalizedMockResponse {
