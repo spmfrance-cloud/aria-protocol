@@ -1,6 +1,6 @@
 # ARIA Protocol Specification
 
-Technical specification for ARIA Protocol v0.2.5 WebSocket communication layer.
+Technical specification for ARIA Protocol v0.5.5 WebSocket communication layer.
 
 ## Table of Contents
 
@@ -688,5 +688,5 @@ The reference implementation is in `aria/network.py`:
 
 ---
 
-*Specification Version: 0.2.5*
+*Specification Version: 0.5.5*
 *Last Updated: 2026-02-01*

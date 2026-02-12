@@ -6,7 +6,7 @@ This document describes the technical architecture of the ARIA Protocol, a peer-
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          ARIA PROTOCOL v0.1.0                               │
+│                          ARIA PROTOCOL v0.5.5                               │
 │                  Distributed AI Inference Network                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
@@ -26,7 +26,7 @@ This document describes the technical architecture of the ARIA Protocol, a peer-
 │  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐      │   │
 │  │  │   Provenance    │  │  Proof of       │  │  Proof of       │      │   │
 │  │  │   Ledger        │  │  Useful Work    │  │  Sobriety       │      │   │
-│  │  │  (blockchain)   │  │ (useful work)   │  │ (energy track)  │      │   │
+│  │  │  (provenance)   │  │ (useful work)   │  │ (energy track)  │      │   │
 │  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘      │   │
 │  │           │                    │                    │                │   │
 │  │           └────────────────────┼────────────────────┘                │   │
@@ -201,11 +201,11 @@ Ensures transparency, accountability, and quality tracking.
 
 #### Provenance Ledger (`ledger.py`)
 
-An immutable blockchain recording all inference operations:
+An immutable provenance ledger recording all inference operations:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   Provenance Blockchain                      │
+│                   Provenance Ledger                          │
 │                                                              │
 │  ┌────────────┐    ┌────────────┐    ┌────────────┐         │
 │  │  Block 0   │───►│  Block 1   │───►│  Block 2   │───► ... │
@@ -217,7 +217,7 @@ An immutable blockchain recording all inference operations:
 │  │ index: 42                                         │       │
 │  │ timestamp: 1706745600                             │       │
 │  │ previous_hash: "a1b2c3..."                        │       │
-│  │ miner_id: "node-xyz"                              │       │
+│  │ contributor_id: "node-xyz"                          │       │
 │  │ records: [                                        │       │
 │  │   {                                               │       │
 │  │     query_hash: "sha256...",                      │       │
@@ -234,13 +234,13 @@ An immutable blockchain recording all inference operations:
 │  │ hash: "00abc..."  (difficulty=2 leading zeros)   │       │
 │  └──────────────────────────────────────────────────┘       │
 │                                                              │
-│  Key Property: NO model weights on-chain, only metadata      │
+│  Key Property: NO model weights on-ledger, only metadata     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 #### Proof of Useful Work (`proof.py`)
 
-Unlike Bitcoin's wasteful hash computation, ARIA ensures every computation is useful AI inference:
+Unlike traditional wasteful hash computation, ARIA ensures every computation is useful AI inference:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -656,7 +656,7 @@ All node-to-node communication uses a JSON-based WebSocket protocol:
 │        ▼                      ▼                      ▼                      │
 │  ┌───────────┐         ┌───────────┐         ┌───────────┐                 │
 │  │inference.py│         │ ledger.py │         │ consent.py│                 │
-│  │ (engine)  │         │(blockchain)│         │(contracts)│                 │
+│  │ (engine)  │         │(provenance)│         │(contracts)│                 │
 │  └─────┬─────┘         └─────┬─────┘         └───────────┘                 │
 │        │                     │                                              │
 │   ┌────┴─────┐               ▼                                              │
@@ -675,33 +675,40 @@ All node-to-node communication uses a JSON-based WebSocket protocol:
 ```
 aria-protocol/
 ├── aria/
-│   ├── __init__.py      # Package exports
-│   ├── node.py          # ARIANode - main orchestrator
-│   ├── network.py       # ARIANetwork - P2P WebSocket layer
-│   ├── inference.py     # InferenceEngine, TernaryLayer, ModelShard
+│   ├── __init__.py          # Package exports, __version__
+│   ├── node.py              # ARIANode - main orchestrator
+│   ├── network.py           # ARIANetwork - P2P WebSocket layer
+│   ├── inference.py         # InferenceEngine, TernaryLayer, ModelShard
 │   ├── bitnet_native.py     # Native ctypes bindings to bitnet.cpp
-│   ├── bitnet_subprocess.py # Subprocess backend using llama-cli.exe
-│   ├── ledger.py        # ProvenanceLedger, Block, InferenceRecord
-│   ├── proof.py         # ProofOfUsefulWork, ProofOfSobriety
-│   ├── consent.py       # ARIAConsent, TaskType
-│   ├── cli.py           # Command-line interface
-│   ├── api.py           # OpenAI-compatible HTTP API
-│   └── dashboard.py     # Real-time web dashboard
+│   ├── bitnet_subprocess.py # Subprocess backend using llama-cli
+│   ├── model_manager.py     # ModelManager - GGUF model download/cache
+│   ├── ledger.py            # ProvenanceLedger, Block, InferenceRecord
+│   ├── proof.py             # ProofOfUsefulWork, ProofOfSobriety
+│   ├── consent.py           # ARIAConsent, TaskType
+│   ├── cli.py               # Command-line interface
+│   ├── api.py               # OpenAI-compatible HTTP API
+│   └── dashboard.py         # Real-time web dashboard
 ├── tests/
 │   ├── test_node.py
 │   ├── test_inference.py
 │   ├── test_ledger.py
 │   ├── test_proof.py
-│   └── test_consent.py
+│   ├── test_consent.py
+│   ├── test_api_models.py
+│   ├── test_bitnet_native.py
+│   └── test_bitnet_subprocess.py
 ├── examples/
-│   ├── demo.py          # Full protocol demonstration
-│   └── openai_client.py # OpenAI client example
+│   ├── demo.py              # Full protocol demonstration
+│   └── openai_client.py     # OpenAI client example
 ├── docs/
-│   ├── architecture.md  # This document
+│   ├── architecture.md      # This document
 │   ├── getting-started.md
-│   └── api-reference.md
-├── pyproject.toml       # Python package configuration
-├── Makefile             # Build and test commands
+│   ├── api-reference.md
+│   ├── protocol-spec.md
+│   ├── threat-model.md
+│   └── ROADMAP.md
+├── pyproject.toml           # Python package configuration
+├── Makefile                 # Build and test commands
 └── README.md
 ```
 
