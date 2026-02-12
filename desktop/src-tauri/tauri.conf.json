@@ -24,8 +24,7 @@
       }
     ],
     "security": {
-      "csp": null,
-      "_csp_note": "CSP is intentionally null during alpha (v0.5.x). A strict policy will be enforced before stable release. See: https://tauri.app/reference/config/#securityconfig"
+      "csp": null
     }
   },
   "bundle": {
@@ -59,8 +58,7 @@
       "endpoints": [
         "https://github.com/spmfrance-cloud/aria-protocol/releases/latest/download/latest.json"
       ],
-      "pubkey": "",
-      "_updater_note": "Updater signing is disabled (empty pubkey) during alpha (v0.5.x). A valid Ed25519 public key must be configured before any public release to ensure update authenticity."
+      "pubkey": ""
     },
     "deep-link": {
       "mobile": [],
