@@ -62,7 +62,11 @@
     "deleteConversation": "会話を削除しますか？",
     "thinking": "考え中...",
     "tokensGenerated": "トークン生成済み",
-    "model": "モデル"
+    "model": "モデル",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "エネルギーと節約",
