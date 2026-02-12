@@ -360,7 +360,7 @@ Request inference processing.
     "max_tokens": 100,
     "temperature": 0.7,
     "ram_mb": 512,
-    "reward": 0.01
+    "contribution_score": 0.01
   },
   "timestamp": 1706745600.0,
   "protocol": "aria/0.1",
@@ -379,7 +379,7 @@ Request inference processing.
 | max_tokens | integer | No | Maximum output tokens (default: 256) |
 | temperature | float | No | Sampling temperature (default: 0.7) |
 | ram_mb | integer | No | RAM requirement in MB |
-| reward | float | No | ARIA tokens offered |
+| contribution_score | float | No | Contribution score offered |
 
 #### inference_response
 

@@ -340,7 +340,7 @@ No resource is used without explicit permission:
 │  - Checks schedule availability                              │
 │  - Verifies task type is accepted                            │
 │  - Ensures resource requirements fit limits                  │
-│  - Confirms reward meets minimum threshold                   │
+│  - Confirms contribution score meets minimum threshold       │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```

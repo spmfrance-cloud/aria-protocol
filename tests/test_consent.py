@@ -47,7 +47,7 @@ class TestARIAConsent:
             task_types=[TaskType.TEXT_GENERATION, TaskType.CODE_GENERATION],
             max_concurrent_tasks=4,
             allow_logging=False,
-            min_reward_per_inference=0.01,
+            min_contribution_score=0.01,
             node_id="test-node"
         )
         assert consent.cpu_percent == 50
@@ -57,7 +57,7 @@ class TestARIAConsent:
         assert len(consent.task_types) == 2
         assert consent.max_concurrent_tasks == 4
         assert consent.allow_logging is False
-        assert consent.min_reward_per_inference == 0.01
+        assert consent.min_contribution_score == 0.01
         assert consent.node_id == "test-node"
 
     def test_accepts_task_any(self):
@@ -114,22 +114,22 @@ class TestARIAConsent:
         consent = ARIAConsent(
             max_ram_mb=512,
             task_types=[TaskType.TEXT_GENERATION],
-            min_reward_per_inference=0.001
+            min_contribution_score=0.001
         )
         request = {
             "ram_mb": 256,
             "task_type": TaskType.TEXT_GENERATION,
-            "reward": 0.01
+            "contribution_score": 0.01
         }
         assert consent.matches_request(request) is True
 
-    def test_matches_request_insufficient_reward(self):
-        """Test that requests with insufficient reward don't match."""
-        consent = ARIAConsent(min_reward_per_inference=0.1)
+    def test_matches_request_insufficient_contribution(self):
+        """Test that requests with insufficient contribution score don't match."""
+        consent = ARIAConsent(min_contribution_score=0.1)
         request = {
             "ram_mb": 256,
             "task_type": TaskType.TEXT_GENERATION,
-            "reward": 0.01
+            "contribution_score": 0.01
         }
         assert consent.matches_request(request) is False
 
@@ -139,7 +139,7 @@ class TestARIAConsent:
         request = {
             "ram_mb": 256,
             "task_type": TaskType.CODE_GENERATION,
-            "reward": 0.01
+            "contribution_score": 0.01
         }
         assert consent.matches_request(request) is False
 
