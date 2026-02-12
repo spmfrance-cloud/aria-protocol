@@ -62,7 +62,11 @@
     "deleteConversation": "حذف المحادثة؟",
     "thinking": "جارٍ التفكير...",
     "tokensGenerated": "رموز تم إنشاؤها",
-    "model": "النموذج"
+    "model": "النموذج",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "الطاقة والتوفير",

@@ -62,7 +62,11 @@
     "deleteConversation": "대화를 삭제하시겠습니까?",
     "thinking": "생각 중...",
     "tokensGenerated": "토큰 생성됨",
-    "model": "모델"
+    "model": "모델",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "에너지 및 절감",

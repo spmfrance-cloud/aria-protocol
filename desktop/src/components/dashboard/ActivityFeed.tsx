@@ -12,6 +12,7 @@ interface ActivityItem {
   duration: number;
 }
 
+// FALLBACK: Mock response used when Tauri backend is unavailable (browser dev mode)
 function generateMockActivity(): ActivityItem[] {
   const prompts = [
     "Explain the concept of 1-bit quantization in neural networks",

@@ -62,7 +62,11 @@
     "deleteConversation": "Eliminare la conversazione?",
     "thinking": "Sto pensando...",
     "tokensGenerated": "token generati",
-    "model": "Modello"
+    "model": "Modello",
+    "liveMode": "Live",
+    "mockMode": "Mock",
+    "backendConnected": "Connected to ARIA backend",
+    "backendOffline": "Using mock responses (backend offline)"
   },
   "energy": {
     "title": "Energia e risparmi",
