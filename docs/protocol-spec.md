@@ -9,9 +9,10 @@ Technical specification for ARIA Protocol v0.5.5 WebSocket communication layer.
 3. [Message Format](#message-format)
 4. [Handshake Protocol](#handshake-protocol)
 5. [Message Types](#message-types)
-6. [Error Handling](#error-handling)
-7. [Protocol Versioning](#protocol-versioning)
-8. [Security Considerations](#security-considerations)
+6. [Prospective Memory Protocol](#prospective-memory-protocol)
+7. [Error Handling](#error-handling)
+8. [Protocol Versioning](#protocol-versioning)
+9. [Security Considerations](#security-considerations)
 
 ---
 
@@ -537,6 +538,48 @@ Request ledger integrity verification.
   "protocol": "aria/0.1"
 }
 ```
+
+---
+
+## Prospective Memory Protocol
+
+### Intention Messages
+
+The prospective memory system uses local-only intention management. Intentions are stored exclusively in the node's local Profile Graph and are NEVER transmitted over the P2P network.
+
+#### Intention Operations
+
+| Operation | Scope | Description |
+|---|---|---|
+| `intention.create` | Local | Create a new intention from user request or async extraction |
+| `intention.query` | Local | Query pending intentions (by status, trigger_type, priority) |
+| `intention.update` | Local | Modify intention properties (priority, trigger, expiry) |
+| `intention.cancel` | Local | Cancel a pending intention |
+| `intention.fire` | Local | Mark intention as triggered, inject into context |
+| `intention.archive` | Local | Move executed/expired intention to Cold tier |
+
+#### Trigger Evaluation Protocol
+
+On each user message, the following evaluation occurs within the memory pipeline:
+
+1. **Time check** (~3ms): Query Kuzu for overdue time-based intentions
+2. **Semantic check** (~2ms): Compare input embedding against intention trigger embeddings
+3. **Condition check** (~1ms): Evaluate state-based conditions against current pipeline state
+4. **Priority scoring**: Rank fired intentions by composite score (priority × relevance × urgency)
+5. **Token budgeting**: Select top-K intentions within 300-500 token injection budget
+6. **Context injection**: Format as soft nudge in system prompt
+
+On session start, an additional check queries all `session_start` trigger intentions.
+
+#### Privacy Guarantee
+
+Intentions contain personal user data (plans, reminders, goals). They are:
+
+- Stored exclusively in the local encrypted Profile Graph (SQLCipher AES-256)
+- NEVER shared over the P2P network
+- NEVER included in inference requests sent to other nodes
+- Subject to the same GDPR Article 17 (right to deletion) as all Profile Graph data
+- Exportable under GDPR Article 20 (data portability) via the Memory Manager UI
 
 ---
 

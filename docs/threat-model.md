@@ -12,8 +12,9 @@ This document describes the security threat model for ARIA Protocol v0.5.5, incl
 4. [Inference Integrity Attacks](#inference-integrity-attacks)
 5. [Economic Attacks](#economic-attacks)
 6. [Privacy Attacks](#privacy-attacks)
-7. [Mitigation Summary](#mitigation-summary)
-8. [Security Roadmap](#security-roadmap)
+7. [Prospective Memory Threats](#prospective-memory-threats)
+8. [Mitigation Summary](#mitigation-summary)
+9. [Security Roadmap](#security-roadmap)
 
 ---
 
@@ -407,6 +408,65 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 
 ---
 
+## Prospective Memory Threats
+
+### T-PM-1: Intention Injection via Prompt Manipulation
+
+**Threat**: An adversary crafts input designed to create malicious intentions in the user's Profile Graph (e.g., "remind me to send my passwords to X").
+
+**Mitigation**:
+- All extracted intentions are presented to the user for confirmation before becoming active (opt-in, not auto-created)
+- LLM extraction includes a safety filter rejecting intentions involving sensitive data (credentials, financial info, PII transmission)
+- Users can review, edit, and delete all intentions via the Memory Manager UI
+- Intention content is sanitized before context injection to prevent prompt injection attacks
+
+**Risk Level**: Medium (requires user confirmation to activate)
+
+---
+
+### T-PM-2: Trigger Flooding / Resource Exhaustion
+
+**Threat**: Excessive intention creation overwhelms the trigger evaluation pipeline, degrading inference performance.
+
+**Mitigation**:
+- Hard cap on active intentions per user (default: 50)
+- Priority-based garbage collection: intentions below noise threshold (0.05) are auto-archived
+- Trigger evaluation is budgeted within the existing <40ms synchronous pipeline
+- Rate limiting on intention creation (max 10 per session)
+
+**Risk Level**: Low (bounded by hard caps and budget constraints)
+
+---
+
+### T-PM-3: Stale Intention Execution
+
+**Threat**: An outdated intention fires in a context where it's no longer relevant or appropriate, causing confusion or incorrect behavior.
+
+**Mitigation**:
+- Configurable TTL (expires_at) with default expiration
+- Exponential decay on intention priority reduces stale intention activation
+- Soft nudge injection (not hard instruction) — the model evaluates relevance before acting on the intention
+- Users can pin important intentions to prevent decay
+
+**Risk Level**: Low (soft nudge approach prevents forced execution)
+
+---
+
+### T-PM-4: Privacy Leakage via Intention Content
+
+**Threat**: Intention content (which may contain personal plans, goals, or sensitive information) could leak through inference requests or network traffic.
+
+**Mitigation**:
+- Intentions are stored exclusively in local encrypted storage (SQLCipher AES-256)
+- Intention content is NEVER included in P2P inference requests
+- Context injection happens locally before distributed inference dispatch
+- Injected nudges are stripped from any provenance data logged on the ledger
+- GDPR compliance: full export (Art. 20) and deletion (Art. 17) support
+
+**Risk Level**: Low (local-only storage with encryption)
+
+---
+
 ## Mitigation Summary
 
 ### Current Status (v0.5.5)
@@ -422,6 +482,10 @@ Activations flowing: [H1] ──► [H2] ──► [H3]
 | Contribution Gaming | MEDIUM | PARTIAL (PoUW + reputation) |
 | Prompt Leakage | HIGH | PARTIAL (local inference + consent) |
 | Activation Analysis | LOW | MINIMAL |
+| Intention Injection (T-PM-1) | MEDIUM | IMPLEMENTED (user confirmation + safety filter) |
+| Trigger Flooding (T-PM-2) | LOW | IMPLEMENTED (hard caps + budget constraints) |
+| Stale Intention (T-PM-3) | LOW | IMPLEMENTED (TTL + decay + soft nudge) |
+| Intention Privacy Leakage (T-PM-4) | LOW | IMPLEMENTED (local-only + encryption) |
 
 ### Defense in Depth
 

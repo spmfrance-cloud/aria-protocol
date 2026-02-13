@@ -419,6 +419,89 @@ curl http://localhost:3000/v1/chat/completions \
 
 ---
 
+## Intentions API
+
+Manage prospective memory intentions. All endpoints are local-only and require no network connectivity.
+
+### POST /v1/intentions
+
+Create a new intention.
+
+**Request Body:**
+
+```json
+{
+  "content": "Ask about Q4 presentation results",
+  "trigger_type": "time",
+  "trigger_condition": "2026-02-17T09:00:00Z",
+  "priority": 0.8,
+  "max_fires": 1,
+  "expires_at": "2026-03-01T00:00:00Z",
+  "related_topics": ["project_alpha", "quarterly_review"]
+}
+```
+
+**Trigger Types:**
+
+| Type | trigger_condition Format | Description |
+|---|---|---|
+| `time` | ISO 8601 datetime | Fire at or after this time |
+| `semantic` | Keywords or phrase | Fire when conversation topic matches (embedding similarity > threshold) |
+| `condition` | Expression string | Fire when state condition is met (e.g., "emotion=frustration") |
+| `session_start` | `"*"` | Fire at the start of every new session |
+
+**Response:** `201 Created`
+
+```json
+{
+  "id": "int_a1b2c3",
+  "status": "pending",
+  "created_at": "2026-02-13T23:00:00Z",
+  "trigger_embedding_computed": true
+}
+```
+
+---
+
+### GET /v1/intentions
+
+List intentions with optional filters.
+
+**Query Parameters:**
+
+- `status` (optional): Filter by status (`pending`, `triggered`, `executed`, `expired`, `cancelled`)
+- `trigger_type` (optional): Filter by trigger type
+- `limit` (optional, default 20): Max results
+- `sort` (optional, default `priority_desc`): Sort order
+
+**Response:** `200 OK` — Array of intention objects.
+
+---
+
+### GET /v1/intentions/{id}
+
+Get a specific intention by ID.
+
+---
+
+### PATCH /v1/intentions/{id}
+
+Update an intention's properties (priority, trigger_condition, expires_at, status).
+
+---
+
+### DELETE /v1/intentions/{id}
+
+Cancel and archive an intention. Sets status to `cancelled` and moves to Cold tier.
+
+---
+
+### POST /v1/intentions/{id}/fire
+
+Manually trigger an intention (for testing or user-initiated reminders).
+
+---
+
 ## Error Responses
 
 ### 400 Bad Request
