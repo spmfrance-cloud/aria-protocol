@@ -553,19 +553,21 @@ ARIA's architecture is grounded in peer-reviewed research:
 | v0.5.0 | Desktop App | Tauri/Electron GUI for non-developers | ✅ Complete |
 | v0.5.1 | Build Fix | Desktop build corrections, CI/CD | ✅ Complete |
 | v0.5.2 | Subprocess | llama-cli bridge, real inference pipeline | ✅ Complete |
-| v0.5.5 | Housekeeping | Code quality, foundations, documentation | 🔄 In Progress |
-| v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, bootstrap nodes | ⬜ Planned |
+| v0.5.5 | Housekeeping | CI quality gates, version unification, doc sync, security docs, i18n | ✅ Complete |
+| v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, bootstrap nodes | 🔄 Current |
 | v0.7.0 | Smart Layer | Consensus Inference, Memory, Knowledge Network | ⬜ Planned |
 | v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens on 8GB) | ⬜ Planned |
 | v0.9.0 | ARIA-LM | Community-evolving model (SAPO + LoRA merging) | ⬜ Planned |
 | v1.0.0 | Production | Stable production network, reputation system | ⬜ Planned |
 
-### Current Focus: v0.5.5 Housekeeping & Foundations
+### Current Focus: v0.6.0 Testnet Alpha
 
-* Code quality improvements and technical debt reduction
-* CI/CD pipeline stabilization across all platforms
-* Documentation alignment with current architecture
-* Preparation for v0.6.0 Testnet Alpha
+* Kademlia DHT for decentralized peer discovery
+* NAT traversal (STUN/TURN)
+* Public bootstrap nodes
+* Multi-node simulation (50+ nodes)
+* Ed25519 message authentication
+* Refactor large Python modules into sub-modules
 
 See [full roadmap](https://spmfrance-cloud.github.io/aria-protocol/roadmap.html) for all tasks across 9 versions.
 

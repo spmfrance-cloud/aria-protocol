@@ -1,6 +1,6 @@
 # ARIA Protocol — Roadmap v2.1
 
-> From v0.5.5 (current) to v1.1.0+ · 9 versions · 59 tasks
+> From v0.6.0 (current) to v1.1.0+ · 9 versions · 59 tasks
 > Covers: code, docs, whitepaper, website, communication
 
 ## Changelog v2 → v2.1
@@ -27,8 +27,8 @@ Summary of 7 corrections applied to the roadmap v2.
 | Version | Name | Focus | Tasks | Status |
 |---------|------|-------|-------|--------|
 | v0.1→v0.5.2 | Genesis → Desktop | Whitepaper, P2P, CLI, API, Dashboard, BitNet, Benchmarks, Desktop | — | ✅ Complete |
-| v0.5.5 | Housekeeping & Foundations | Repo update, backend integration, model validation, website, docs | 9 | 🔥 Next |
-| v0.6.0 | Testnet Alpha | Bootstrap nodes, expanded catalog, hardened P2P, 50+ community nodes | 10 | ⬜ Planned |
+| v0.5.5 | Housekeeping & Foundations | CI quality gates, version unification, doc sync, security docs, i18n | 9 | ✅ Complete |
+| v0.6.0 | Testnet Alpha | Bootstrap nodes, expanded catalog, hardened P2P, 50+ community nodes | 10 | 🔄 Current |
 | v0.7.0 | Smart Layer | Reputation, Smart Router, frontier API overlay, intelligent chat | 6 | ⬜ Planned |
 | v0.7.5 | R&D + Documentation | PT-BitNet prototype, Accessibility Tree, Whitepaper v2, site v2 | 4 | ⬜ Planned |
 | v0.8.0 | Collective Intelligence | Consensus Inference, RAG, ARIA Code, vision pipeline | 8 | ⬜ Planned |
@@ -52,7 +52,7 @@ All foundational milestones complete:
 
 ---
 
-## v0.5.5 — Housekeeping & Foundations 🔥
+## v0.5.5 — Housekeeping & Foundations ✅
 
 | # | Task | Type | Detail | Files |
 |---|------|------|--------|-------|
@@ -68,7 +68,7 @@ All foundational milestones complete:
 
 ---
 
-## v0.6.0 — Testnet Alpha — Expanded Models + Robust P2P ⬜
+## v0.6.0 — Testnet Alpha — Expanded Models + Robust P2P 🔄
 
 | # | Task | Type | Detail | Files |
 |---|------|------|--------|-------|
