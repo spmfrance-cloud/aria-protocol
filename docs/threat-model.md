@@ -493,14 +493,14 @@ development but must use encrypted storage before production.
 - [x] Threat model documentation
 - [x] Basic input validation hardening
 
-### v0.5.5 (Current ✅)
+### v0.5.5 (Complete ✅)
 
 - [x] Security policy (SECURITY.md)
 - [x] Defense-in-depth architecture documentation
 - [x] Security section in README
 - [x] Website security page
 
-### v0.6.0 (Testnet Alpha)
+### v0.6.0 (Testnet Alpha — Current 🔄)
 
 - [ ] Peer diversity requirements (by IP range, geography)
 - [ ] Persistent peer storage across restarts
