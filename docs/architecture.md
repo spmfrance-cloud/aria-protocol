@@ -712,6 +712,269 @@ aria-protocol/
 └── README.md
 ```
 
+## Conversation Memory Architecture
+
+ARIA implements a persistent, privacy-first memory system that operates entirely
+on the user's device. No conversation data leaves the node.
+
+### Three-Tier Memory Model
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    CONVERSATION MEMORY ARCHITECTURE                      │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  HOT TIER — Working Context                                        │ │
+│  │  Current session messages + injected memories                      │ │
+│  │  Storage: in-memory (context window)                               │ │
+│  │  Latency: 0ms (already in prompt)                                  │ │
+│  └──────────────────────────┬─────────────────────────────────────────┘ │
+│                              │ compaction trigger                        │
+│                              ▼                                           │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  WARM TIER — Personal Profile Graph (Kuzu)                         │ │
+│  │  Extracted facts, preferences, relationships                       │ │
+│  │  Storage: embedded graph DB (Kuzu, ~50MB)                          │ │
+│  │  Latency: <40ms (embedding search + graph query)                   │ │
+│  │                                                                    │ │
+│  │  Node types (13): Person, Fact, Preference, Goal, Project,         │ │
+│  │    Communication_Style, Relationship, Event, Skill, Opinion,       │ │
+│  │    Habit, Context_Snapshot, Session                                 │ │
+│  │                                                                    │ │
+│  │  Relation types (9): KNOWS, HAS_PREFERENCE, WORKS_ON,             │ │
+│  │    HAS_GOAL, HAS_SKILL, HOLDS_OPINION, RELATED_TO,                │ │
+│  │    MENTIONED_IN, HAPPENED_DURING                                   │ │
+│  └──────────────────────────┬─────────────────────────────────────────┘ │
+│                              │ TTL expiry / cold archival               │
+│                              ▼                                           │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  COLD TIER — Archive                                               │ │
+│  │  Full session transcripts, expired facts, audit trail              │ │
+│  │  Storage: SQLite + zstd compression                                │ │
+│  │  Latency: 50-200ms (decompression + query)                        │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Memory Compaction Strategy
+
+The transition between memory tiers follows a token-budget compaction model,
+validated by prior work (MemGPT [Packer et al., ICLR 2024], LangChain
+ConversationSummaryBufferMemory):
+
+- **Trigger**: When the Hot tier exceeds a configurable token threshold
+  (default: 75% of model context length), oldest messages are compacted.
+- **Compaction method**: A lightweight model (Qwen2.5-1.5B Q4_K_M) generates
+  structured summaries asynchronously to avoid blocking inference.
+- **Output**: Compacted summaries stored as Warm-tier facts in the Profile Graph
+  with source attribution and confidence scores.
+- **Cold archival**: Warm facts older than configurable TTL (default: 30 days
+  without recall) move to Cold tier, compressed with zstd.
+- **Manual override**: Users can pin facts to prevent compaction or force-purge
+  via the Memory Manager UI.
+
+References:
+- MemGPT: Towards LLMs as Operating Systems (Packer et al., ICLR 2024)
+- LangChain ConversationSummaryBufferMemory (docs.langchain.com)
+
+### Cognitive Memory Model — Full Coverage
+
+ARIA's memory architecture maps to all five types of human memory identified
+in cognitive science, making it one of the first open-source AI systems to
+achieve full cognitive memory coverage:
+
+| Human Memory Type | Function | ARIA Implementation | Status |
+|---|---|---|---|
+| **Episodic** | Stores experiences with temporal context | Hot tier (context window) + Cold tier (SQLite archive with timestamps, session metadata) | ✅ Designed |
+| **Semantic** | Distilled knowledge from many episodes | Warm tier — Personal Profile Graph (Kuzu). Facts extracted and consolidated across sessions. | ✅ Designed |
+| **Procedural** | Know-how, learned behaviors | Communication_Style nodes in Profile Graph. Slow-cadence adaptation across sessions (Adaptation Paradox). | ✅ Designed |
+| **Working** | Selective attention gating | Embedding-based injection (<40ms budget). E5-small-v2 similarity search selects relevant memories for context. | ✅ Designed |
+| **Prospective** | Future-oriented intentions ("remember to do X") | Intention nodes + dual-pathway trigger system (time-based + semantic + condition-based). | 📐 Specified |
+
+No major open-source AI agent framework — including MemGPT/Letta, Mem0, LangChain,
+Zep/Graphiti, or Cognee — implements a dedicated prospective memory system with
+autonomous intention formation, multi-modal triggers, and intention lifecycle management.
+
+The closest academic work is Tan et al. (2025), which introduces Prospective Reflection — dynamically summarizing interactions into a topic-based memory bank optimized for anticipated future retrieval. While this improves memory organization for future access, it does not implement deferred intention execution with autonomous trigger mechanisms, which is the core of psychological prospective memory and ARIA's implementation.
+
+References:
+- Einstein, G.O. & McDaniel, M.A. (2005). Prospective memory: Multiple retrieval processes. *Current Directions in Psychological Science*, 14(6), 286–290.
+- Scullin, M.K., McDaniel, M.A. & Shelton, J.T. (2013). The Dynamic Multiprocess Framework. *Cognitive Psychology*, 67(1–2), 55–71.
+- Rummel, J. & Kvavilashvili, L. (2023). Current theories of prospective memory. *Nature Reviews Psychology*, 2, 40–54.
+- Tan, W. et al. (2025). In Prospect and Retrospect: Reflective Memory Management for Long-term Personalized Dialogue Agents. ACL 2025. arXiv:2503.08026. — Introduces Prospective Reflection for topic-based memory organization optimized for future retrieval. Closest existing work to prospective memory for LLM agents, achieving >10% accuracy improvement on LongMemEval. Addresses memory organization for anticipated retrieval, not deferred intention execution (which ARIA implements).
+
+### Prospective Memory Architecture
+
+Prospective memory is the cognitive faculty for remembering to carry out intended
+actions in the future. ARIA implements this via a dual-pathway architecture inspired
+by Einstein & McDaniel's Multiprocess Framework.
+
+#### Intention Node Schema
+
+A new node type `Intention` (14th type) is added to the Personal Profile Graph:
+
+```
+(:Intention {
+    id: STRING,                  -- Unique identifier
+    content: STRING,             -- "Ask about presentation results"
+    trigger_type: STRING,        -- "time" | "semantic" | "condition" | "session_start"
+    trigger_condition: STRING,   -- ISO datetime | topic keywords | expression | "*"
+    trigger_embedding: FLOAT[],  -- Pre-computed embedding for semantic matching
+    priority: FLOAT,             -- 0.0 to 1.0 (base priority)
+    created_at: TIMESTAMP,
+    expires_at: TIMESTAMP,       -- TTL, NULL = never expires
+    status: STRING,              -- "pending" | "triggered" | "executed" | "expired" | "cancelled"
+    fire_count: INT,             -- Times triggered (for recurring intentions)
+    max_fires: INT,              -- 1 = one-shot, -1 = unlimited recurring
+    source_session: STRING,      -- Session where intention was created
+    confidence: FLOAT,           -- Extraction confidence (heuristic vs LLM)
+    context_summary: STRING      -- Compressed context for token-efficient injection
+})
+```
+
+New relationships:
+
+```
+(:Person)-[:HAS_INTENTION]->(:Intention)
+(:Intention)-[:RELATES_TO]->(:Project | :Person | :Goal | :Fact)
+(:Session)-[:CREATED_INTENTION]->(:Intention)
+(:Intention)-[:DEPENDS_ON]->(:Intention)  -- Dependency chains
+```
+
+#### Dual-Pathway Trigger System
+
+Inspired by the neural architecture of prospective memory (rostral prefrontal
+cortex for strategic monitoring, hippocampus for spontaneous retrieval):
+
+**Pathway 1 — Strategic Monitoring (Time-based, polling)**
+
+For time-based and session-start intentions. A lightweight scheduler checks
+pending intentions against temporal conditions:
+
+- On session start: query all `trigger_type = 'session_start'` or overdue time triggers
+- Periodic check: poll time-based intentions every N messages (adaptive frequency)
+- Budget: ~3ms per check via Kuzu indexed query
+
+```cypher
+MATCH (p:Person)-[:HAS_INTENTION]->(i:Intention)
+WHERE i.status = 'pending'
+  AND (i.trigger_type = 'session_start'
+       OR (i.trigger_type = 'time' AND i.trigger_condition <= datetime()))
+RETURN i ORDER BY i.priority DESC LIMIT 3
+```
+
+**Pathway 2 — Spontaneous Retrieval (Semantic, embedding-based)**
+
+For event-based and topic-based intentions. When new user input arrives, its
+embedding is compared against all active intention trigger embeddings:
+
+- Compute input embedding via E5-small-v2 (~5ms, already in pipeline)
+- ANN search against intention trigger embeddings (~2ms for <1000 intentions)
+- Fire intentions exceeding similarity threshold (configurable, default 0.78)
+- Cooldown period prevents rapid re-firing (default: 1 per session per intention)
+
+This pathway has near-zero ongoing cost — it piggybacks on the existing embedding
+computation in the memory recall pipeline.
+
+**Pathway 3 — Condition Triggers (State-based)**
+
+For activity-based intentions triggered by state changes:
+
+- Register watched conditions (e.g., "when emotion=frustration", "after task completion")
+- Evaluate conditions against pipeline state (emotion detection output, task status)
+- Compound triggers: AND/OR/SEQUENCE logic for complex conditions
+
+#### Adaptive Monitoring (Dynamic Multiprocess Framework)
+
+Following Scullin et al. (2013), monitoring intensity adapts dynamically:
+
+- **Low monitoring**: No high-priority intentions match current context — minimal polling
+- **Elevated monitoring**: Current topic has >0.6 cosine similarity to any pending
+  high-priority intention — increase polling frequency, lower firing threshold
+- **Post-trigger relaxation**: After an intention fires, return to low monitoring
+  unless other relevant intentions remain active
+
+This prevents the constant-cost problem of naive polling while ensuring
+time-critical intentions are not missed.
+
+#### Intention Extraction Pipeline
+
+**Heuristic extraction (synchronous, ~1ms):**
+
+Pattern matching against common prospective language:
+- "remind me to...", "next time... mention/ask/check..."
+- "don't forget to...", "follow up on..."
+- "when we talk about X, bring up Y"
+- "let me know if..."
+
+**LLM extraction (asynchronous, 1-3s via Qwen2.5-1.5B):**
+
+Runs in the existing async extraction pipeline alongside fact extraction:
+
+```json
+{
+  "intentions": [{
+    "content": "Ask about Q4 presentation results",
+    "trigger_type": "time",
+    "trigger_condition": "2026-02-17T09:00:00",
+    "priority": 0.8
+  }]
+}
+```
+
+#### Context Injection — Token-Efficient Nudging
+
+When an intention fires, it is injected as a soft nudge in the system prompt,
+not as a hard instruction. Token budget: 300-500 tokens (~5% of context window).
+
+Selection scoring (ACT-R inspired activation):
+
+```
+Score = 0.4 * base_priority
+      + 0.3 * semantic_relevance_to_current_input
+      + 0.2 * time_urgency (increases as deadline approaches)
+      + 0.1 * freshness_decay (exponential, configurable half-life)
+```
+
+Injection format:
+
+```
+[Memory Note: You previously noted to ask about the Q4 presentation results.
+This was flagged on Feb 10. Consider bringing this up naturally if relevant
+to the current conversation.]
+```
+
+The model decides whether to act on the nudge based on conversational context.
+
+#### Intention Lifecycle
+
+```
+CREATED → PENDING → TRIGGERED → EXECUTED (archived to Cold)
+                  ↘ EXPIRED (TTL exceeded, archived to Cold)
+                  ↘ CANCELLED (user manually cancelled)
+           TRIGGERED → RECURRING (fire_count < max_fires → back to PENDING)
+```
+
+Garbage collection: intentions with effective priority below noise threshold
+(0.05) after decay are automatically archived to Cold tier.
+
+#### Solving the Circular Dependency Problem
+
+Li & Laird (2013) identified the fundamental challenge: the system can't retrieve
+an intention it doesn't know it has forgotten. The dual-pathway architecture
+solves this:
+
+- **Spontaneous retrieval** (Pathway 2) solves it for event-based PM: incoming
+  inputs automatically activate matching intentions via embedding similarity,
+  without the system "knowing" to look for them.
+- **Strategic monitoring** (Pathway 1) solves it for time-based PM: periodic
+  polling catches intentions that no environmental cue would surface.
+- The hybrid approach ensures complete coverage at minimal cost.
+
+---
+
 ## Next Steps
 
 See the other documentation files for more information:

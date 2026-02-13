@@ -670,7 +670,7 @@
         <div class="container">
             <div class="hero-badge">
                 <span class="dot"></span>
-                v0.5.5 in progress
+                v0.6.0 in progress
             </div>
             <h1>ARIA Protocol &mdash; <span class="gradient-text">Roadmap v3.0</span></h1>
             <p class="hero-subtitle">From testnet to production. 9 versions charting the path from proof-of-concept to a fully decentralized AI inference network.</p>
@@ -680,11 +680,11 @@
                     <span class="label">Versions</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="value">54</span>
+                    <span class="value">58</span>
                     <span class="label">Tasks</span>
                 </div>
                 <div class="hero-stat">
-                    <span class="value">v0.5.5</span>
+                    <span class="value">v0.6.0</span>
                     <span class="label">Current</span>
                 </div>
             </div>
@@ -718,12 +718,12 @@
                 </div>
             </div>
 
-            <!-- v0.5.5 — In Progress -->
-            <div class="version-block" style="border-left: 3px solid var(--c-next);">
+            <!-- v0.5.5 — Complete -->
+            <div class="version-block" style="border-left: 3px solid var(--c-done);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.5.5</span>
+                    <span class="version-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--c-done);">v0.5.5</span>
                     <span class="version-name">Housekeeping &amp; Foundations</span>
-                    <span class="version-status status-progress">In Progress</span>
+                    <span class="version-status status-complete">Complete</span>
                 </div>
                 <p class="version-desc">CI/CD fixes, cleanup, test stabilization, Falcon3 prep, documentation &mdash; 6 tasks</p>
                 <details class="version-tasks">
@@ -744,12 +744,12 @@
                 </details>
             </div>
 
-            <!-- v0.6.0 — Next -->
-            <div class="version-block" style="border-left: 3px solid var(--c-blue);">
+            <!-- v0.6.0 — In Progress -->
+            <div class="version-block" style="border-left: 3px solid var(--c-next);">
                 <div class="version-header">
-                    <span class="version-tag" style="background: rgba(59, 130, 246, 0.15); color: var(--c-blue);">v0.6.0</span>
+                    <span class="version-tag" style="background: rgba(245, 158, 11, 0.15); color: var(--c-next);">v0.6.0</span>
                     <span class="version-name">Testnet Alpha</span>
-                    <span class="version-status status-next">Next</span>
+                    <span class="version-status status-progress">In Progress</span>
                 </div>
                 <p class="version-desc">Kademlia DHT, NAT traversal, desktop bridge, Falcon3/Edge models, 50+ community nodes &mdash; 10 tasks</p>
                 <details class="version-tasks">
@@ -781,9 +781,9 @@
                     <span class="version-name">Smart Layer</span>
                     <span class="version-status status-planned">Planned</span>
                 </div>
-                <p class="version-desc">Consensus Inference, Conversation Memory, reputation system, SAPO prototype &mdash; 10 tasks</p>
+                <p class="version-desc">Consensus Inference, Conversation Memory, Prospective Memory, reputation system, SAPO prototype &mdash; 14 tasks</p>
                 <details class="version-tasks">
-                    <summary>View 10 tasks</summary>
+                    <summary>View 14 tasks</summary>
                     <div class="task-table-wrap">
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
@@ -798,6 +798,10 @@
                                 <tr><td>24</td><td>Node reputation system (reliability scoring)</td><td><span class="type-badge type-code">Code</span></td><td>Score nodes on uptime, quality, energy efficiency. Published on ledger.</td></tr>
                                 <tr><td>25</td><td>Anti-Sybil protections (IP + hardware fingerprint)</td><td><span class="type-badge type-code">Code</span></td><td>Prevent fake nodes. IP diversity + hardware attestation.</td></tr>
                                 <tr><td>26</td><td>SAPO integration prototype (reasoning rollout sharing)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Decentralized experience sharing for reasoning improvement. Based on Gensyn research.</td></tr>
+                                <tr><td>27</td><td>Prospective Memory: Intention node schema in Profile Graph</td><td><span class="type-badge type-code">Code</span></td><td>New Intention node type (14th) in Kuzu graph with trigger_type, trigger_condition, priority, status lifecycle, and trigger_embedding fields. Relations: HAS_INTENTION, RELATES_TO, DEPENDS_ON.</td></tr>
+                                <tr><td>28</td><td>Prospective Memory: dual-pathway trigger system</td><td><span class="type-badge type-code">Code</span></td><td>Strategic monitoring (time-based polling, ~3ms) + spontaneous retrieval (semantic embedding match, ~2ms). Adaptive monitoring intensity per Dynamic Multiprocess Framework. Compound triggers (AND/OR/SEQUENCE).</td></tr>
+                                <tr><td>29</td><td>Prospective Memory: intention extraction pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Heuristic pattern matching (~1ms sync) + LLM extraction via Qwen2.5-1.5B (1-3s async). Token-efficient context injection with ACT-R inspired activation scoring. 300-500 token budget.</td></tr>
+                                <tr><td>30</td><td>Prospective Memory: Intentions Panel in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>UI for managing active intentions: list view with trigger type icons, on/off toggle, manual creation, fire history, &ldquo;3 active reminders&rdquo; indicator. Integrated in Memory Manager.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -818,12 +822,12 @@
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>27</td><td>Whitepaper v2</td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: Consensus Inference, KV-Cache, ARIA-LM, reputation system, competitor analysis.</td></tr>
-                                <tr><td>28</td><td>PT-BitNet R&amp;D: ternarize Qwen3-14B</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Post-training ternarization of Qwen3-14B (28 GB &rarr; ~3 GB). Quality benchmarks.</td></tr>
-                                <tr><td>29</td><td>KV-Cache NVMe: proof of concept (save/restore between sessions)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Prototype SSD-based KV-cache persistence. Save and restore context across sessions.</td></tr>
-                                <tr><td>30</td><td>Benchmark Falcon-Edge vs Microsoft BitNet (publication content)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Rigorous comparison. Publishable results for community credibility.</td></tr>
-                                <tr><td>31</td><td>Reproduce SLM-MATRIX results on ARIA infrastructure</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Validate multi-agent debate accuracy claims on ARIA&rsquo;s consensus system.</td></tr>
-                                <tr><td>32</td><td>Update threat model for distributed features</td><td><span class="type-badge type-doc">Doc</span></td><td>Address new attack vectors from DHT, consensus, memory, and reputation systems.</td></tr>
+                                <tr><td>31</td><td>Whitepaper v2</td><td><span class="type-badge type-doc">Doc</span></td><td>Complete WP v2: Consensus Inference, KV-Cache, ARIA-LM, reputation system, competitor analysis.</td></tr>
+                                <tr><td>32</td><td>PT-BitNet R&amp;D: ternarize Qwen3-14B</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Post-training ternarization of Qwen3-14B (28 GB &rarr; ~3 GB). Quality benchmarks.</td></tr>
+                                <tr><td>33</td><td>KV-Cache NVMe: proof of concept (save/restore between sessions)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Prototype SSD-based KV-cache persistence. Save and restore context across sessions.</td></tr>
+                                <tr><td>34</td><td>Benchmark Falcon-Edge vs Microsoft BitNet (publication content)</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Rigorous comparison. Publishable results for community credibility.</td></tr>
+                                <tr><td>35</td><td>Reproduce SLM-MATRIX results on ARIA infrastructure</td><td><span class="type-badge type-rd">R&amp;D</span></td><td>Validate multi-agent debate accuracy claims on ARIA&rsquo;s consensus system.</td></tr>
+                                <tr><td>36</td><td>Update threat model for distributed features</td><td><span class="type-badge type-doc">Doc</span></td><td>Address new attack vectors from DHT, consensus, memory, and reputation systems.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -844,16 +848,16 @@
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>33</td><td>KV-Cache NVMe: attention-aware eviction + prefetch (SpeCache-style)</td><td><span class="type-badge type-code">Code</span></td><td>Sparse attention identifies critical keys. Evict cold keys to SSD, prefetch hot keys.</td></tr>
-                                <tr><td>34</td><td>KV-Cache NVMe: 2-bit quantization (KIVI)</td><td><span class="type-badge type-code">Code</span></td><td>Compress KV-cache to 2-bit with &lt;2% accuracy loss. Enables massive context on limited RAM.</td></tr>
-                                <tr><td>35</td><td>KV-Cache NVMe: async I/O overlapped with compute</td><td><span class="type-badge type-code">Code</span></td><td>Pipeline SSD reads with GPU/CPU compute to hide I/O latency.</td></tr>
-                                <tr><td>36</td><td>Target: 500K+ tokens on 8GB RAM laptop</td><td><span class="type-badge type-code">Code</span></td><td>Integration of eviction + quantization + async I/O to reach 500K+ token context.</td></tr>
-                                <tr><td>37</td><td>Knowledge Network: P2P embedding sharing (Kademlia-based)</td><td><span class="type-badge type-code">Code</span></td><td>Distribute document embeddings across the P2P network via DHT.</td></tr>
-                                <tr><td>38</td><td>Knowledge Network: privacy-preserving embeddings (Eguard projection)</td><td><span class="type-badge type-code">Code</span></td><td>Projection-based defense reduces inversion attacks from &gt;95% to &lt;5%.</td></tr>
-                                <tr><td>39</td><td>Knowledge Network: standardized embedding model (community-governed)</td><td><span class="type-badge type-code">Code</span></td><td>Community-selected embedding model. Community governance for model updates.</td></tr>
-                                <tr><td>40</td><td>Knowledge Network: semantic search across distributed documents</td><td><span class="type-badge type-code">Code</span></td><td>Query the network for relevant documents. Federated semantic search.</td></tr>
-                                <tr><td>41</td><td>Infinite Context Mode UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Desktop UI for managing extended context. Visual indicators for hot/cold cache.</td></tr>
-                                <tr><td>42</td><td>Conversation Memory Manager UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Browse, search, and manage stored memories. Fact store visualization.</td></tr>
+                                <tr><td>37</td><td>KV-Cache NVMe: attention-aware eviction + prefetch (SpeCache-style)</td><td><span class="type-badge type-code">Code</span></td><td>Sparse attention identifies critical keys. Evict cold keys to SSD, prefetch hot keys.</td></tr>
+                                <tr><td>38</td><td>KV-Cache NVMe: 2-bit quantization (KIVI)</td><td><span class="type-badge type-code">Code</span></td><td>Compress KV-cache to 2-bit with &lt;2% accuracy loss. Enables massive context on limited RAM.</td></tr>
+                                <tr><td>39</td><td>KV-Cache NVMe: async I/O overlapped with compute</td><td><span class="type-badge type-code">Code</span></td><td>Pipeline SSD reads with GPU/CPU compute to hide I/O latency.</td></tr>
+                                <tr><td>40</td><td>Target: 500K+ tokens on 8GB RAM laptop</td><td><span class="type-badge type-code">Code</span></td><td>Integration of eviction + quantization + async I/O to reach 500K+ token context.</td></tr>
+                                <tr><td>41</td><td>Knowledge Network: P2P embedding sharing (Kademlia-based)</td><td><span class="type-badge type-code">Code</span></td><td>Distribute document embeddings across the P2P network via DHT.</td></tr>
+                                <tr><td>42</td><td>Knowledge Network: privacy-preserving embeddings (Eguard projection)</td><td><span class="type-badge type-code">Code</span></td><td>Projection-based defense reduces inversion attacks from &gt;95% to &lt;5%.</td></tr>
+                                <tr><td>43</td><td>Knowledge Network: standardized embedding model (community-governed)</td><td><span class="type-badge type-code">Code</span></td><td>Community-selected embedding model. Community governance for model updates.</td></tr>
+                                <tr><td>44</td><td>Knowledge Network: semantic search across distributed documents</td><td><span class="type-badge type-code">Code</span></td><td>Query the network for relevant documents. Federated semantic search.</td></tr>
+                                <tr><td>45</td><td>Infinite Context Mode UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Desktop UI for managing extended context. Visual indicators for hot/cold cache.</td></tr>
+                                <tr><td>46</td><td>Conversation Memory Manager UI in desktop app</td><td><span class="type-badge type-code">Code</span></td><td>Browse, search, and manage stored memories. Fact store visualization.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -874,15 +878,15 @@
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>43</td><td>ARIA-LM base model selection and distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Select base 1-bit model. Build distillation pipeline from frontier models.</td></tr>
-                                <tr><td>44</td><td>SAPO: decentralized reasoning rollout collection</td><td><span class="type-badge type-code">Code</span></td><td>Collect reasoning traces from network nodes. Quality filtering via reputation.</td></tr>
-                                <tr><td>45</td><td>SAPO: quality validation via reputation + cross-verification</td><td><span class="type-badge type-code">Code</span></td><td>Only high-reputation nodes contribute training data. Cross-verify quality.</td></tr>
-                                <tr><td>46</td><td>LoRA merging: community-contributed adapters (TIES-Merging/MergeKit)</td><td><span class="type-badge type-code">Code</span></td><td>Community submits LoRA adapters. Merge using TIES-Merging or MergeKit.</td></tr>
-                                <tr><td>47</td><td>LoRA anti-poisoning: benchmark testing before merge</td><td><span class="type-badge type-code">Code</span></td><td>Automated benchmark suite validates adapter quality before community merge.</td></tr>
-                                <tr><td>48</td><td>Meta-LoRA: CPU-only adapter generation from datasets</td><td><span class="type-badge type-code">Code</span></td><td>Generate LoRA adapters on CPU from user-provided datasets. No GPU required.</td></tr>
-                                <tr><td>49</td><td>RAG communautaire: document contribution and retrieval</td><td><span class="type-badge type-code">Code</span></td><td>Community document sharing via Knowledge Network. Contribute and retrieve.</td></tr>
-                                <tr><td>50</td><td>Consensus Inference &rarr; distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Best debate outputs become training data for ARIA-LM. Self-improving loop.</td></tr>
-                                <tr><td>51</td><td>ARIA-LM v0.1 release</td><td><span class="type-badge type-com">Com</span></td><td>First community model release. Benchmarks, documentation, download.</td></tr>
+                                <tr><td>47</td><td>ARIA-LM base model selection and distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Select base 1-bit model. Build distillation pipeline from frontier models.</td></tr>
+                                <tr><td>48</td><td>SAPO: decentralized reasoning rollout collection</td><td><span class="type-badge type-code">Code</span></td><td>Collect reasoning traces from network nodes. Quality filtering via reputation.</td></tr>
+                                <tr><td>49</td><td>SAPO: quality validation via reputation + cross-verification</td><td><span class="type-badge type-code">Code</span></td><td>Only high-reputation nodes contribute training data. Cross-verify quality.</td></tr>
+                                <tr><td>50</td><td>LoRA merging: community-contributed adapters (TIES-Merging/MergeKit)</td><td><span class="type-badge type-code">Code</span></td><td>Community submits LoRA adapters. Merge using TIES-Merging or MergeKit.</td></tr>
+                                <tr><td>51</td><td>LoRA anti-poisoning: benchmark testing before merge</td><td><span class="type-badge type-code">Code</span></td><td>Automated benchmark suite validates adapter quality before community merge.</td></tr>
+                                <tr><td>52</td><td>Meta-LoRA: CPU-only adapter generation from datasets</td><td><span class="type-badge type-code">Code</span></td><td>Generate LoRA adapters on CPU from user-provided datasets. No GPU required.</td></tr>
+                                <tr><td>53</td><td>RAG communautaire: document contribution and retrieval</td><td><span class="type-badge type-code">Code</span></td><td>Community document sharing via Knowledge Network. Contribute and retrieve.</td></tr>
+                                <tr><td>54</td><td>Consensus Inference &rarr; distillation pipeline</td><td><span class="type-badge type-code">Code</span></td><td>Best debate outputs become training data for ARIA-LM. Self-improving loop.</td></tr>
+                                <tr><td>55</td><td>ARIA-LM v0.1 release</td><td><span class="type-badge type-com">Com</span></td><td>First community model release. Benchmarks, documentation, download.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -903,12 +907,12 @@
                         <table class="task-table">
                             <thead><tr><th>#</th><th>Task</th><th>Type</th><th>Detail</th></tr></thead>
                             <tbody>
-                                <tr><td>52</td><td>Distributed KV-Cache across P2P network</td><td><span class="type-badge type-code">Code</span></td><td>Share KV-cache across nodes. Collaborative context extension.</td></tr>
-                                <tr><td>53</td><td>Context Relay: map-reduce for long documents</td><td><span class="type-badge type-code">Code</span></td><td>Split long documents across nodes. Map-reduce style processing.</td></tr>
-                                <tr><td>54</td><td>Smart Inference Routing (local vs P2P vs cloud fallback)</td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: try local first, then P2P network, then cloud API fallback.</td></tr>
-                                <tr><td>55</td><td>Universal API Bridge (OpenAI-compatible from any app)</td><td><span class="type-badge type-code">Code</span></td><td>Drop-in replacement for OpenAI API. Works with any OpenAI-compatible application.</td></tr>
-                                <tr><td>56</td><td>Production security hardening</td><td><span class="type-badge type-infra">Infra</span></td><td>P2P network audit. Bug bounty program. Third-party security review.</td></tr>
-                                <tr><td>57</td><td>Production launch</td><td><span class="type-badge type-com">Com</span></td><td>Stable production network for public use. Launch campaign: HN, Reddit, Twitter, Product Hunt.</td></tr>
+                                <tr><td>56</td><td>Distributed KV-Cache across P2P network</td><td><span class="type-badge type-code">Code</span></td><td>Share KV-cache across nodes. Collaborative context extension.</td></tr>
+                                <tr><td>57</td><td>Context Relay: map-reduce for long documents</td><td><span class="type-badge type-code">Code</span></td><td>Split long documents across nodes. Map-reduce style processing.</td></tr>
+                                <tr><td>58</td><td>Smart Inference Routing (local vs P2P vs cloud fallback)</td><td><span class="type-badge type-code">Code</span></td><td>Intelligent routing: try local first, then P2P network, then cloud API fallback.</td></tr>
+                                <tr><td>59</td><td>Universal API Bridge (OpenAI-compatible from any app)</td><td><span class="type-badge type-code">Code</span></td><td>Drop-in replacement for OpenAI API. Works with any OpenAI-compatible application.</td></tr>
+                                <tr><td>60</td><td>Production security hardening</td><td><span class="type-badge type-infra">Infra</span></td><td>P2P network audit. Bug bounty program. Third-party security review.</td></tr>
+                                <tr><td>61</td><td>Production launch</td><td><span class="type-badge type-com">Com</span></td><td>Stable production network for public use. Launch campaign: HN, Reddit, Twitter, Product Hunt.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -949,11 +953,11 @@
                     <div class="desc">Planned Versions</div>
                 </div>
                 <div class="summary-card">
-                    <div class="num">54</div>
+                    <div class="num">58</div>
                     <div class="desc">Identified Tasks</div>
                 </div>
                 <div class="summary-card">
-                    <div class="num">v0.5.5</div>
+                    <div class="num">v0.6.0</div>
                     <div class="desc">Current Version</div>
                 </div>
             </div>

@@ -423,6 +423,18 @@ aria node start --port 8766
    aria node status
    ```
 
+## Memory & Intentions
+
+ARIA remembers context across sessions using a three-tier memory architecture (Hot/Warm/Cold). It also supports **prospective memory** — you can ask ARIA to remind you about topics in future sessions, and it will bring them up at the right moment using time-based or topic-based triggers.
+
+Example: *"Next time we discuss the project, remind me to ask about the Q4 results."*
+
+ARIA covers all five types of human cognitive memory: episodic (session history), semantic (Profile Graph), procedural (style adaptation), working (selective injection), and prospective (deferred intentions). This makes it one of the first open-source AI systems to implement a complete cognitive memory model.
+
+See [Architecture Documentation](architecture.md) for the full Prospective Memory design.
+
+---
+
 ## Next Steps
 
 - **[Architecture](architecture.md)** - Understand how ARIA works

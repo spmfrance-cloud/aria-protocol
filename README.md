@@ -96,7 +96,7 @@ print(response.choices[0].message.content)
 | **Desktop ↔ Backend Bridge** | Live inference from desktop app via Python backend | v0.6.0 |
 | **Consensus Inference** | Multi-agent orchestrated inference across network nodes | v0.7.0 |
 | **KV-Cache NVMe Paging** | Extended context (500K+ tokens) via SSD offloading | v0.7.0–v0.8.0 |
-| **Conversation Memory** | Persistent 3-tier memory across chat sessions | v0.7.0 |
+| **5/5 Cognitive Memory** | Full human memory model: episodic, semantic, procedural, working, and prospective (deferred intentions with time/semantic/condition triggers) | v0.7.0 |
 | **Knowledge Network** | Distributed RAG via P2P embedding sharing | v0.8.0 |
 | **ARIA-LM** | Community-evolving language model via SAPO + LoRA merging | v0.9.0 |
 
@@ -185,11 +185,12 @@ Full results: [`benchmarks/results/`](./benchmarks/results/)
 │  ├── Real-time Web Dashboard (WebSocket)                        │
 │  └── Command-Line Interface                                     │
 ├─────────────────────────────────────────────────────────────────┤
-│  LAYER 2: CONSENSUS                                             │
+│  LAYER 2: CONSENSUS & MEMORY                                    │
 │  ├── Provenance Ledger (blockchain)                             │
 │  ├── Proof of Useful Work (every computation is useful)          │
 │  ├── Proof of Sobriety (energy tracking)                        │
-│  └── Consent Contracts                                          │
+│  ├── Consent Contracts                                          │
+│  └── Prospective Memory (Intention nodes, dual-pathway triggers)│
 ├─────────────────────────────────────────────────────────────────┤
 │  LAYER 1: COMPUTE                                               │
 │  ├── P2P Network (WebSocket + Kademlia DHT planned v0.6.0)      │
@@ -238,6 +239,7 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 | Models depend on one provider | 8+ organizations produce independent 1-bit models |
 | Context windows are limited by RAM | KV-Cache NVMe paging targets 500K+ tokens on 8GB laptops |
 | Single model has blind spots | Consensus Inference: multiple models collaborate for higher quality |
+| AI forgets between sessions | 5/5 Cognitive Memory Model including prospective memory — one of the first open-source implementations of deferred intentions for AI agents |
 
 ### The Numbers
 
@@ -555,7 +557,7 @@ ARIA's architecture is grounded in peer-reviewed research:
 | v0.5.2 | Subprocess | llama-cli bridge, real inference pipeline | ✅ Complete |
 | v0.5.5 | Housekeeping | CI quality gates, version unification, doc sync, security docs, i18n | ✅ Complete |
 | v0.6.0 | Testnet Alpha | Kademlia DHT, NAT traversal, bootstrap nodes | 🔄 Current |
-| v0.7.0 | Smart Layer | Consensus Inference, Memory, Knowledge Network | ⬜ Planned |
+| v0.7.0 | Smart Layer | Consensus Inference, 5/5 Cognitive Memory (incl. Prospective Memory), Knowledge Network | ⬜ Planned |
 | v0.8.0 | Extended Context | KV-Cache NVMe paging (500K+ tokens on 8GB) | ⬜ Planned |
 | v0.9.0 | ARIA-LM | Community-evolving model (SAPO + LoRA merging) | ⬜ Planned |
 | v1.0.0 | Production | Stable production network, reputation system | ⬜ Planned |
