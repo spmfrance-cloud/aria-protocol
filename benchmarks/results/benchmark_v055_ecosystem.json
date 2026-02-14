@@ -1,0 +1,1415 @@
+{
+  "metadata": {
+    "benchmark_id": "v055-ecosystem-complete",
+    "version": "0.5.5",
+    "date": "2026-02-14",
+    "start_time": "2026-02-14T15:55:17.165291",
+    "description": "Complete 1-bit model ecosystem benchmark -- 6 tiers",
+    "hardware": {
+      "cpu": "AMD Ryzen 9 7845HX",
+      "architecture": "Zen 4",
+      "cores": 12,
+      "threads": 24,
+      "ccd_layout": "2 CCDs x 6 cores (CCD0: cores 0-5, CCD1: cores 6-11)",
+      "ram": "64 GB DDR5",
+      "os": "Windows 11"
+    },
+    "build": {
+      "compiler": "Clang 20.1.8 (ClangCL)",
+      "flags": "/clang:-mavx512vnni /clang:-mavx512vbmi /clang:-mavx512vl /clang:-mavx512bitalg /clang:-mavx512vpopcntdq",
+      "avx512": true,
+      "avx512_vnni": true,
+      "avx512_vbmi": true
+    },
+    "energy_methodology": "Energy estimates use CPU-time approximation: Power = TDP_sustained (55W) x thread_fraction (8/24). NOT direct measurement. See benchmarks/REPRODUCING.md for details."
+  },
+  "tier1_throughput": {
+    "description": "Main throughput: 8 threads, 256 tokens, 5 runs, median",
+    "protocol": {
+      "threads": 8,
+      "tokens": 256,
+      "context": 2048,
+      "temperature": 0,
+      "runs": 5,
+      "selection": "median",
+      "prompt": "Explain the concept of distributed computing in simple terms."
+    },
+    "models": [
+      {
+        "id": "bitnet-b158-large",
+        "name": "BitNet-b1.58-large",
+        "params": "0.7B",
+        "params_num": 0.7,
+        "source": "Microsoft Research",
+        "type": "post-quantized",
+        "license": "MIT",
+        "huggingface": "1bitLLM/bitnet_b1_58-large",
+        "runs_tok_s": [
+          118.25,
+          119.2,
+          109.29,
+          128.06,
+          115.59
+        ],
+        "median_tok_s": 118.25,
+        "mean_tok_s": 118.08,
+        "stdev_tok_s": 6.79
+      },
+      {
+        "id": "falcon3-1b",
+        "name": "Falcon3-1B-Instruct-1.58bit",
+        "params": "1.0B",
+        "params_num": 1.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "post-quantized",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon3-1B-Instruct-1.58bit-GGUF",
+        "runs_tok_s": [
+          57.02,
+          56.34,
+          55.64,
+          56.17,
+          56.31
+        ],
+        "median_tok_s": 56.31,
+        "mean_tok_s": 56.3,
+        "stdev_tok_s": 0.49
+      },
+      {
+        "id": "falcon-e-1b",
+        "name": "Falcon-E-1B-Instruct",
+        "params": "1.0B",
+        "params_num": 1.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "native-1bit",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon-E-1B-Instruct-GGUF",
+        "runs_tok_s": [
+          74.41,
+          82.85,
+          69.43,
+          80.19,
+          80.4
+        ],
+        "median_tok_s": 80.19,
+        "mean_tok_s": 77.46,
+        "stdev_tok_s": 5.45
+      },
+      {
+        "id": "bitnet-b158-2b-4t",
+        "name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "params_num": 2.4,
+        "source": "Microsoft Research",
+        "type": "native-1bit",
+        "license": "MIT",
+        "huggingface": "microsoft/BitNet-b1.58-2B-4T",
+        "runs_tok_s": [
+          37.89,
+          37.76,
+          37.61,
+          37.51,
+          37.88
+        ],
+        "median_tok_s": 37.76,
+        "mean_tok_s": 37.73,
+        "stdev_tok_s": 0.17
+      },
+      {
+        "id": "falcon3-3b",
+        "name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "params_num": 3.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "post-quantized",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon3-3B-Instruct-1.58bit-GGUF",
+        "runs_tok_s": [
+          33.23,
+          32.61,
+          33.21,
+          33.38,
+          32.99
+        ],
+        "median_tok_s": 33.21,
+        "mean_tok_s": 33.08,
+        "stdev_tok_s": 0.3
+      },
+      {
+        "id": "falcon-e-3b",
+        "name": "Falcon-E-3B-Instruct",
+        "params": "3.0B",
+        "params_num": 3.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "native-1bit",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon-E-3B-Instruct-GGUF",
+        "runs_tok_s": [
+          49.74,
+          50.15,
+          48.18,
+          50.43,
+          49.8
+        ],
+        "median_tok_s": 49.8,
+        "mean_tok_s": 49.66,
+        "stdev_tok_s": 0.87
+      },
+      {
+        "id": "falcon3-7b",
+        "name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "params_num": 7.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "post-quantized",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon3-7B-Instruct-1.58bit-GGUF",
+        "runs_tok_s": [
+          19.94,
+          19.9,
+          19.64,
+          19.36,
+          19.89
+        ],
+        "median_tok_s": 19.89,
+        "mean_tok_s": 19.75,
+        "stdev_tok_s": 0.25
+      },
+      {
+        "id": "llama3-8b-158",
+        "name": "Llama3-8B-1.58",
+        "params": "8.0B",
+        "params_num": 8.0,
+        "source": "Microsoft/HF1BitLLM",
+        "type": "post-quantized",
+        "license": "Llama 3",
+        "huggingface": "HF1BitLLM/Llama3-8B-1.58-100B-tokens",
+        "runs_tok_s": [
+          16.97,
+          17.17,
+          16.86,
+          16.9,
+          17.11
+        ],
+        "median_tok_s": 16.97,
+        "mean_tok_s": 17.0,
+        "stdev_tok_s": 0.13
+      },
+      {
+        "id": "falcon3-10b",
+        "name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "params_num": 10.0,
+        "source": "TII (Abu Dhabi)",
+        "type": "post-quantized",
+        "license": "Apache 2.0",
+        "huggingface": "tiiuae/Falcon3-10B-Instruct-1.58bit-GGUF",
+        "runs_tok_s": [
+          11.99,
+          14.67,
+          15.13,
+          15.12,
+          15.25
+        ],
+        "median_tok_s": 15.12,
+        "mean_tok_s": 14.43,
+        "stdev_tok_s": 1.38
+      }
+    ]
+  },
+  "tier2_thread_scaling": {
+    "description": "Thread scaling: 1-24 threads, 128 tokens (reduced for large models at low thread counts)",
+    "thread_configs": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      12,
+      16,
+      24
+    ],
+    "models": {
+      "bitnet-b158-large": {
+        "model_name": "BitNet-b1.58-large",
+        "params": "0.7B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 73.86,
+            "prompt_eval_tok_s": 180.05
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 114.41,
+            "prompt_eval_tok_s": 354.25
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 125.37,
+            "prompt_eval_tok_s": 619.39
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 134.87,
+            "prompt_eval_tok_s": 872.35
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 136.99,
+            "prompt_eval_tok_s": 823.44
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 131.86,
+            "prompt_eval_tok_s": 693.8
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 130.43,
+            "prompt_eval_tok_s": 737.01
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 65.64,
+            "prompt_eval_tok_s": 487.17
+          }
+        ]
+      },
+      "falcon3-1b": {
+        "model_name": "Falcon3-1B-Instruct-1.58bit",
+        "params": "1.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 38.51,
+            "prompt_eval_tok_s": 110.36
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 54.27,
+            "prompt_eval_tok_s": 174.64
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 56.24,
+            "prompt_eval_tok_s": 275.38
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 57.39,
+            "prompt_eval_tok_s": 372.27
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 58.28,
+            "prompt_eval_tok_s": 397.27
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 56.24,
+            "prompt_eval_tok_s": 406.93
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 55.92,
+            "prompt_eval_tok_s": 403.14
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 40.47,
+            "prompt_eval_tok_s": 339.62
+          }
+        ]
+      },
+      "falcon-e-1b": {
+        "model_name": "Falcon-E-1B-Instruct",
+        "params": "1.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 50.3,
+            "prompt_eval_tok_s": 82.75
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 79.14,
+            "prompt_eval_tok_s": 154.11
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 81.59,
+            "prompt_eval_tok_s": 266.09
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 84.85,
+            "prompt_eval_tok_s": 395.51
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 84.27,
+            "prompt_eval_tok_s": 452.49
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 79.95,
+            "prompt_eval_tok_s": 437.64
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 78.78,
+            "prompt_eval_tok_s": 445.74
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 41.36,
+            "prompt_eval_tok_s": 368.83
+          }
+        ]
+      },
+      "bitnet-b158-2b-4t": {
+        "model_name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 25.12,
+            "prompt_eval_tok_s": 75.87
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 33.97,
+            "prompt_eval_tok_s": 133.83
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 38.48,
+            "prompt_eval_tok_s": 218.18
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 38.77,
+            "prompt_eval_tok_s": 280.2
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 38.82,
+            "prompt_eval_tok_s": 275.36
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 37.94,
+            "prompt_eval_tok_s": 280.27
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 37.74,
+            "prompt_eval_tok_s": 279.66
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 24.34,
+            "prompt_eval_tok_s": 266.68
+          }
+        ]
+      },
+      "falcon3-3b": {
+        "model_name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 21.7,
+            "prompt_eval_tok_s": 52.36
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 30.72,
+            "prompt_eval_tok_s": 93.14
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 33.2,
+            "prompt_eval_tok_s": 148.22
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 33.64,
+            "prompt_eval_tok_s": 198.86
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 33.59,
+            "prompt_eval_tok_s": 185.64
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 33.12,
+            "prompt_eval_tok_s": 217.9
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 32.93,
+            "prompt_eval_tok_s": 243.87
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 21.51,
+            "prompt_eval_tok_s": 185.66
+          }
+        ]
+      },
+      "falcon-e-3b": {
+        "model_name": "Falcon-E-3B-Instruct",
+        "params": "3.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 128,
+            "generation_tok_s": 25.96,
+            "prompt_eval_tok_s": 41.43
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 128,
+            "generation_tok_s": 43.97,
+            "prompt_eval_tok_s": 81.12
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 51.97,
+            "prompt_eval_tok_s": 146.99
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 52.96,
+            "prompt_eval_tok_s": 204.29
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 51.74,
+            "prompt_eval_tok_s": 245.12
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 49.66,
+            "prompt_eval_tok_s": 250.43
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 49.72,
+            "prompt_eval_tok_s": 290.6
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 28.11,
+            "prompt_eval_tok_s": 253.42
+          }
+        ]
+      },
+      "falcon3-7b": {
+        "model_name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 64,
+            "generation_tok_s": 9.13,
+            "prompt_eval_tok_s": 18.05
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 64,
+            "generation_tok_s": 15.1,
+            "prompt_eval_tok_s": 34.2
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 18.22,
+            "prompt_eval_tok_s": 62.95
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 19.46,
+            "prompt_eval_tok_s": 87.8
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 19.49,
+            "prompt_eval_tok_s": 84.76
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 19.28,
+            "prompt_eval_tok_s": 95.06
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 19.24,
+            "prompt_eval_tok_s": 116.06
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 12.01,
+            "prompt_eval_tok_s": 48.86
+          }
+        ]
+      },
+      "llama3-8b-158": {
+        "model_name": "Llama3-8B-1.58",
+        "params": "8.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 64,
+            "generation_tok_s": 10.41,
+            "prompt_eval_tok_s": 23.5
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 64,
+            "generation_tok_s": 13.13,
+            "prompt_eval_tok_s": 40.44
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 16.4,
+            "prompt_eval_tok_s": 77.62
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 17.15,
+            "prompt_eval_tok_s": 98.19
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 17.11,
+            "prompt_eval_tok_s": 116.55
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 16.97,
+            "prompt_eval_tok_s": 110.04
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 16.97,
+            "prompt_eval_tok_s": 120.52
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 9.23,
+            "prompt_eval_tok_s": 68.74
+          }
+        ]
+      },
+      "falcon3-10b": {
+        "model_name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "scaling": [
+          {
+            "threads": 1,
+            "tokens_generated": 32,
+            "generation_tok_s": 7.01,
+            "prompt_eval_tok_s": 12.61
+          },
+          {
+            "threads": 2,
+            "tokens_generated": 32,
+            "generation_tok_s": 10.79,
+            "prompt_eval_tok_s": 26.07
+          },
+          {
+            "threads": 4,
+            "tokens_generated": 128,
+            "generation_tok_s": 13.96,
+            "prompt_eval_tok_s": 44.71
+          },
+          {
+            "threads": 6,
+            "tokens_generated": 128,
+            "generation_tok_s": 14.86,
+            "prompt_eval_tok_s": 64.13
+          },
+          {
+            "threads": 8,
+            "tokens_generated": 128,
+            "generation_tok_s": 15.26,
+            "prompt_eval_tok_s": 75.21
+          },
+          {
+            "threads": 12,
+            "tokens_generated": 128,
+            "generation_tok_s": 14.94,
+            "prompt_eval_tok_s": 72.99
+          },
+          {
+            "threads": 16,
+            "tokens_generated": 128,
+            "generation_tok_s": 14.89,
+            "prompt_eval_tok_s": 84.68
+          },
+          {
+            "threads": 24,
+            "tokens_generated": 128,
+            "generation_tok_s": 7.2,
+            "prompt_eval_tok_s": 53.48
+          }
+        ]
+      }
+    }
+  },
+  "tier3_prompt_processing": {
+    "description": "Prompt processing / TTFT: 3 prompt lengths, 8 threads, 32 output tokens",
+    "models": {
+      "bitnet-b158-large": {
+        "model_name": "BitNet-b1.58-large",
+        "params": "0.7B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 142.92,
+            "prompt_eval_tok_s": 227.97,
+            "prompt_eval_time_ms": 8.77,
+            "prompt_tokens": 2
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 112.24,
+            "prompt_eval_tok_s": 946.0,
+            "prompt_eval_time_ms": 141.65,
+            "prompt_tokens": 134
+          }
+        ]
+      },
+      "falcon3-1b": {
+        "model_name": "Falcon3-1B-Instruct-1.58bit",
+        "params": "1.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 57.66,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 53.68,
+            "prompt_eval_tok_s": 741.46,
+            "prompt_eval_time_ms": 164.54,
+            "prompt_tokens": 122
+          }
+        ]
+      },
+      "falcon-e-1b": {
+        "model_name": "Falcon-E-1B-Instruct",
+        "params": "1.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 81.33,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 78.25,
+            "prompt_eval_tok_s": 624.0,
+            "prompt_eval_time_ms": 205.13,
+            "prompt_tokens": 128
+          }
+        ]
+      },
+      "bitnet-b158-2b-4t": {
+        "model_name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 39.32,
+            "prompt_eval_tok_s": 70.54,
+            "prompt_eval_time_ms": 28.35,
+            "prompt_tokens": 2
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 36.66,
+            "prompt_eval_tok_s": 375.91,
+            "prompt_eval_time_ms": 337.84,
+            "prompt_tokens": 127
+          }
+        ]
+      },
+      "falcon3-3b": {
+        "model_name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 33.66,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 32.88,
+            "prompt_eval_tok_s": 388.0,
+            "prompt_eval_time_ms": 314.43,
+            "prompt_tokens": 122
+          }
+        ]
+      },
+      "falcon-e-3b": {
+        "model_name": "Falcon-E-3B-Instruct",
+        "params": "3.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 50.44,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 50.07,
+            "prompt_eval_tok_s": 327.69,
+            "prompt_eval_time_ms": 390.61,
+            "prompt_tokens": 128
+          }
+        ]
+      },
+      "falcon3-7b": {
+        "model_name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 19.59,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          }
+        ]
+      },
+      "llama3-8b-158": {
+        "model_name": "Llama3-8B-1.58",
+        "params": "8.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 17.32,
+            "prompt_eval_tok_s": 29.57,
+            "prompt_eval_time_ms": 67.64,
+            "prompt_tokens": 2
+          },
+          {
+            "prompt_type": "medium",
+            "prompt_label": "medium (~100 tokens)",
+            "generation_tok_s": 16.92,
+            "prompt_eval_tok_s": 159.14,
+            "prompt_eval_time_ms": 779.17,
+            "prompt_tokens": 124
+          }
+        ]
+      },
+      "falcon3-10b": {
+        "model_name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "prompts": [
+          {
+            "prompt_type": "short",
+            "prompt_label": "short (~5 tokens)",
+            "generation_tok_s": 15.21,
+            "prompt_eval_tok_s": null,
+            "prompt_eval_time_ms": null,
+            "prompt_tokens": null
+          }
+        ]
+      }
+    }
+  },
+  "tier4_token_sweep": {
+    "description": "Sustained throughput: 32-2048 tokens, 8 threads",
+    "token_configs": [
+      32,
+      64,
+      128,
+      256,
+      512,
+      1024,
+      2048
+    ],
+    "models": {
+      "bitnet-b158-large": {
+        "model_name": "BitNet-b1.58-large",
+        "params": "0.7B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 130.82,
+            "eval_time_ms": 236.97
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 145.51,
+            "eval_time_ms": 432.95
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 139.27,
+            "eval_time_ms": 911.92
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 123.16,
+            "eval_time_ms": 2070.52
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 100.54,
+            "eval_time_ms": 5082.46
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 88.07,
+            "eval_time_ms": 11616.01
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 72.85,
+            "eval_time_ms": 28100.2
+          }
+        ]
+      },
+      "falcon3-1b": {
+        "model_name": "Falcon3-1B-Instruct-1.58bit",
+        "params": "1.0B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 58.58,
+            "eval_time_ms": 529.21
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 58.65,
+            "eval_time_ms": 1074.1
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 56.9,
+            "eval_time_ms": 2232.1
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 55.97,
+            "eval_time_ms": 3752.22
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 55.42,
+            "eval_time_ms": 3789.02
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 56.04,
+            "eval_time_ms": 3747.5
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 56.42,
+            "eval_time_ms": 3722.1
+          }
+        ]
+      },
+      "bitnet-b158-2b-4t": {
+        "model_name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 39.37,
+            "eval_time_ms": 787.45
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 38.36,
+            "eval_time_ms": 1642.33
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 38.39,
+            "eval_time_ms": 3308.31
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 37.61,
+            "eval_time_ms": 6780.53
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 36.46,
+            "eval_time_ms": 14015.48
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 34.94,
+            "eval_time_ms": 29281.95
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 33.08,
+            "eval_time_ms": 61876.14
+          }
+        ]
+      },
+      "falcon3-3b": {
+        "model_name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 33.48,
+            "eval_time_ms": 925.8
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 34.04,
+            "eval_time_ms": 1850.7
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 32.93,
+            "eval_time_ms": 3856.68
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 33.14,
+            "eval_time_ms": 7694.03
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 31.62,
+            "eval_time_ms": 16161.61
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 31.01,
+            "eval_time_ms": 32988.32
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 30.01,
+            "eval_time_ms": 68202.46
+          }
+        ]
+      },
+      "falcon3-7b": {
+        "model_name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 19.75,
+            "eval_time_ms": 1569.38
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 19.56,
+            "eval_time_ms": 3220.12
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 19.73,
+            "eval_time_ms": 3598.17
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 19.71,
+            "eval_time_ms": 3601.39
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 19.65,
+            "eval_time_ms": 3613.6
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 19.43,
+            "eval_time_ms": 3654.95
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 19.67,
+            "eval_time_ms": 3609.92
+          }
+        ]
+      },
+      "falcon3-10b": {
+        "model_name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "sweep": [
+          {
+            "tokens": 32,
+            "tokens_per_second": 15.18,
+            "eval_time_ms": 2042.2
+          },
+          {
+            "tokens": 64,
+            "tokens_per_second": 15.17,
+            "eval_time_ms": 3097.61
+          },
+          {
+            "tokens": 128,
+            "tokens_per_second": 14.64,
+            "eval_time_ms": 3211.44
+          },
+          {
+            "tokens": 256,
+            "tokens_per_second": 15.19,
+            "eval_time_ms": 3093.4
+          },
+          {
+            "tokens": 512,
+            "tokens_per_second": 15.2,
+            "eval_time_ms": 3091.36
+          },
+          {
+            "tokens": 1024,
+            "tokens_per_second": 15.26,
+            "eval_time_ms": 3080.12
+          },
+          {
+            "tokens": 2048,
+            "tokens_per_second": 14.91,
+            "eval_time_ms": 3151.33
+          }
+        ]
+      }
+    }
+  },
+  "tier5_ccd_pinning": {
+    "description": "CCD topology experiments: CCD0-only, CCD1-only, cross-CCD, all cores",
+    "ccd_configs": {
+      "ccd0_6t": "6 threads pinned to CCD0 (cores 0-5)",
+      "ccd1_6t": "6 threads pinned to CCD1 (cores 6-11)",
+      "cross_8t": "8 threads cross-CCD (OS scheduler)",
+      "all_12t": "12 threads all physical cores"
+    },
+    "models": {
+      "bitnet-b158-2b-4t": {
+        "model_name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "configs": [
+          {
+            "ccd_config": "ccd0_6t",
+            "ccd_label": "6 threads pinned to CCD0 (cores 0-5)",
+            "threads": 6,
+            "tokens_per_second": 38.16
+          },
+          {
+            "ccd_config": "ccd1_6t",
+            "ccd_label": "6 threads pinned to CCD1 (cores 6-11)",
+            "threads": 6,
+            "tokens_per_second": 38.78
+          },
+          {
+            "ccd_config": "cross_8t",
+            "ccd_label": "8 threads cross-CCD (OS scheduler)",
+            "threads": 8,
+            "tokens_per_second": 38.64
+          },
+          {
+            "ccd_config": "all_12t",
+            "ccd_label": "12 threads all physical cores",
+            "threads": 12,
+            "tokens_per_second": 38.12
+          }
+        ]
+      },
+      "falcon3-3b": {
+        "model_name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "configs": [
+          {
+            "ccd_config": "ccd0_6t",
+            "ccd_label": "6 threads pinned to CCD0 (cores 0-5)",
+            "threads": 6,
+            "tokens_per_second": 33.22
+          },
+          {
+            "ccd_config": "ccd1_6t",
+            "ccd_label": "6 threads pinned to CCD1 (cores 6-11)",
+            "threads": 6,
+            "tokens_per_second": 33.58
+          },
+          {
+            "ccd_config": "cross_8t",
+            "ccd_label": "8 threads cross-CCD (OS scheduler)",
+            "threads": 8,
+            "tokens_per_second": 33.39
+          },
+          {
+            "ccd_config": "all_12t",
+            "ccd_label": "12 threads all physical cores",
+            "threads": 12,
+            "tokens_per_second": 32.72
+          }
+        ]
+      },
+      "falcon3-7b": {
+        "model_name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "configs": [
+          {
+            "ccd_config": "ccd0_6t",
+            "ccd_label": "6 threads pinned to CCD0 (cores 0-5)",
+            "threads": 6,
+            "tokens_per_second": 19.0
+          },
+          {
+            "ccd_config": "ccd1_6t",
+            "ccd_label": "6 threads pinned to CCD1 (cores 6-11)",
+            "threads": 6,
+            "tokens_per_second": 19.05
+          },
+          {
+            "ccd_config": "cross_8t",
+            "ccd_label": "8 threads cross-CCD (OS scheduler)",
+            "threads": 8,
+            "tokens_per_second": 19.62
+          },
+          {
+            "ccd_config": "all_12t",
+            "ccd_label": "12 threads all physical cores",
+            "threads": 12,
+            "tokens_per_second": 19.35
+          }
+        ]
+      },
+      "llama3-8b-158": {
+        "model_name": "Llama3-8B-1.58",
+        "params": "8.0B",
+        "configs": [
+          {
+            "ccd_config": "ccd0_6t",
+            "ccd_label": "6 threads pinned to CCD0 (cores 0-5)",
+            "threads": 6,
+            "tokens_per_second": 17.02
+          },
+          {
+            "ccd_config": "ccd1_6t",
+            "ccd_label": "6 threads pinned to CCD1 (cores 6-11)",
+            "threads": 6,
+            "tokens_per_second": 17.08
+          },
+          {
+            "ccd_config": "cross_8t",
+            "ccd_label": "8 threads cross-CCD (OS scheduler)",
+            "threads": 8,
+            "tokens_per_second": 17.02
+          },
+          {
+            "ccd_config": "all_12t",
+            "ccd_label": "12 threads all physical cores",
+            "threads": 12,
+            "tokens_per_second": 17.0
+          }
+        ]
+      },
+      "falcon3-10b": {
+        "model_name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "configs": [
+          {
+            "ccd_config": "ccd0_6t",
+            "ccd_label": "6 threads pinned to CCD0 (cores 0-5)",
+            "threads": 6,
+            "tokens_per_second": 14.77
+          },
+          {
+            "ccd_config": "ccd1_6t",
+            "ccd_label": "6 threads pinned to CCD1 (cores 6-11)",
+            "threads": 6,
+            "tokens_per_second": 14.82
+          },
+          {
+            "ccd_config": "cross_8t",
+            "ccd_label": "8 threads cross-CCD (OS scheduler)",
+            "threads": 8,
+            "tokens_per_second": 14.92
+          },
+          {
+            "ccd_config": "all_12t",
+            "ccd_label": "12 threads all physical cores",
+            "threads": 12,
+            "tokens_per_second": 14.81
+          }
+        ]
+      }
+    }
+  },
+  "tier6_energy_estimation": {
+    "description": "Energy per token estimates (CPU-time x TDP approximation)",
+    "tdp_sustained_w": 55,
+    "models": [
+      {
+        "model_name": "BitNet-b1.58-large",
+        "params": "0.7B",
+        "median_tok_s": 118.25,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 155.04,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon3-1B-Instruct-1.58bit",
+        "params": "1.0B",
+        "median_tok_s": 56.31,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 325.58,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon-E-1B-Instruct",
+        "params": "1.0B",
+        "median_tok_s": 80.19,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 228.62,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "BitNet-b1.58-2B-4T",
+        "params": "2.4B",
+        "median_tok_s": 37.76,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 485.52,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon3-3B-Instruct-1.58bit",
+        "params": "3.0B",
+        "median_tok_s": 33.21,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 552.04,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon-E-3B-Instruct",
+        "params": "3.0B",
+        "median_tok_s": 49.8,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 368.14,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon3-7B-Instruct-1.58bit",
+        "params": "7.0B",
+        "median_tok_s": 19.89,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 921.74,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Llama3-8B-1.58",
+        "params": "8.0B",
+        "median_tok_s": 16.97,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 1080.34,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      },
+      {
+        "model_name": "Falcon3-10B-Instruct-1.58bit",
+        "params": "10.0B",
+        "median_tok_s": 15.12,
+        "estimated_power_w": 18.3,
+        "energy_per_token_mj": 1212.52,
+        "methodology": "TDP_sustained x (threads/total_threads) / tok_s"
+      }
+    ]
+  },
+  "incompatible_models": [
+    {
+      "id": "bitnet-b158-3b",
+      "name": "bitnet_b1_58-3B",
+      "reason": "GGUF file not found (download failed)"
+    }
+  ],
+  "total_tests_completed": 170
+}
