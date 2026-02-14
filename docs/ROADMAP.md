@@ -18,7 +18,7 @@ Summary of 7 corrections applied to the roadmap v2.
 
 ### Minor
 - **v0.5.5 #1** — Version confirmed at v0.5.2. README badge, pyproject.toml, and GitHub release to sync.
-- **v1.0.0 #7** — "Computer Use (Level 2+3)" moved to v1.1.0+. Mainnet must be 100% focused on production stability.
+- **v1.0.0 #7** — "Computer Use (Level 2+3)" moved to v1.1.0+. Production release must be 100% focused on production stability.
 
 ---
 
