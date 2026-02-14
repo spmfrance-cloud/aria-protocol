@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "date": "2026-02-14",
+    "cpu": "AMD Ryzen 9 7845HX",
+    "arch": "Zen 4",
+    "ram": "63.2 GB DDR5",
+    "os": "Windows 11",
+    "compiler": "Clang 20.1.8 (ClangCL)",
+    "build_flags": "/clang:-mavx512vnni /clang:-mavx512vbmi /clang:-mavx512vl /clang:-mavx512bitalg /clang:-mavx512vpopcntdq",
+    "avx512": true,
+    "avx512_vnni": true,
+    "avx512_vbmi": true,
+    "bitnet_version": "8fd3412 (BitNet main)",
+    "power_plan": "High Performance",
+    "benchmark_params": {
+      "prompt": "Explain the concept of distributed computing in simple terms.",
+      "warmup": "automatic (llama-cli internal)",
+      "tokens_main": 256,
+      "tokens_scaling": 128,
+      "runs_per_model": 3,
+      "ignore_eos": true
+    }
+  },
+  "results": {
+    "model_comparison_8t": {
+      "0.7B": {
+        "model_path": "models/bitnet_b1_58-large/ggml-model-i2_s.gguf",
+        "runs": [111.88, 119.08, 117.36],
+        "median_tok_s": 117.36,
+        "tokens": 256
+      },
+      "2.4B": {
+        "model_path": "models/BitNet-b1.58-2B-4T/ggml-model-i2_s.gguf",
+        "runs": [35.27, 36.67, 36.56],
+        "median_tok_s": 36.56,
+        "tokens": 256
+      },
+      "8.0B": {
+        "model_path": "models/Llama3-8B-1.58-100B-tokens/ggml-model-i2_s.gguf",
+        "runs": [16.60, 16.48, 16.75],
+        "median_tok_s": 16.60,
+        "tokens": 256
+      }
+    },
+    "thread_scaling_2.4B": {
+      "4t": { "tok_s": 37.44 },
+      "8t": { "tok_s": 37.90 },
+      "12t": { "tok_s": 37.10 },
+      "24t": { "tok_s": 14.89 }
+    },
+    "ccd_pinning_2.4B": {
+      "6t_single_ccd": { "tok_s": 37.64, "affinity_mask": "0x3F", "note": "cores 0-5 on CCD 0" },
+      "8t_cross_ccd": { "tok_s": 37.90, "note": "no affinity, OS-scheduled" }
+    }
+  },
+  "comparison_with_previous": {
+    "previous_build": "AVX512=1, VNNI=0, VBMI=0",
+    "current_build": "AVX512=1, VNNI=1, VBMI=1",
+    "0.7B_previous_tok_s": 89.65,
+    "0.7B_current_tok_s": 117.36,
+    "0.7B_delta_pct": 30.9,
+    "2.4B_previous_tok_s": 36.94,
+    "2.4B_current_tok_s": 36.56,
+    "2.4B_delta_pct": -1.0,
+    "8.0B_previous_tok_s": 15.03,
+    "8.0B_current_tok_s": 16.60,
+    "8.0B_delta_pct": 10.4
+  },
+  "analysis": {
+    "sanity_check": "PASS: 0.7B (117.36) > 2.4B (36.56) > 8.0B (16.60)",
+    "thread_scaling_observation": "Memory-bound: 4/8/12 threads nearly identical (~37 tok/s). 24 threads causes 60% degradation due to cross-CCD memory contention.",
+    "ccd_pinning_observation": "6t single-CCD (37.64) vs 8t cross-CCD (37.90): negligible difference (~0.7%). OS scheduler already optimizes for cache locality at low thread counts.",
+    "avx512_vnni_vbmi_impact": "Significant +30.9% improvement on 0.7B model. Minimal impact on 2.4B (-1.0%). Moderate +10.4% on 8.0B. The 0.7B model benefits most because its working set fits better in cache, allowing VNNI/VBMI instructions to have more impact vs memory bottleneck."
+  }
+}
