@@ -12,6 +12,24 @@ This benchmark suite measures key performance metrics for ARIA Protocol's 1-bit 
 - **Memory Usage**: Peak RAM consumption during inference
 - **Comparison**: Simulation mode vs bitnet.cpp (when available)
 
+## Before You Benchmark
+
+**Critical:** Read the full [Reproduction Guide](REPRODUCING.md) before running benchmarks. Key verification steps:
+
+1. **Check AVX-512 status** — Run `./llama-cli --version` and verify
+   `AVX512 = 1` in system_info. If `AVX512 = 0`, your build silently
+   fell back to AVX2 and results will be significantly slower.
+
+2. **Use 8 threads** — 1-bit inference is memory-bound, not compute-bound.
+   More threads causes cache contention and *reduces* performance
+   (documented: -11.6% at 24 threads on Ryzen 9 7845HX).
+
+3. **Warmup first** — Especially on laptop CPUs, run 500+ warmup tokens
+   before timing to avoid Turbo Boost frequency ramp-up artifacts.
+
+4. **Sanity check** — Larger models MUST be slower than smaller models.
+   Any inversion indicates a build or configuration problem.
+
 ## Methodology
 
 ### Test Environment
@@ -252,10 +270,20 @@ For ARIA Protocol v0.2.5 on typical consumer hardware:
 
 ### Factors Affecting Performance
 
-1. **CPU Architecture**: AVX2/AVX-512 support significantly improves performance
-2. **Memory Bandwidth**: Affects model loading and activation transfer
-3. **Thermal Throttling**: Extended benchmarks may show degradation
-4. **Background Processes**: Ensure minimal system load for accurate results
+1. **SIMD Level (AVX-512 vs AVX2)**: Verify `AVX512 = 1` in system_info.
+   A silent fallback to AVX2 halves SIMD width with no warning.
+2. **L1 Cache Load Bandwidth**: The bottleneck for 1-bit inference. Intel
+   Tiger Lake has native 512-bit L1 load paths (128 bytes/cycle); AMD
+   Zen 4 uses double-pumped 256-bit paths (64 bytes/cycle per core).
+3. **CCD Topology (AMD)**: Multi-CCD CPUs incur ~68ns cross-CCD latency.
+   Thread pinning to a single CCD may improve performance.
+4. **Memory Bandwidth (DRAM)**: DDR5-5600 (~83 GB/s) vs DDR4-3200
+   (~51 GB/s) affects multi-threaded scaling ceiling.
+5. **Thermal Throttling**: Laptop CPUs throttle under sustained load.
+   Monitor frequency during benchmarks.
+6. **Turbo Boost Inertia**: Lightweight models may not trigger max Turbo
+   on laptop CPUs, causing paradoxical slowdowns vs heavier models.
+7. **Background Processes**: Ensure minimal system load for accurate results.
 
 ## CI/CD Integration
 
