@@ -2,6 +2,37 @@
 
 Performance benchmarking suite for ARIA Protocol inference operations.
 
+## Latest Results — v0.5.5 Ecosystem Benchmark
+
+**9 models, 3 vendors, 6 tiers, 170 test runs** on AMD Ryzen 9 7845HX (12C/24T, Zen 4, 64 GB DDR5), Clang 20.1.8, AVX-512 VNNI+VBMI.
+
+### Throughput Summary (8 threads, 256 tokens, median of 5 runs)
+
+| Model | Params | Source | Type | tok/s | Energy* |
+|-------|--------|--------|------|-------|---------|
+| BitNet-b1.58-large | 0.7B | Microsoft | Post-quantized | **118.25** | ~15 mJ/tok |
+| Falcon-E-1B-Instruct | 1.0B | TII | **Native 1-bit** | **80.19** | ~23 mJ/tok |
+| Falcon3-1B-Instruct | 1.0B | TII | Post-quantized | 56.31 | ~33 mJ/tok |
+| BitNet-b1.58-2B-4T | 2.4B | Microsoft | Native 1-bit | 37.76 | ~49 mJ/tok |
+| Falcon-E-3B-Instruct | 3.0B | TII | **Native 1-bit** | **49.80** | ~37 mJ/tok |
+| Falcon3-3B-Instruct | 3.0B | TII | Post-quantized | 33.21 | ~55 mJ/tok |
+| Falcon3-7B-Instruct | 7.0B | TII | Post-quantized | 19.89 | ~92 mJ/tok |
+| Llama3-8B-1.58 | 8.0B | Microsoft | Post-quantized | 16.97 | ~108 mJ/tok |
+| Falcon3-10B-Instruct | 10.0B | TII | Post-quantized | 15.12 | ~121 mJ/tok |
+
+### Native vs Post-Quantized
+
+| Scale | Native (Falcon-E) | Post-Quantized (Falcon3) | Advantage |
+|-------|-------------------|--------------------------|-----------|
+| 1B | 80.19 tok/s | 56.31 tok/s | **+42%** |
+| 3B | 49.80 tok/s | 33.21 tok/s | **+50%** |
+
+Models natively trained in 1-bit consistently outperform post-training quantized equivalents.
+
+*Energy estimated via CPU-time × TDP/threads. Full data: [`results/benchmark_v055_ecosystem.json`](results/benchmark_v055_ecosystem.json)
+
+---
+
 ## Overview
 
 This benchmark suite measures key performance metrics for ARIA Protocol's 1-bit inference engine, including:
@@ -115,7 +146,7 @@ energy_per_token = (cpu_time * TDP_watts) / tokens_generated * 1000
 **How to improve accuracy:**
 
 - Use `--tdp <watts>` to specify your actual CPU TDP
-- For precise measurements, use external power meters or Intel RAPL interfaces
+- For precise measurements, use external power meters or platform RAPL interfaces
 - Compare relative values (same hardware) rather than absolute values
 
 **Why we still report it:**
@@ -227,7 +258,7 @@ benchmarks/results/
     "seed": 42
   },
   "environment": {
-    "cpu": "Intel Core i7-12700",
+    "cpu": "AMD Ryzen 9 7845HX",
     "cores": 12,
     "ram_gb": 32,
     "os": "Linux 5.15",
@@ -272,9 +303,9 @@ For ARIA Protocol v0.2.5 on typical consumer hardware:
 
 1. **SIMD Level (AVX-512 vs AVX2)**: Verify `AVX512 = 1` in system_info.
    A silent fallback to AVX2 halves SIMD width with no warning.
-2. **L1 Cache Load Bandwidth**: The bottleneck for 1-bit inference. Intel
-   Tiger Lake has native 512-bit L1 load paths (128 bytes/cycle); AMD
-   Zen 4 uses double-pumped 256-bit paths (64 bytes/cycle per core).
+2. **L1 Cache Load Bandwidth**: The bottleneck for 1-bit inference. CPUs
+   with native 512-bit L1 load paths (128 bytes/cycle) outperform those
+   using double-pumped 256-bit paths (64 bytes/cycle per core).
 3. **CCD Topology (AMD)**: Multi-CCD CPUs incur ~68ns cross-CCD latency.
    Thread pinning to a single CCD may improve performance.
 4. **Memory Bandwidth (DRAM)**: DDR5-5600 (~83 GB/s) vs DDR4-3200

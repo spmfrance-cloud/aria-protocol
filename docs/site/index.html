@@ -53,6 +53,10 @@
             </div>
             <div class="hero-stats">
                 <div class="stat">
+                    <span class="stat-value">9</span>
+                    <span class="stat-label">Models Validated</span>
+                </div>
+                <div class="stat">
                     <span class="stat-value">196</span>
                     <span class="stat-label">Tests Passing</span>
                 </div>
@@ -83,7 +87,7 @@
                         </svg>
                     </div>
                     <h3 class="card-title">CPU-Efficient</h3>
-                    <div class="card-metric">120 t/s</div>
+                    <div class="card-metric">118 t/s</div>
                     <p class="card-desc">1-bit ternary weights (-1, 0, +1) replace expensive multiplications with simple additions. Runs on any consumer CPU &mdash; no GPU required.</p>
                 </div>
                 <div class="card">
@@ -93,7 +97,7 @@
                         </svg>
                     </div>
                     <h3 class="card-title">Energy-Conscious</h3>
-                    <div class="card-metric">11 mJ/token</div>
+                    <div class="card-metric">15 mJ/token</div>
                     <p class="card-desc">99.6% energy reduction compared to cloud APIs. A single node uses ~241 kWh/year vs 25,550 kWh for cloud solutions.</p>
                 </div>
                 <div class="card">
@@ -140,51 +144,98 @@
     <section id="benchmarks" class="benchmarks">
         <div class="container">
             <h2 class="section-title">Real-World Benchmarks</h2>
-            <p class="section-subtitle">Tested on AMD Ryzen 9 7845HX &amp; Intel Core i7-11370H &mdash; 8 threads, subprocess backend, reproducible results.</p>
+            <p class="section-subtitle">9 models, 3 vendors, 170 test runs &mdash; AMD Ryzen 9 7845HX, 8 threads, AVX-512 VNNI+VBMI, reproducible results.</p>
 
             <div class="table-wrapper">
                 <table class="bench-table">
                     <thead>
                         <tr>
                             <th>Model</th>
-                            <th>Parameters</th>
-                            <th>AMD Ryzen 9</th>
-                            <th>Intel i7</th>
+                            <th>Params</th>
+                            <th>Source</th>
+                            <th>Type</th>
+                            <th>tok/s</th>
                             <th>Energy*</th>
-                            <th>Memory</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><strong>BitNet-b1.58-large</strong></td>
                             <td>0.7B</td>
-                            <td class="highlight">120.25 t/s</td>
-                            <td>61.81 t/s</td>
-                            <td>~11 mJ/token</td>
-                            <td>~400 MB</td>
+                            <td>Microsoft</td>
+                            <td>Post-quantized</td>
+                            <td class="highlight">118.25</td>
+                            <td>~15 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon-E-1B-Instruct</strong></td>
+                            <td>1.0B</td>
+                            <td>TII</td>
+                            <td class="highlight">Native 1-bit</td>
+                            <td class="highlight">80.19</td>
+                            <td>~23 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon3-1B-Instruct</strong></td>
+                            <td>1.0B</td>
+                            <td>TII</td>
+                            <td>Post-quantized</td>
+                            <td>56.31</td>
+                            <td>~33 mJ/tok</td>
                         </tr>
                         <tr>
                             <td><strong>BitNet-b1.58-2B-4T</strong></td>
                             <td>2.4B</td>
-                            <td>36.62 t/s</td>
-                            <td class="highlight">77.21 t/s</td>
-                            <td>~28 mJ/token</td>
-                            <td>~1.3 GB</td>
+                            <td>Microsoft</td>
+                            <td>Native 1-bit</td>
+                            <td>37.76</td>
+                            <td>~49 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon-E-3B-Instruct</strong></td>
+                            <td>3.0B</td>
+                            <td>TII</td>
+                            <td class="highlight">Native 1-bit</td>
+                            <td class="highlight">49.80</td>
+                            <td>~37 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon3-3B-Instruct</strong></td>
+                            <td>3.0B</td>
+                            <td>TII</td>
+                            <td>Post-quantized</td>
+                            <td>33.21</td>
+                            <td>~55 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon3-7B-Instruct</strong></td>
+                            <td>7.0B</td>
+                            <td>TII</td>
+                            <td>Post-quantized</td>
+                            <td>19.89</td>
+                            <td>~92 mJ/tok</td>
                         </tr>
                         <tr>
                             <td><strong>Llama3-8B-1.58</strong></td>
                             <td>8.0B</td>
-                            <td class="highlight">~15.03 t/s</td>
-                            <td>10.36 t/s</td>
-                            <td>~66 mJ/token</td>
-                            <td>~4.2 GB</td>
+                            <td>Microsoft</td>
+                            <td>Post-quantized</td>
+                            <td>16.97</td>
+                            <td>~108 mJ/tok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Falcon3-10B-Instruct</strong></td>
+                            <td>10.0B</td>
+                            <td>TII</td>
+                            <td>Post-quantized</td>
+                            <td>15.12</td>
+                            <td>~121 mJ/tok</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="table-note"><strong>Notable:</strong> The 4-core Intel i7 outperforms the 12-core AMD Ryzen 9 on the 2.4B model (+111%). Tiger Lake executes AVX-512 on native 512-bit units, while Zen 4 double-pumps as 2&times; 256-bit &micro;ops &mdash; 1-bit inference is ISA-sensitive, not just core-count-dependent.</p>
-            <p class="table-note" style="margin-top: 8px;">*Energy is estimated via CPU-time x TDP. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
-            <p class="table-note" style="margin-top: 8px; color: #8b949e;">Coming soon: Falcon3 1.58-bit (1B&ndash;10B), Falcon-Edge (outperforms Microsoft BitNet), PT-BitNet conversions</p>
+            <p class="table-note"><strong>Key finding:</strong> Models natively trained in 1-bit (Falcon-E) outperform post-training quantized models by <strong>+42% at 1B</strong> and <strong>+50% at 3B</strong>. This validates native ternary training over post-hoc quantization.</p>
+            <p class="table-note" style="margin-top: 8px;">*Energy is estimated via CPU-time &times; TDP/threads. See <a href="https://github.com/spmfrance-cloud/aria-protocol/blob/main/docs/benchmark-report.md" target="_blank" rel="noopener">benchmark report</a> for full methodology.</p>
 
             <!-- Cost Comparison -->
             <h3 class="subsection-title">3-Year Total Cost of Ownership</h3>
@@ -236,24 +287,31 @@
             <!-- Key Findings -->
             <div class="findings">
                 <div class="finding">
+                    <span class="finding-icon">&#x1F9EC;</span>
+                    <div>
+                        <strong>Native &gt; Post-Quantized</strong>
+                        <p>Falcon-E (native 1-bit) outperforms Falcon3 (post-quantized) by +42% at 1B and +50% at 3B.</p>
+                    </div>
+                </div>
+                <div class="finding">
                     <span class="finding-icon">&#x1F9F5;</span>
                     <div>
                         <strong>Thread Scaling</strong>
-                        <p>Optimal at 8 threads. 1-bit LUT kernels are memory-bound, not compute-bound.</p>
+                        <p>All 9 models peak at 6&ndash;8 threads. 1-bit inference is memory-bound, not compute-bound.</p>
                     </div>
                 </div>
                 <div class="finding">
-                    <span class="finding-icon">&#x1F500;</span>
+                    <span class="finding-icon">&#x1F4BB;</span>
                     <div>
-                        <strong>Parallel Inference</strong>
-                        <p>3 concurrent streams yield only +11% throughput &mdash; validates P2P distribution approach.</p>
+                        <strong>CCD Topology</strong>
+                        <p>Smaller models benefit from single-CCD pinning; 7B+ models show minimal CCD sensitivity.</p>
                     </div>
                 </div>
                 <div class="finding">
-                    <span class="finding-icon">&#x1F4CF;</span>
+                    <span class="finding-icon">&#x1F680;</span>
                     <div>
-                        <strong>Context Length</strong>
-                        <p>Stable performance with only -7% degradation from 32 to 1024 tokens.</p>
+                        <strong>10B on CPU</strong>
+                        <p>Falcon3-10B at 15 tok/s demonstrates viable interactive inference on consumer hardware.</p>
                     </div>
                 </div>
             </div>
