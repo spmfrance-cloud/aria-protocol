@@ -648,6 +648,11 @@ Activation × Weight = Lookup Table Operation
 
 ## 10. Appendix
 
+> **⚠️ Before reproducing these benchmarks**, please read our
+> [Reproduction Guide](../benchmarks/REPRODUCING.md). It documents critical
+> build verification steps and platform-specific pitfalls that can
+> significantly affect results.
+
 ### A. Benchmark Commands
 
 ```bash
@@ -694,6 +699,26 @@ All benchmark data is available in JSON format:
 4. Anthropic Claude Pricing (February 2025)
 5. NVIDIA A100/H100 Specifications
 6. EU Electricity Price Index (Eurostat)
+
+### E. Reproducing These Results
+
+For a complete guide to reproducing these benchmarks, including critical build verification steps and platform-specific pitfalls, see:
+
+**[benchmarks/REPRODUCING.md](../benchmarks/REPRODUCING.md)**
+
+Key points:
+- Verify AVX-512 is active (`AVX512 = 1` in system_info) before benchmarking
+- Use 8 threads for optimal performance (more threads = worse performance)
+- On laptop CPUs, use High Performance power plan and warmup passes
+- Energy figures are estimates (CPU-time × TDP), not direct measurements
+
+### F. Known Issues & Errata
+
+| Issue | Status | Details |
+|-------|--------|---------|
+| Intel i7-11370H 0.7B/2.4B inversion | Under review | 0.7B shows slower than 2.4B, suspected Turbo Boost inertia on laptop CPU |
+| AMD AVX-512 compilation not verified | Under review | Build may have used AVX2 fallback; re-benchmarking with verified -march=znver4 |
+| Cross-CCD impact not measured | Planned | 6-thread single-CCD pinning test pending on Ryzen 9 7845HX |
 
 ---
 
