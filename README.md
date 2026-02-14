@@ -91,8 +91,6 @@ print(response.choices[0].message.content)
 |---------|-------------|--------|
 | **Kademlia DHT** | Decentralized peer discovery replacing bootstrap servers | v0.6.0 |
 | **NAT Traversal** | STUN/TURN for nodes behind routers | v0.6.0 |
-| **Falcon3 1.58-bit** | 1B–10B instruction-tuned models from TII | v0.6.0 |
-| **Falcon-Edge** | Natively-trained 1-bit models (outperforms Microsoft BitNet) | v0.6.0 |
 | **Desktop ↔ Backend Bridge** | Live inference from desktop app via Python backend | v0.6.0 |
 | **Consensus Inference** | Multi-agent orchestrated inference across network nodes | v0.7.0 |
 | **KV-Cache NVMe Paging** | Extended context (500K+ tokens) via SSD offloading | v0.7.0–v0.8.0 |
@@ -104,48 +102,39 @@ print(response.choices[0].message.content)
 
 ## Benchmarks
 
-### v0.5.5 — Multi-architecture benchmarks (latest)
+### v0.5.5 — Complete 1-bit ecosystem benchmark (latest)
 
-Real-world performance across Intel and AMD platforms (subprocess backend calling llama-cli, 8 threads):
+First comprehensive multi-vendor 1-bit model benchmark. 9 models from 3 sources, 6 testing tiers, 170 test runs. All tests on identical hardware, same build, same day.
 
-**AMD Ryzen 9 7845HX** (12C/24T, AVX-512 double-pumped, 64 GB DDR5):
+**Hardware:** AMD Ryzen 9 7845HX (12C/24T, Zen 4, 64 GB DDR5)
+**Build:** bitnet.cpp + Clang 20.1.8, AVX-512 VNNI+VBMI enabled
+**Protocol:** 8 threads, 256 tokens, 5 runs per model, median selected
 
-| Model | Params | Avg tok/s | Avg latency | Avg energy* |
-|-------|--------|-----------|-------------|-------------|
-| BitNet-b1.58-large | 0.7B | **120.25** | 588 ms | 8,823 mJ |
-| BitNet-b1.58-2B-4T | 2.4B | **36.62** | 2,120 ms | 31,807 mJ |
-| Llama3-8B-1.58 | 8.0B | **~15.03** | — | ~66 mJ/token |
+| Model | Params | Source | Type | tok/s | Energy* |
+|-------|--------|--------|------|-------|---------|
+| BitNet-b1.58-large | 0.7B | Microsoft | Post-quantized | **118.25** | ~15 mJ/tok |
+| Falcon-E-1B-Instruct | 1.0B | TII | **Native 1-bit** | **80.19** | ~23 mJ/tok |
+| Falcon3-1B-Instruct | 1.0B | TII | Post-quantized | 56.31 | ~33 mJ/tok |
+| BitNet-b1.58-2B-4T | 2.4B | Microsoft | Native 1-bit | 37.76 | ~49 mJ/tok |
+| Falcon-E-3B-Instruct | 3.0B | TII | **Native 1-bit** | **49.80** | ~37 mJ/tok |
+| Falcon3-3B-Instruct | 3.0B | TII | Post-quantized | 33.21 | ~55 mJ/tok |
+| Falcon3-7B-Instruct | 7.0B | TII | Post-quantized | 19.89 | ~92 mJ/tok |
+| Llama3-8B-1.58 | 8.0B | Microsoft | Post-quantized | 16.97 | ~108 mJ/tok |
+| Falcon3-10B-Instruct | 10.0B | TII | Post-quantized | 15.12 | ~121 mJ/tok |
 
-**Intel Core i7-11370H** (4C/8T, AVX-512 native + VNNI, 16 GB DDR4):
-
-| Model | Params | Avg tok/s | Avg latency |
-|-------|--------|-----------|-------------|
-| BitNet-b1.58-large | 0.7B | **61.81** | 1,248 ms |
-| BitNet-b1.58-2B-4T | 2.4B | **77.21** | 657 ms |
-| Llama3-8B-1.58 | 8.0B | **10.36** | 7,874 ms |
-
-> **Notable finding:** The 4-core Intel i7 outperforms the 12-core AMD Ryzen 9 on the 2.4B model (+111%). Tiger Lake executes AVX-512 on native 512-bit units, while Zen 4 double-pumps as 2× 256-bit µops — this benefits the ternary LUT kernels in the newer BitNet-2B-4T architecture. 1-bit inference performance is ISA-sensitive, not just core-count-dependent.
-
-### v0.3.0 — Direct bitnet.cpp benchmarks
-
-Earlier benchmarks using bitnet.cpp directly (different methodology, not directly comparable):
-
-*AMD Ryzen 9 7845HX (8 threads):*
-
-| Model | Params | Tokens/s | Energy* |
-|-------|--------|----------|---------|
-| BitNet-b1.58-large | 0.7B | 89.65 t/s | ~11 mJ/token |
-| BitNet-b1.58-2B-4T | 2.4B | 36.94 t/s | ~28 mJ/token |
-| Llama3-8B-1.58 | 8.0B | 15.03 t/s | ~66 mJ/token |
-
-*Energy is estimated via CPU-time × TDP/threads — not a direct hardware measurement (no RAPL). See [benchmarks documentation](./benchmarks/README.md) for methodology and limitations.
+> **Key finding — Native vs post-quantized:** Models natively trained in 1-bit (Falcon-E)
+> outperform post-training quantized models by **+42% at 1B** and **+50% at 3B**.
+> This validates the importance of native ternary training over post-hoc quantization.
 
 Key findings:
-- **Thread scaling**: Optimal at 8 threads; 1-bit LUT kernels are memory-bound
-- **Parallel inference**: 3 concurrent streams yield only +11% throughput → validates P2P architecture
-- **Context length**: Stable performance (-7% degradation from 32 to 1024 tokens)
+- **Thread scaling**: All models peak at 6-8 threads; 1-bit inference is memory-bound, not compute-bound
+- **CCD topology**: Smaller models benefit from single-CCD pinning; 7B+ models show minimal CCD sensitivity
+- **Sustained throughput**: Performance remains stable across generation lengths (32-2048 tokens)
+- **10B on CPU**: Falcon3-10B at 15 tok/s demonstrates viable interactive inference on consumer hardware
 
-**Note:** Throughput figures are *generation speed* (decode), not prefill. This is what the user perceives during inference.
+*Energy is estimated via CPU-time x TDP/threads — not a direct hardware measurement. See [benchmark methodology](./benchmarks/README.md) for details.
+
+Full 6-tier results: [`benchmarks/results/benchmark_v055_ecosystem.json`](./benchmarks/results/benchmark_v055_ecosystem.json)
 
 ### Total Cost of Ownership (3 years, 10M tokens/day)
 
@@ -248,29 +237,27 @@ See [desktop/README.md](desktop/README.md) for build instructions and developmen
 | Memory (2B model) | 4.0 GB | 0.4 GB | **10x less** |
 | Energy (CPU) | 150 mJ/inference | 28 mJ/inference | **5x less** |
 | Hardware | GPU ($10K+) | Any CPU | **Free** |
-| Architectures tested | — | Intel + AMD | **Both x86** |
+| Models validated | 1-3 per vendor | 9 across 3 vendors | **Ecosystem** |
 
 ---
 
 ## Supported Models
 
-### Currently validated
+ARIA supports 1-bit quantized models compatible with [bitnet.cpp](https://github.com/microsoft/BitNet):
 
-| Model | Params | AMD Ryzen 9 | Intel i7 | Format | Source |
-|-------|--------|-------------|----------|--------|--------|
-| BitNet-b1.58-large | 0.7B | 120.25 t/s | 61.81 t/s | GGUF | Microsoft Research |
-| BitNet-b1.58-2B-4T | 2.4B | 36.62 t/s | 77.21 t/s | GGUF | Microsoft Research |
-| Llama3-8B-1.58 | 8.0B | ~15.03 t/s | 10.36 t/s | GGUF | Microsoft Research |
+| Model | Params | Source | License | HuggingFace |
+|-------|--------|--------|---------|-------------|
+| BitNet-b1.58-large | 0.7B | Microsoft Research | MIT | [1bitLLM/bitnet_b1_58-large](https://huggingface.co/1bitLLM/bitnet_b1_58-large) |
+| Falcon-E-1B-Instruct | 1.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon-E-1B-Instruct-GGUF](https://huggingface.co/tiiuae/Falcon-E-1B-Instruct-GGUF) |
+| Falcon3-1B-Instruct-1.58bit | 1.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon3-1B-Instruct-1.58bit-GGUF](https://huggingface.co/tiiuae/Falcon3-1B-Instruct-1.58bit-GGUF) |
+| BitNet-b1.58-2B-4T | 2.4B | Microsoft Research | MIT | [microsoft/BitNet-b1.58-2B-4T](https://huggingface.co/microsoft/BitNet-b1.58-2B-4T) |
+| Falcon-E-3B-Instruct | 3.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon-E-3B-Instruct-GGUF](https://huggingface.co/tiiuae/Falcon-E-3B-Instruct-GGUF) |
+| Falcon3-3B-Instruct-1.58bit | 3.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon3-3B-Instruct-1.58bit-GGUF](https://huggingface.co/tiiuae/Falcon3-3B-Instruct-1.58bit-GGUF) |
+| Falcon3-7B-Instruct-1.58bit | 7.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon3-7B-Instruct-1.58bit-GGUF](https://huggingface.co/tiiuae/Falcon3-7B-Instruct-1.58bit-GGUF) |
+| Llama3-8B-1.58 | 8.0B | Microsoft/Community | Llama 3 | [HF1BitLLM/Llama3-8B-1.58-100B-tokens](https://huggingface.co/HF1BitLLM/Llama3-8B-1.58-100B-tokens) |
+| Falcon3-10B-Instruct-1.58bit | 10.0B | TII (Abu Dhabi) | Apache 2.0 | [tiiuae/Falcon3-10B-Instruct-1.58bit-GGUF](https://huggingface.co/tiiuae/Falcon3-10B-Instruct-1.58bit-GGUF) |
 
-### Coming in v0.6.0
-
-| Model | Params | Format | Source | Notes |
-|-------|--------|--------|--------|-------|
-| Falcon3-1B-Instruct-1.58bit | 1B | GGUF | TII (Abu Dhabi) | Ready to integrate |
-| Falcon3-3B-Instruct-1.58bit | 3B | GGUF | TII (Abu Dhabi) | Ready to integrate |
-| Falcon3-7B-Instruct-1.58bit | 7B | GGUF | TII (Abu Dhabi) | Ready to integrate |
-| Falcon3-10B-Instruct-1.58bit | 10B | GGUF | TII (Abu Dhabi) | Most capable planned model |
-| Falcon-Edge 1B/3B | 1–3B | Native 1-bit | TII (Abu Dhabi) | Outperforms Microsoft BitNet (53.17% vs 51.54%) |
+All models use I2_S quantization (ternary weights: {-1, 0, +1}).
 
 ### Future (v0.7.0+)
 
@@ -513,7 +500,6 @@ make test-cov
 
 ### Areas to Contribute
 
-- **Falcon3/Edge integration** — Add TII's 1-bit models to the model catalog
 - **KV-Cache NVMe** — Prototype SSD-based context extension
 - **Consensus Inference** — Multi-agent orchestration protocols
 - **Mobile support** - React Native or native iOS/Android apps

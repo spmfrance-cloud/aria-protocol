@@ -36,14 +36,9 @@ cmake -DGGML_AVX512=ON -DGGML_AVX512_VBMI=ON -DGGML_AVX512_VNNI=ON \
       -DCMAKE_CXX_FLAGS="-march=znver4" ..
 ```
 
-For Intel Tiger Lake (11th gen):
+For other AVX-512-capable CPUs, use the appropriate `-march` flag for your architecture (e.g., `-march=tigerlake`, `-march=alderlake`, `-march=sapphirerapids`).
 
-```bash
-cmake -DGGML_AVX512=ON -DGGML_AVX512_VBMI=ON -DGGML_AVX512_VNNI=ON \
-      -DCMAKE_CXX_FLAGS="-march=tigerlake" ..
-```
-
-**Important**: Both AMD Zen 4 and Intel Tiger Lake support the full AVX-512 instruction set including VNNI, VBMI, and BITALG. The performance difference between these architectures comes from L1 data cache load bandwidth (native 512-bit paths on Tiger Lake vs double-pumped 256-bit on Zen 4), not from missing instruction support.
+**Important**: Performance depends on AVX-512 execution width. CPUs with native 512-bit execution units will outperform those that double-pump 256-bit paths. This is a microarchitecture difference, not an instruction set issue.
 
 ### Step 3 — Sanity Check Your Results
 
@@ -75,8 +70,8 @@ done
 # AMD Ryzen 9 7845HX: 45W (mobile) or 54W (sustained)
 python benchmarks/run_benchmark.py --tdp 54 --output results.json
 
-# Intel i7-11370H: 35W
-python benchmarks/run_benchmark.py --tdp 35 --output results.json
+# Adjust for your CPU's TDP
+python benchmarks/run_benchmark.py --tdp <your_tdp_watts> --output results.json
 ```
 
 ## Understanding Thread Scaling
@@ -114,7 +109,7 @@ We are actively investigating whether 6 threads on a single CCD outperforms 8 th
 
 ### Laptop CPUs (H-series / Mobile)
 
-Laptop CPUs with aggressive power management (Intel H-series, AMD HS/HX) may exhibit **Turbo Boost inertia**:
+Laptop CPUs with aggressive power management may exhibit **Turbo Boost inertia**:
 
 - **Problem**: Lightweight models (0.7B) may complete inference passes so quickly that the CPU never ramps to full Turbo frequency. Heavier models (2.4B+) sustain load long enough to trigger maximum boost. This can cause paradoxical results where larger models appear faster.
 - **Fix**:
@@ -167,15 +162,21 @@ Ensure:
 
 ## Reference Results
 
-Our published results (AMD Ryzen 9 7845HX, AVX-512, 8 threads):
+Our published results (AMD Ryzen 9 7845HX, AVX-512 VNNI+VBMI, 8 threads, v0.5.5 ecosystem benchmark):
 
-| Model | Params | tok/s | Energy (mJ/token) |
-|-------|--------|-------|--------------------|
-| BitNet-b1.58-large | 0.7B | 89.65 | ~11 |
-| BitNet-b1.58-2B-4T | 2.4B | 36.94 | ~28 |
-| Llama3-8B-1.58 | 8.0B | 15.03 | ~66 |
+| Model | Params | Type | tok/s | Energy* (mJ/tok) |
+|-------|--------|------|-------|--------------------|
+| BitNet-b1.58-large | 0.7B | Post-quantized | 118.25 | ~15 |
+| Falcon-E-1B-Instruct | 1.0B | Native 1-bit | 80.19 | ~23 |
+| Falcon3-1B-Instruct | 1.0B | Post-quantized | 56.31 | ~33 |
+| BitNet-b1.58-2B-4T | 2.4B | Native 1-bit | 37.76 | ~49 |
+| Falcon-E-3B-Instruct | 3.0B | Native 1-bit | 49.80 | ~37 |
+| Falcon3-3B-Instruct | 3.0B | Post-quantized | 33.21 | ~55 |
+| Falcon3-7B-Instruct | 7.0B | Post-quantized | 19.89 | ~92 |
+| Llama3-8B-1.58 | 8.0B | Post-quantized | 16.97 | ~108 |
+| Falcon3-10B-Instruct | 10.0B | Post-quantized | 15.12 | ~121 |
 
-**Known issue**: Our Intel i7-11370H results are under review due to a suspected Turbo Boost anomaly. Updated results will be published after re-benchmarking with the corrected protocol described above.
+Full data: [`results/benchmark_v055_ecosystem.json`](results/benchmark_v055_ecosystem.json)
 
 ## Contributing Benchmark Results
 
