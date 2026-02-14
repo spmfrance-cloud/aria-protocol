@@ -158,3 +158,15 @@ node_data/
 
 # Allow desktop src lib (not Python lib)
 !desktop/src/lib/
+
+# === AI TOOLING (NEVER COMMIT) ===
+CLAUDE.md
+.claude/
+.mcp.json
+claude_desktop_config.json
+
+# === INTERNAL COMMUNICATION (NEVER COMMIT) ===
+PUBLISH_*.md
+*_PROMPT.md
+docs/PUBLICATION_POSTS.md
+screenshots/
