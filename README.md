@@ -579,6 +579,12 @@ pytest tests/test_node.py -v
 
 ---
 
+## Development Tools
+
+This project uses AI-assisted development (Claude Code) for code generation, testing, and documentation. All code is reviewed, tested (196 tests), and validated by the author. AI contributions are attributed via `Co-Authored-By` trailers in commit history.
+
+---
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
