@@ -12,14 +12,10 @@ import ctypes
 import ctypes.util
 import hashlib
 import logging
-import math
-import os
 import platform
-import struct
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from aria.model_manager import ModelManager, SUPPORTED_MODELS
 
@@ -332,9 +328,9 @@ class BitNetNative:
         config = self._config
         if config:
             # Rough estimate: larger models are slower
-            base_delay = config.num_layers * 0.0001
+            _base_delay = config.num_layers * 0.0001
         else:
-            base_delay = 0.001
+            _base_delay = 0.001
 
         # Generate deterministic "tokens"
         words = [

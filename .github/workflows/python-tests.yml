@@ -74,5 +74,5 @@ jobs:
 
       - name: Install and run linter
         run: |
-          pip install ruff
+          pip install ruff==0.15.1
           ruff check aria/ tests/

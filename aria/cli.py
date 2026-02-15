@@ -18,8 +18,6 @@ from typing import Optional
 from aria import __version__
 from aria.node import ARIANode
 from aria.consent import ARIAConsent, TaskType
-from aria.ledger import ProvenanceLedger
-from aria.network import ARIANetwork, PeerInfo
 from aria.api import ARIAOpenAIServer
 from aria.dashboard import ARIADashboard
 from aria.model_manager import ModelManager, SUPPORTED_MODELS
@@ -197,7 +195,7 @@ class NodeManager:
         )
 
         protocol = "wss" if use_tls else "ws"
-        print(f"ARIA Node Starting...")
+        print("ARIA Node Starting...")
         print(f"  Node ID: {self.node.node_id}")
         print(f"  Port: {port}")
         print(f"  Protocol: {protocol}")
@@ -205,7 +203,7 @@ class NodeManager:
         print(f"  CPU Limit: {cpu_percent}%")
         print(f"  Schedule: {schedule}")
         if use_tls:
-            print(f"  TLS: Enabled")
+            print("  TLS: Enabled")
         print()
 
         # Save state
@@ -231,7 +229,7 @@ class NodeManager:
 
         # Connect to peers if specified
         if peers:
-            print(f"\nConnecting to peers...")
+            print("\nConnecting to peers...")
             await self.node.connect_to_peers(peers)
             print(f"  Connected to {len(self.node.network.peers)} peers")
 
@@ -306,7 +304,7 @@ def cmd_model_download(args):
     """Handle 'aria model download' command."""
     model_name = args.name
 
-    print(f"ARIA Model Download")
+    print("ARIA Model Download")
     print("=" * 50)
     print(f"  Model: {model_name}")
     print()
@@ -316,7 +314,7 @@ def cmd_model_download(args):
     try:
         path = manager.download_model(model_name, force=args.force)
         print()
-        print(f"Model downloaded successfully!")
+        print("Model downloaded successfully!")
         print(f"  Location: {path}")
         return 0
     except ValueError as e:
@@ -520,7 +518,7 @@ def cmd_infer(args):
     model = args.model
     max_tokens = args.max_tokens
 
-    print(f"Sending inference request...")
+    print("Sending inference request...")
     print(f"  Model: {model}")
     print(f"  Query: {query[:50]}{'...' if len(query) > 50 else ''}")
     print(f"  Max Tokens: {max_tokens}")
@@ -698,8 +696,8 @@ def cmd_ledger_verify(args):
         print("Verification Result: VALID")
         print("=" * 50)
         print(f"  Chain Length:  {chain_length} blocks")
-        print(f"  Status:        All blocks verified")
-        print(f"  Hash Links:    Intact")
+        print("  Status:        All blocks verified")
+        print("  Hash Links:    Intact")
         print()
         print("  The ledger chain is cryptographically valid.")
         return 0
@@ -728,8 +726,8 @@ class APIServerManager:
             node_port=node_port
         )
 
-        print(f"ARIA OpenAI-Compatible API Server")
-        print(f"=" * 50)
+        print("ARIA OpenAI-Compatible API Server")
+        print("=" * 50)
         print(f"  API Port:      {port}")
         print(f"  Node Address:  {node_host}:{node_port}")
         print()
@@ -749,7 +747,7 @@ class APIServerManager:
                 }
                 await ws.send(json.dumps(msg))
                 await asyncio.wait_for(ws.recv(), timeout=5)
-                print(f"  Node Status:   Connected")
+                print("  Node Status:   Connected")
         except (ConnectionError, asyncio.TimeoutError, OSError) as e:
             print(f"  Node Status:   Not reachable ({e})")
             print()
@@ -855,7 +853,7 @@ def cmd_api_status(args):
             node_status = health.get("node", {}).get("status", "unknown")
             print(f"  Node Status:  {node_status}")
     except (ConnectionError, OSError, json.JSONDecodeError, ValueError):
-        print(f"  Node Status:  (could not check)")
+        print("  Node Status:  (could not check)")
 
     print()
     print("Endpoints:")
@@ -881,8 +879,8 @@ class DashboardManager:
             node_port=node_port
         )
 
-        print(f"ARIA Protocol Monitoring Dashboard")
-        print(f"=" * 50)
+        print("ARIA Protocol Monitoring Dashboard")
+        print("=" * 50)
         print(f"  Dashboard:     http://localhost:{port}")
         print(f"  Node Address:  {node_host}:{node_port}")
         print()
@@ -902,7 +900,7 @@ class DashboardManager:
                 }
                 await ws.send(json.dumps(msg))
                 await asyncio.wait_for(ws.recv(), timeout=5)
-                print(f"  Node Status:   Connected")
+                print("  Node Status:   Connected")
         except (ConnectionError, asyncio.TimeoutError, OSError) as e:
             print(f"  Node Status:   Not reachable ({e})")
             print()

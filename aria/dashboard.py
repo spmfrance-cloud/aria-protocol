@@ -12,8 +12,7 @@ import json
 import logging
 import time
 from collections import deque
-from datetime import datetime
-from typing import Optional, Dict, List, Any, Set
+from typing import Optional, Dict, List, Set
 
 from aiohttp import web, WSMsgType
 import websockets
@@ -89,7 +88,7 @@ class ARIADashboard:
         # Start background task for pushing updates
         asyncio.create_task(self._push_updates())
 
-        print(f"[ARIA Dashboard] Monitoring dashboard started")
+        print("[ARIA Dashboard] Monitoring dashboard started")
         print(f"[ARIA Dashboard] Open http://localhost:{self.port} in your browser")
         print(f"[ARIA Dashboard] Connected to ARIA node at {self.node_uri}")
 
@@ -108,7 +107,7 @@ class ARIADashboard:
         if self.runner:
             await self.runner.cleanup()
 
-        print(f"[ARIA Dashboard] Server stopped")
+        print("[ARIA Dashboard] Server stopped")
 
     async def _get_node_stats(self) -> Dict:
         """Fetch stats from the ARIA node."""

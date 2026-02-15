@@ -22,10 +22,9 @@ import time
 import struct
 import math
 import base64
-import json
 import logging
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Tuple
 from aria.ledger import InferenceRecord
 
 logger = logging.getLogger(__name__)
@@ -430,7 +429,7 @@ class InferenceEngine:
             model_id=model_id,
             layer_start=shard_start,
             layer_end=shard_end,
-            size_bytes=sum(l.memory_bytes for l in layers),
+            size_bytes=sum(layer.memory_bytes for layer in layers),
             checksum=hashlib.sha256(model_id.encode()).hexdigest()[:16],
         )
         self.loaded_shards[shard.shard_id] = shard
@@ -763,7 +762,7 @@ class InferenceEngine:
             ),
             "loaded_models": list(self.layers.keys()),
             "loaded_shards": len(self.loaded_shards),
-            "total_layers": sum(len(l) for l in self.layers.values()),
+            "total_layers": sum(len(v) for v in self.layers.values()),
             "total_memory_bytes": sum(s.size_bytes for s in self.loaded_shards.values()),
             "total_inferences": self.total_inferences,
             "total_energy_mj": self.total_energy_mj,

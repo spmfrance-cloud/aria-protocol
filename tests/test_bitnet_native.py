@@ -1,16 +1,14 @@
 """Tests for the native BitNet integration and model manager."""
 
-import json
-import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria.bitnet_native import BitNetNative, BitNetConfig
-from aria.model_manager import ModelManager, SUPPORTED_MODELS, ModelInfo
+from aria.bitnet_native import BitNetNative
+from aria.model_manager import ModelManager
 from aria.inference import InferenceEngine
 
 

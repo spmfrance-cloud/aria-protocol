@@ -1,7 +1,5 @@
 """Tests for the ARIA consent module."""
 
-import pytest
-from datetime import datetime
 from aria.consent import ARIAConsent, TaskType
 
 

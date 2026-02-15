@@ -19,7 +19,6 @@ import asyncio
 import json
 import hashlib
 import time
-import random
 import logging
 import re
 import ssl
@@ -62,7 +61,7 @@ def _load_cryptography():
         CRYPTOGRAPHY_AVAILABLE = False
     return CRYPTOGRAPHY_AVAILABLE
 
-from aria.consent import ARIAConsent, TaskType
+from aria.consent import ARIAConsent, TaskType  # noqa: E402
 
 
 logging.basicConfig(level=logging.INFO)
@@ -197,7 +196,7 @@ def create_ssl_context(
 
 
 # Import ipaddress for certificate generation
-import ipaddress
+import ipaddress  # noqa: E402
 
 
 @dataclass
@@ -488,7 +487,6 @@ class ARIANetwork:
 
     async def _handle_connection(self, websocket):
         """Handle incoming WebSocket connections."""
-        peer_id = None
         try:
             async for message in websocket:
                 response = await self.handle_message(message)
@@ -500,7 +498,7 @@ class ARIANetwork:
                         msg = json.loads(message)
                         sender_id = msg.get("sender_id")
                         if sender_id and sender_id not in self._connections:
-                            peer_id = sender_id
+                            self._connections[sender_id] = websocket
                     except (json.JSONDecodeError, AttributeError):
                         pass
 

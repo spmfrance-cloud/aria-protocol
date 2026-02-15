@@ -6,13 +6,9 @@ Covers:
 - POST /v1/chat/completions with mocked subprocess backend
 """
 
-import json
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from aiohttp import web
-from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 
 from aria import __version__
 

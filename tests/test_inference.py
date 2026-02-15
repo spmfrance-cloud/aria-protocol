@@ -1,6 +1,5 @@
 """Tests for the ARIA inference module."""
 
-import pytest
 from aria.inference import ModelShard, InferenceResult, TernaryLayer, InferenceEngine
 
 

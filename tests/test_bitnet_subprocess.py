@@ -1,14 +1,16 @@
 """Tests for the BitNet subprocess inference backend."""
 
-import platform
+import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from aria.bitnet_subprocess import BitNetSubprocess, MODEL_GGUF_MAP, MODEL_METADATA
 from aria.inference import InferenceEngine, InferenceResult
+
+LLAMA_CLI_AVAILABLE = shutil.which("llama-cli") is not None
 
 
 # =============================================================================
@@ -300,6 +302,7 @@ class TestBitNetSubprocessStatsParsing:
 # =============================================================================
 
 
+@pytest.mark.skipif(not LLAMA_CLI_AVAILABLE, reason="llama-cli not available in CI")
 class TestBitNetSubprocessInference:
     """Tests for inference execution with mocked subprocess."""
 
@@ -544,6 +547,7 @@ class TestBitNetSubprocessGetStats:
 class TestInferenceEngineSubprocessIntegration:
     """Tests for InferenceEngine with subprocess backend mode."""
 
+    @pytest.mark.skipif(not LLAMA_CLI_AVAILABLE, reason="llama-cli not available in CI")
     def test_subprocess_backend_mode(self):
         """Engine should accept 'subprocess' as backend mode."""
         engine = InferenceEngine(node_id="test", backend="subprocess")

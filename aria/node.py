@@ -6,18 +6,16 @@ Join the network. Contribute compute. Build reputation.
 MIT License - Anthony MURGO, 2026
 """
 
-import asyncio
-import hashlib
 import json
 import time
 import uuid
 from pathlib import Path
 from typing import Optional, Dict, List
 
-from aria.consent import ARIAConsent, TaskType
-from aria.network import ARIANetwork, PeerInfo, InferenceRequest
+from aria.consent import ARIAConsent
+from aria.network import ARIANetwork, PeerInfo
 from aria.inference import InferenceEngine, InferenceResult, PipelineState
-from aria.ledger import ProvenanceLedger, InferenceRecord
+from aria.ledger import ProvenanceLedger
 from aria.proof import ProofOfUsefulWork, ProofOfSobriety
 
 
@@ -248,7 +246,6 @@ class ARIANode:
         and either returns the final result or forwards to the next node.
         """
         state_dict = data.get("state", {})
-        is_replica = data.get("is_replica", False)
 
         try:
             # Deserialize pipeline state
@@ -445,7 +442,7 @@ class ARIANode:
 
         # 2. Record provenance
         record = result.to_provenance_record(query)
-        record_hash = self.ledger.add_record(record)
+        self.ledger.add_record(record)
 
         # 3. Submit Proof of Useful Work
         proof = self.pouw.create_proof(

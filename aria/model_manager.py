@@ -8,9 +8,7 @@ in ~/.aria/models/.
 MIT License - Anthony MURGO, 2026
 """
 
-import hashlib
 import json
-import os
 import shutil
 import urllib.request
 import urllib.error

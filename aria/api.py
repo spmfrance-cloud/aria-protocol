@@ -22,7 +22,6 @@ from aria.bitnet_subprocess import (
     run_inference,
     check_backend_status,
     list_available_models,
-    BitNetSubprocess,
 )
 
 logger = logging.getLogger(__name__)
@@ -115,15 +114,15 @@ class ARIAOpenAIServer:
         self.is_running = True
         self.start_time = time.time()
 
-        print(f"[ARIA API] OpenAI-compatible server started")
+        print("[ARIA API] OpenAI-compatible server started")
         print(f"[ARIA API] Listening on http://0.0.0.0:{self.port}")
         print(f"[ARIA API] Connected to ARIA node at {self.node_uri}")
-        print(f"[ARIA API] Endpoints:")
-        print(f"           POST /v1/chat/completions")
-        print(f"           GET  /v1/models")
-        print(f"           GET  /v1/status")
-        print(f"           GET  /v1/energy")
-        print(f"           GET  /health")
+        print("[ARIA API] Endpoints:")
+        print("           POST /v1/chat/completions")
+        print("           GET  /v1/models")
+        print("           GET  /v1/status")
+        print("           GET  /v1/energy")
+        print("           GET  /health")
 
     async def stop(self):
         """Stop the API server."""
@@ -134,7 +133,7 @@ class ARIAOpenAIServer:
             await self.runner.cleanup()
 
         self.is_running = False
-        print(f"[ARIA API] Server stopped")
+        print("[ARIA API] Server stopped")
 
     def _add_cors_headers(self, response: web.Response) -> web.Response:
         """Add CORS headers to response."""
@@ -412,7 +411,6 @@ class ARIAOpenAIServer:
             local_models = list_available_models()
             local_ids = {m["id"] for m in local_models}
 
-            created_time = int(time.time())
             models = []
 
             # Add all default models, marking local ones as ready

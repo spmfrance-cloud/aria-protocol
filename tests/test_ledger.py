@@ -1,6 +1,5 @@
 """Tests for the ARIA ledger module."""
 
-import pytest
 import time
 from aria.ledger import InferenceRecord, Block, ProvenanceLedger
 
